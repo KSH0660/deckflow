@@ -1,0 +1,112 @@
+# ------------------
+# Python artifacts
+# ------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Compiled / build artifacts
+*.so
+*.pyd
+*.dll
+*.dylib
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Bytecode & cache
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.pickle
+*.pyo
+*.pyd
+*.pyc
+*.pyo
+*.pyd
+*.pyo
+*.pyd
+*.pyc
+*.pyo
+
+# ------------------
+# Testing & coverage
+# ------------------
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.cache/
+.tox/
+
+# ------------------
+# Editor / IDE
+# ------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*.orig
+
+# ------------------
+# OS specific
+# ------------------
+.DS_Store
+Thumbs.db
+
+# ------------------
+# Environments / config
+# ------------------
+.env
+.env.*
+!.env.example
+
+# ------------------
+# Logs
+# ------------------
+*.log
+logs/
+
+# ------------------
+# Data & notebooks
+# ------------------
+*.sqlite3
+*.db
+notebooks/.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# ------------------
+# Docker
+# ------------------
+*.pid
+*.seed
+docker-compose.override.yml
+
+# ------------------
+# Redis / Postgres / misc runtime
+# ------------------
+*.rdb
+*.dump
+*.sql
+*.pid
+
+# ------------------
+# MyPy / Ruff / Black caches
+# ------------------
+.mypy_cache/
+.ruff_cache/
+.black/
+
+# ------------------
+# Pre-commit
+# ------------------
+.pre-commit-config.yaml~
+.pre-commit-hooks.yaml~
