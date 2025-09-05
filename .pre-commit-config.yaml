@@ -20,4 +20,4 @@ repos:
     rev: v0.5.2
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix, "--select", "I"]
+        args: [--fix, --exit-non-zero-on-fix]

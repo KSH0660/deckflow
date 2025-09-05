@@ -298,7 +298,7 @@ if __name__ == "__main__":
     import asyncio
     import time
 
-    from app.adapter.llm.langchain import LangchainLLM
+    from app.adapter.llm.langchain_client import LangchainLLM
     from app.logging import configure_logging
 
     configure_logging(level="DEBUG")

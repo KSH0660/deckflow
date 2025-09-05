@@ -1,5 +1,4 @@
 import asyncio
-import json
 import time
 from datetime import datetime
 from uuid import UUID
@@ -30,7 +29,7 @@ def main():
         )
 
         if repo_type == "SQLite":
-            db_path = st.text_input("Database Path", value="decks.db")
+            st.text_input("Database Path", value="decks.db", key="db_path")
 
         st.divider()
         st.markdown("### 📝 How to use")
@@ -88,7 +87,8 @@ def generate_presentation(prompt: str, repo_type: str):
         if repo_type == "SQLite":
             from app.adapter.db import SQLiteRepository
 
-            repo = SQLiteRepository()
+            db_path = st.session_state.get("db_path", "decks.db")
+            repo = SQLiteRepository(db_path)
         else:
             repo = current_repo()
 
@@ -206,7 +206,7 @@ def display_recent_decks():
                 st.write(f"📝 {deck['prompt'][:50]}...")
                 st.write(f"⏱️ {deck['generation_time']:.1f}s")
 
-                if st.button(f"View", key=f"view_{deck['deck_id']}"):
+                if st.button("View", key=f"view_{deck['deck_id']}"):
                     repo = current_repo()
                     display_deck_content(deck["deck_id"], repo)
 

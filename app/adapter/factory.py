@@ -1,5 +1,5 @@
 from app.adapter.db import InMemoryRepository
-from app.adapter.llm.langchain import LangchainLLM
+from app.adapter.llm.langchain_client import LangchainLLM
 
 
 def current_llm():

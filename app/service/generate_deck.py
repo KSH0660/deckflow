@@ -87,7 +87,7 @@ if __name__ == "__main__":
     import time
     from typing import Any
 
-    from app.adapter.llm.langchain import LangchainLLM
+    from app.adapter.llm.langchain_client import LangchainLLM
     from app.logging import configure_logging, get_logger
 
     logger = get_logger(__name__)
