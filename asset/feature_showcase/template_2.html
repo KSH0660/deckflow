@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Showcase Template 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-black text-white flex px-16 py-12">
+        <!-- Left side - Main feature -->
+        <div class="w-1/2 flex flex-col justify-center pr-12">
+            <div class="mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-4">
+                        <span class="text-2xl text-black font-bold">★</span>
+                    </div>
+                    <span class="text-yellow-400 font-bold uppercase tracking-wider">주요 기능</span>
+                </div>
+                
+                <h1 class="text-5xl font-bold mb-6 leading-tight">{{main_feature_title}}</h1>
+                <p class="text-xl text-gray-300 mb-8 leading-relaxed">{{main_feature_description}}</p>
+                
+                <!-- Key points -->
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <span class="text-black text-sm font-bold">✓</span>
+                        </div>
+                        <span class="text-gray-300">{{main_point_1}}</span>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <span class="text-black text-sm font-bold">✓</span>
+                        </div>
+                        <span class="text-gray-300">{{main_point_2}}</span>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                            <span class="text-black text-sm font-bold">✓</span>
+                        </div>
+                        <span class="text-gray-300">{{main_point_3}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-cyan-400">{{stat_1_value}}</div>
+                    <div class="text-gray-400 text-sm">{{stat_1_label}}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-400">{{stat_2_value}}</div>
+                    <div class="text-gray-400 text-sm">{{stat_2_label}}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side - Supporting features -->
+        <div class="w-1/2 flex flex-col justify-center pl-12 space-y-8">
+            <!-- Feature card 1 -->
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-cyan-500 transition-colors duration-300">
+                <div class="flex items-start">
+                    <div class="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                        <span class="text-2xl text-white">{{support_1_icon}}</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-cyan-400">{{support_1_title}}</h3>
+                        <p class="text-gray-300 text-sm leading-relaxed">{{support_1_description}}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature card 2 -->
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-colors duration-300">
+                <div class="flex items-start">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                        <span class="text-2xl text-white">{{support_2_icon}}</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-purple-400">{{support_2_title}}</h3>
+                        <p class="text-gray-300 text-sm leading-relaxed">{{support_2_description}}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature card 3 -->
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-colors duration-300">
+                <div class="flex items-start">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                        <span class="text-2xl text-white">{{support_3_icon}}</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-green-400">{{support_3_title}}</h3>
+                        <p class="text-gray-300 text-sm leading-relaxed">{{support_3_description}}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CTA -->
+            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl p-6 text-center text-black">
+                <h3 class="text-xl font-bold mb-2">{{cta_title}}</h3>
+                <p class="text-orange-900">{{cta_description}}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

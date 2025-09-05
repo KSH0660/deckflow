@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Template 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col px-16 py-12">
+        <!-- Header -->
+        <div class="mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">{{title}}</h1>
+            <div class="flex items-center">
+                <div class="w-8 h-1 bg-purple-500"></div>
+                <span class="ml-4 text-gray-600">{{subtitle}}</span>
+            </div>
+        </div>
+        
+        <!-- Comparison table -->
+        <div class="flex-1">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full">
+                <!-- Table header -->
+                <div class="bg-gray-800 text-white p-6">
+                    <div class="grid grid-cols-3 gap-8">
+                        <div class="text-lg font-bold">비교 항목</div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-400">{{option_a_name}}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-400">{{option_b_name}}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Table rows -->
+                <div class="divide-y divide-gray-200">
+                    <div class="grid grid-cols-3 gap-8 p-6 hover:bg-gray-50">
+                        <div class="font-semibold text-gray-900 flex items-center">
+                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-white text-sm">💰</span>
+                            </div>
+                            {{criteria_1}}
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                                {{option_a_value_1}}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+                                {{option_b_value_1}}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-8 p-6 hover:bg-gray-50">
+                        <div class="font-semibold text-gray-900 flex items-center">
+                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-white text-sm">⚡</span>
+                            </div>
+                            {{criteria_2}}
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                                {{option_a_value_2}}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+                                {{option_b_value_2}}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-8 p-6 hover:bg-gray-50">
+                        <div class="font-semibold text-gray-900 flex items-center">
+                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-white text-sm">🎯</span>
+                            </div>
+                            {{criteria_3}}
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                                {{option_a_value_3}}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+                                {{option_b_value_3}}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-8 p-6 hover:bg-gray-50">
+                        <div class="font-semibold text-gray-900 flex items-center">
+                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-white text-sm">🛡️</span>
+                            </div>
+                            {{criteria_4}}
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                                {{option_a_value_4}}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+                                {{option_b_value_4}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Winner section -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold mb-2">추천 결과</h3>
+                        <p class="text-purple-100">{{recommendation}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

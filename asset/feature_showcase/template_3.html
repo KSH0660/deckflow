@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Showcase Template 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col px-16 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">{{title}}</h1>
+            <div class="w-32 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto"></div>
+        </div>
+        
+        <!-- Feature comparison table -->
+        <div class="flex-1">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden h-full">
+                <!-- Table header -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+                    <div class="grid grid-cols-4 gap-6">
+                        <div class="text-xl font-bold">기능</div>
+                        <div class="text-center">
+                            <div class="text-lg font-bold">{{tier_1_name}}</div>
+                            <div class="text-blue-200 text-sm">{{tier_1_subtitle}}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg font-bold">{{tier_2_name}}</div>
+                            <div class="text-purple-200 text-sm">{{tier_2_subtitle}}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg font-bold">{{tier_3_name}}</div>
+                            <div class="text-indigo-200 text-sm">{{tier_3_subtitle}}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Table body -->
+                <div class="divide-y divide-gray-100">
+                    <!-- Feature row 1 -->
+                    <div class="grid grid-cols-4 gap-6 p-6 hover:bg-gray-50">
+                        <div class="flex items-center font-semibold text-gray-900">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-blue-600 text-sm">⚡</span>
+                            </div>
+                            {{feature_1_name}}
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                                {{tier_1_feature_1}}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                                {{tier_2_feature_1}}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                                {{tier_3_feature_1}}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature row 2 -->
+                    <div class="grid grid-cols-4 gap-6 p-6 hover:bg-gray-50">
+                        <div class="flex items-center font-semibold text-gray-900">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-green-600 text-sm">🛡️</span>
+                            </div>
+                            {{feature_2_name}}
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                                {{tier_1_feature_2}}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                                {{tier_2_feature_2}}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                                {{tier_3_feature_2}}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature row 3 -->
+                    <div class="grid grid-cols-4 gap-6 p-6 hover:bg-gray-50">
+                        <div class="flex items-center font-semibold text-gray-900">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-purple-600 text-sm">🎯</span>
+                            </div>
+                            {{feature_3_name}}
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                                {{tier_1_feature_3}}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                                {{tier_2_feature_3}}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                                {{tier_3_feature_3}}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature row 4 -->
+                    <div class="grid grid-cols-4 gap-6 p-6 hover:bg-gray-50">
+                        <div class="flex items-center font-semibold text-gray-900">
+                            <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-orange-600 text-sm">📊</span>
+                            </div>
+                            {{feature_4_name}}
+                        </div>
+                        <div class="text-center">
+                            <span class="text-gray-600">{{tier_1_feature_4}}</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-blue-600 font-semibold">{{tier_2_feature_4}}</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-purple-600 font-semibold">{{tier_3_feature_4}}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer recommendation -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6">
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold mb-2">💡 추천</h3>
+                        <p class="text-indigo-100">{{recommendation}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

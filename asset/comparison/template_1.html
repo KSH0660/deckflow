@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Template 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-white flex flex-col px-16 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-gray-900 mb-4">{{title}}</h1>
+            <p class="text-xl text-gray-600">{{subtitle}}</p>
+        </div>
+        
+        <!-- VS Visual -->
+        <div class="flex items-center justify-center mb-12">
+            <div class="w-24 h-1 bg-gradient-to-r from-red-500 to-transparent"></div>
+            <div class="mx-8 w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center">
+                <span class="text-white font-bold text-lg">VS</span>
+            </div>
+            <div class="w-24 h-1 bg-gradient-to-l from-blue-500 to-transparent"></div>
+        </div>
+        
+        <!-- Comparison content -->
+        <div class="flex-1 flex space-x-8">
+            <!-- Left side -->
+            <div class="w-1/2 bg-red-50 rounded-3xl p-8 border-4 border-red-200">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-red-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                        <span class="text-3xl text-white">{{left_icon}}</span>
+                    </div>
+                    <h2 class="text-3xl font-bold text-red-700">{{left_title}}</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{left_point_1}}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{left_point_2}}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{left_point_3}}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{left_point_4}}</span>
+                    </div>
+                </div>
+                
+                <!-- Score -->
+                <div class="mt-8 text-center">
+                    <div class="text-4xl font-bold text-red-600">{{left_score}}</div>
+                    <div class="text-gray-600">종합 점수</div>
+                </div>
+            </div>
+            
+            <!-- Right side -->
+            <div class="w-1/2 bg-blue-50 rounded-3xl p-8 border-4 border-blue-200">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-blue-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                        <span class="text-3xl text-white">{{right_icon}}</span>
+                    </div>
+                    <h2 class="text-3xl font-bold text-blue-700">{{right_title}}</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{right_point_1}}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{right_point_2}}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{right_point_3}}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white text-sm">✓</span>
+                        </div>
+                        <span class="text-gray-700">{{right_point_4}}</span>
+                    </div>
+                </div>
+                
+                <!-- Score -->
+                <div class="mt-8 text-center">
+                    <div class="text-4xl font-bold text-blue-600">{{right_score}}</div>
+                    <div class="text-gray-600">종합 점수</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

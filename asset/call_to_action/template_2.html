@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call to Action Template 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-black text-white flex px-16 py-12">
+        <!-- Left side - Content -->
+        <div class="w-1/2 flex flex-col justify-center pr-12">
+            <div class="mb-8">
+                <div class="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-full font-bold text-sm mb-6">
+                    <span class="mr-2">🔥</span>
+                    {{badge_text}}
+                </div>
+                
+                <h1 class="text-5xl font-bold mb-6 leading-tight">
+                    {{title}}
+                </h1>
+                
+                <p class="text-xl text-gray-300 mb-8 leading-relaxed">
+                    {{description}}
+                </p>
+            </div>
+            
+            <!-- Benefits list -->
+            <div class="space-y-4 mb-8">
+                <div class="flex items-center">
+                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-white text-sm">✓</span>
+                    </div>
+                    <span class="text-gray-300">{{benefit_1}}</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-white text-sm">✓</span>
+                    </div>
+                    <span class="text-gray-300">{{benefit_2}}</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-white text-sm">✓</span>
+                    </div>
+                    <span class="text-gray-300">{{benefit_3}}</span>
+                </div>
+            </div>
+            
+            <!-- CTA Section -->
+            <div>
+                <button class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-xl mb-4 hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-2xl">
+                    {{primary_action}}
+                </button>
+                
+                <div class="flex items-center space-x-4 text-sm text-gray-400">
+                    <span>{{additional_info}}</span>
+                    <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                    <span>{{contact_info}}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side - Visual/Stats -->
+        <div class="w-1/2 flex flex-col justify-center pl-12">
+            <!-- Stats cards -->
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div class="bg-gray-800 rounded-2xl p-6 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-cyan-400 mb-2">{{stat_1_value}}</div>
+                    <div class="text-gray-300">{{stat_1_label}}</div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-2xl p-6 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-green-400 mb-2">{{stat_2_value}}</div>
+                    <div class="text-gray-300">{{stat_2_label}}</div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-2xl p-6 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-purple-400 mb-2">{{stat_3_value}}</div>
+                    <div class="text-gray-300">{{stat_3_label}}</div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-2xl p-6 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-yellow-400 mb-2">{{stat_4_value}}</div>
+                    <div class="text-gray-300">{{stat_4_label}}</div>
+                </div>
+            </div>
+            
+            <!-- Testimonial snippet -->
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6">
+                <div class="flex items-start">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                        <span class="text-xl">"</span>
+                    </div>
+                    <div>
+                        <p class="text-purple-100 italic mb-4 leading-relaxed">
+                            {{testimonial_quote}}
+                        </p>
+                        <div class="text-white font-semibold">{{testimonial_author}}</div>
+                        <div class="text-purple-200 text-sm">{{testimonial_title}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

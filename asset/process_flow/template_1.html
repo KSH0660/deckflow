@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Flow Template 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col px-16 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">{{title}}</h1>
+            <p class="text-xl text-gray-600">{{subtitle}}</p>
+        </div>
+        
+        <!-- Process flow -->
+        <div class="flex-1 flex items-center">
+            <div class="w-full">
+                <div class="flex items-center justify-between">
+                    <!-- Step 1 -->
+                    <div class="flex-1 text-center">
+                        <div class="relative">
+                            <div class="w-20 h-20 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                                <span class="text-2xl text-white font-bold">1</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold">📝</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">{{step_1_title}}</h3>
+                        <p class="text-gray-600 text-sm max-w-xs mx-auto">{{step_1_description}}</p>
+                    </div>
+                    
+                    <!-- Arrow 1 -->
+                    <div class="flex items-center px-4">
+                        <div class="w-12 h-1 bg-gray-300"></div>
+                        <div class="w-0 h-0 border-l-4 border-l-gray-300 border-y-4 border-y-transparent ml-1"></div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="flex-1 text-center">
+                        <div class="relative">
+                            <div class="w-20 h-20 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                                <span class="text-2xl text-white font-bold">2</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold">⚡</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">{{step_2_title}}</h3>
+                        <p class="text-gray-600 text-sm max-w-xs mx-auto">{{step_2_description}}</p>
+                    </div>
+                    
+                    <!-- Arrow 2 -->
+                    <div class="flex items-center px-4">
+                        <div class="w-12 h-1 bg-gray-300"></div>
+                        <div class="w-0 h-0 border-l-4 border-l-gray-300 border-y-4 border-y-transparent ml-1"></div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="flex-1 text-center">
+                        <div class="relative">
+                            <div class="w-20 h-20 bg-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                                <span class="text-2xl text-white font-bold">3</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold">🎯</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">{{step_3_title}}</h3>
+                        <p class="text-gray-600 text-sm max-w-xs mx-auto">{{step_3_description}}</p>
+                    </div>
+                    
+                    <!-- Arrow 3 -->
+                    <div class="flex items-center px-4">
+                        <div class="w-12 h-1 bg-gray-300"></div>
+                        <div class="w-0 h-0 border-l-4 border-l-gray-300 border-y-4 border-y-transparent ml-1"></div>
+                    </div>
+                    
+                    <!-- Step 4 -->
+                    <div class="flex-1 text-center">
+                        <div class="relative">
+                            <div class="w-20 h-20 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                                <span class="text-2xl text-white font-bold">4</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold">✨</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">{{step_4_title}}</h3>
+                        <p class="text-gray-600 text-sm max-w-xs mx-auto">{{step_4_description}}</p>
+                    </div>
+                </div>
+                
+                <!-- Timeline -->
+                <div class="mt-16 text-center">
+                    <div class="inline-flex items-center space-x-4 bg-white rounded-full px-8 py-4 shadow-lg">
+                        <span class="text-gray-600">총 소요시간:</span>
+                        <span class="font-bold text-indigo-600 text-lg">{{total_time}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

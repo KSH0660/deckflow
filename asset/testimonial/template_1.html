@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testimonial Template 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0 font-sans overflow-hidden">
+    <div class="w-screen h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col px-16 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">{{title}}</h1>
+            <div class="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto"></div>
+        </div>
+        
+        <!-- Main testimonial -->
+        <div class="flex-1 flex items-center justify-center">
+            <div class="max-w-4xl mx-auto">
+                <!-- Quote icon -->
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto flex items-center justify-center">
+                        <span class="text-3xl text-white">"</span>
+                    </div>
+                </div>
+                
+                <!-- Quote text -->
+                <div class="text-center mb-12">
+                    <p class="text-3xl text-gray-800 leading-relaxed font-light italic mb-8">
+                        {{testimonial_text}}
+                    </p>
+                </div>
+                
+                <!-- Author info -->
+                <div class="flex items-center justify-center space-x-6">
+                    <!-- Author image placeholder -->
+                    <div class="w-20 h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center">
+                        <span class="text-2xl text-white">{{author_initial}}</span>
+                    </div>
+                    
+                    <!-- Author details -->
+                    <div class="text-left">
+                        <div class="text-xl font-bold text-gray-900">{{author_name}}</div>
+                        <div class="text-lg text-blue-600">{{author_title}}</div>
+                        <div class="text-gray-600">{{author_company}}</div>
+                    </div>
+                    
+                    <!-- Company logo placeholder -->
+                    <div class="ml-8 w-24 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-gray-400 text-sm font-medium">{{company_logo}}</span>
+                    </div>
+                </div>
+                
+                <!-- Rating stars -->
+                <div class="text-center mt-8">
+                    <div class="flex justify-center space-x-1 mb-4">
+                        <span class="text-2xl text-yellow-400">★</span>
+                        <span class="text-2xl text-yellow-400">★</span>
+                        <span class="text-2xl text-yellow-400">★</span>
+                        <span class="text-2xl text-yellow-400">★</span>
+                        <span class="text-2xl text-yellow-400">★</span>
+                    </div>
+                    <p class="text-gray-600">{{rating_label}}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Supporting stats -->
+        <div class="flex justify-center space-x-12">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">{{stat_1_value}}</div>
+                <div class="text-gray-600 text-sm">{{stat_1_label}}</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-purple-600">{{stat_2_value}}</div>
+                <div class="text-gray-600 text-sm">{{stat_2_label}}</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">{{stat_3_value}}</div>
+                <div class="text-gray-600 text-sm">{{stat_3_label}}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
