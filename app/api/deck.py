@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException
 from uuid import UUID
-from app.api.schema import CreateDeckRequest, CreateDeckResponse, DeckStatusResponse
+
+from fastapi import APIRouter, HTTPException
+
 from app.adapter.factory import current_llm, current_repo
+from app.api.schema import CreateDeckRequest, CreateDeckResponse, DeckStatusResponse
 from app.service.generate_deck import generate_deck
 
 router = APIRouter(tags=["decks"])
+
 
 @router.post("/decks", response_model=CreateDeckResponse)
 async def create_deck(req: CreateDeckRequest):
@@ -14,6 +17,7 @@ async def create_deck(req: CreateDeckRequest):
         repo=current_repo(),
     )
     return CreateDeckResponse(deck_id=deck_id)
+
 
 @router.get("/decks/{deck_id}", response_model=DeckStatusResponse)
 async def get_deck_status(deck_id: UUID):

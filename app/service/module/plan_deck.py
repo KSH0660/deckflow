@@ -1,5 +1,3 @@
-
-
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -17,26 +15,26 @@ class PresentationGoal(str, Enum):
 
 
 class LayoutType(str, Enum):
-    TITLE_SLIDE = "title_slide"          # 제목/인트로 슬라이드
-    CONTENT_SLIDE = "content_slide"      # 일반 내용 슬라이드
-    COMPARISON = "comparison"            # 비교/대조 슬라이드
-    DATA_VISUAL = "data_visual"          # 데이터/차트 슬라이드
-    PROCESS_FLOW = "process_flow"        # 프로세스/플로우 슬라이드
-    FEATURE_SHOWCASE = "feature_showcase" # 기능/특징 소개 슬라이드
-    TESTIMONIAL = "testimonial"          # 증언/후기 슬라이드
-    CALL_TO_ACTION = "call_to_action"    # 행동 유도 슬라이드
+    TITLE_SLIDE = "title_slide"  # 제목/인트로 슬라이드
+    CONTENT_SLIDE = "content_slide"  # 일반 내용 슬라이드
+    COMPARISON = "comparison"  # 비교/대조 슬라이드
+    DATA_VISUAL = "data_visual"  # 데이터/차트 슬라이드
+    PROCESS_FLOW = "process_flow"  # 프로세스/플로우 슬라이드
+    FEATURE_SHOWCASE = "feature_showcase"  # 기능/특징 소개 슬라이드
+    TESTIMONIAL = "testimonial"  # 증언/후기 슬라이드
+    CALL_TO_ACTION = "call_to_action"  # 행동 유도 슬라이드
 
 
 class ColorTheme(str, Enum):
-    PROFESSIONAL_BLUE = "professional_blue"    # 전문적인 블루 (신뢰성, 기업)
-    CORPORATE_GRAY = "corporate_gray"          # 기업용 그레이 (세련됨, 미니멀)
-    VIBRANT_PURPLE = "vibrant_purple"          # 활기찬 보라 (창의성, 혁신)
-    MODERN_TEAL = "modern_teal"                # 모던 틸 (성장, 안정성)
-    ENERGETIC_ORANGE = "energetic_orange"      # 활동적인 오렌지 (열정, 에너지)
-    NATURE_GREEN = "nature_green"              # 자연 그린 (친환경, 성장)
-    ELEGANT_BURGUNDY = "elegant_burgundy"      # 우아한 버건디 (고급, 전통)
-    TECH_DARK = "tech_dark"                    # 테크 다크 (혁신, IT)
-    WARM_SUNSET = "warm_sunset"                # 따뜻한 석양 (온화함, 긍정)
+    PROFESSIONAL_BLUE = "professional_blue"  # 전문적인 블루 (신뢰성, 기업)
+    CORPORATE_GRAY = "corporate_gray"  # 기업용 그레이 (세련됨, 미니멀)
+    VIBRANT_PURPLE = "vibrant_purple"  # 활기찬 보라 (창의성, 혁신)
+    MODERN_TEAL = "modern_teal"  # 모던 틸 (성장, 안정성)
+    ENERGETIC_ORANGE = "energetic_orange"  # 활동적인 오렌지 (열정, 에너지)
+    NATURE_GREEN = "nature_green"  # 자연 그린 (친환경, 성장)
+    ELEGANT_BURGUNDY = "elegant_burgundy"  # 우아한 버건디 (고급, 전통)
+    TECH_DARK = "tech_dark"  # 테크 다크 (혁신, IT)
+    WARM_SUNSET = "warm_sunset"  # 따뜻한 석양 (온화함, 긍정)
     MINIMAL_MONOCHROME = "minimal_monochrome"  # 미니멀 모노크롬 (단순함, 집중)
 
 
@@ -75,7 +73,7 @@ Return a structured plan with:
 
 **Color Theme Selection Guide:**
 • professional_blue: Corporate presentations, business reports, trustworthy content
-• corporate_gray: Executive briefings, minimalist presentations, sophisticated topics  
+• corporate_gray: Executive briefings, minimalist presentations, sophisticated topics
 • vibrant_purple: Creative industries, innovation topics, tech startups
 • modern_teal: Healthcare, sustainability, growth-focused presentations
 • energetic_orange: Sales presentations, marketing pitches, motivational content
@@ -100,30 +98,38 @@ Focus on clarity, memorability, and strategic flow.
 
 class SlidePlan(BaseModel):
     slide_id: int = Field(ge=1, le=200, description="Slide sequence id")
-    slide_title: str = Field(min_length=3, max_length=100, description="Powerful slide title")
+    slide_title: str = Field(
+        min_length=3, max_length=100, description="Powerful slide title"
+    )
     message: str = Field(min_length=10, description="Core one-line message")
-    layout_type: LayoutType = Field(description="Most suitable layout type for this slide")
+    layout_type: LayoutType = Field(
+        description="Most suitable layout type for this slide"
+    )
     key_points: list[str] = Field(
-        default_factory=list,
-        description="Key bullet points (3-5 recommended)"
+        default_factory=list, description="Key bullet points (3-5 recommended)"
     )
     data_points: list[str] = Field(
-        default_factory=list,
-        description="Statistics/numerical data"
+        default_factory=list, description="Statistics/numerical data"
     )
 
 
 class DeckPlan(BaseModel):
-    deck_title: str = Field(min_length=5, max_length=120, description="Presentation title")
-    audience: str = Field(min_length=5, description="Target audience and their concerns")
-    core_message: str = Field(min_length=10, description="Single most important message")
+    deck_title: str = Field(
+        min_length=5, max_length=120, description="Presentation title"
+    )
+    audience: str = Field(
+        min_length=5, description="Target audience and their concerns"
+    )
+    core_message: str = Field(
+        min_length=10, description="Single most important message"
+    )
     goal: PresentationGoal = Field(description="Presentation objective")
     color_theme: ColorTheme = Field(description="Visual theme for presentation")
     slides: list[SlidePlan]
 
 
 async def plan_deck(prompt: str, llm) -> DeckPlan:
-    """ 덱 플랜 생성 """
+    """덱 플랜 생성"""
     if not prompt.strip():
         raise ValueError("발표 요청은 필수입니다")
 
@@ -142,7 +148,7 @@ async def plan_deck(prompt: str, llm) -> DeckPlan:
             "덱 플랜 생성 완료",
             deck_title=plan.deck_title,
             slide_count=len(plan.slides),
-            goal=plan.goal.value
+            goal=plan.goal.value,
         )
 
         for slide in plan.slides:
@@ -151,7 +157,7 @@ async def plan_deck(prompt: str, llm) -> DeckPlan:
                 message=slide.message,
                 key_points_count=len(slide.key_points),
                 data_points_count=len(slide.data_points),
-                layout_type=slide.layout_type.value
+                layout_type=slide.layout_type.value,
             )
 
         return plan
@@ -166,8 +172,8 @@ def _calculate_plan_score(plan: DeckPlan) -> dict:
     score_details = {
         "total": 0,
         "structure": 0,  # 구조적 완성도 (0-30점)
-        "content": 0,    # 내용 충실도 (0-40점)
-        "clarity": 0,    # 명확성 (0-30점)
+        "content": 0,  # 내용 충실도 (0-40점)
+        "clarity": 0,  # 명확성 (0-30점)
     }
 
     # 구조적 완성도 (30점 만점)
@@ -229,7 +235,9 @@ def _calculate_plan_score(plan: DeckPlan) -> dict:
     elif len(plan.audience) >= 10:
         score_details["clarity"] += 5
 
-    score_details["total"] = score_details["structure"] + score_details["content"] + score_details["clarity"]
+    score_details["total"] = (
+        score_details["structure"] + score_details["content"] + score_details["clarity"]
+    )
     return score_details
 
 
@@ -282,8 +290,9 @@ def _validate_plan_quality(plan: DeckPlan) -> None:
         등급=grade,
         구조점수=f"{score_info['structure']}/30",
         내용점수=f"{score_info['content']}/40",
-        명확성점수=f"{score_info['clarity']}/30"
+        명확성점수=f"{score_info['clarity']}/30",
     )
+
 
 if __name__ == "__main__":
     import asyncio
@@ -305,7 +314,7 @@ if __name__ == "__main__":
             # 덱 플랜 생성
             plan = await plan_deck(
                 prompt="Samsung vs Hynix 메모리 반도체 기술 비교 분석 프레젠테이션",
-                llm=llm
+                llm=llm,
             )
 
             end_time = time.time()
@@ -317,12 +326,16 @@ if __name__ == "__main__":
             logger.info(f"🎯 목표: {plan.goal.value}")
             logger.info(f"🎨 색 테마: {plan.color_theme.value}")
             logger.info(f"📊 슬라이드 수: {len(plan.slides)}")
-            logger.info(f"⚡ 슬라이드당 평균 시간: {execution_time/len(plan.slides):.2f}초")
+            logger.info(
+                f"⚡ 슬라이드당 평균 시간: {execution_time/len(plan.slides):.2f}초"
+            )
 
             # 슬라이드별 상세 정보
             logger.info("=== 생성된 슬라이드 목록 ===")
             for slide in plan.slides:
-                logger.info(f"  {slide.slide_id}. {slide.slide_title} ({slide.layout_type})")
+                logger.info(
+                    f"  {slide.slide_id}. {slide.slide_title} ({slide.layout_type})"
+                )
 
         except Exception as e:
             logger.error("데모 실행 실패", error=str(e))

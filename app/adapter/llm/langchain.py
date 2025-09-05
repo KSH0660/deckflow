@@ -25,13 +25,16 @@ logger.info("LLM 캐시 초기화 완료", cache_path=".cache/llm_cache.db")
 
 dotenv.load_dotenv()
 
+
 class LLMProvider(ABC):
     @abstractmethod
     async def generate(self, prompt: str) -> str:
         """Return plain text output."""
         raise NotImplementedError
 
-    async def generate_structured(self, prompt: str, schema: type[BaseModel]) -> BaseModel:
+    async def generate_structured(
+        self, prompt: str, schema: type[BaseModel]
+    ) -> BaseModel:
         """
         Optional: Return a structured output following the given Pydantic schema.
         Not all LLMs support this—implement where possible.
@@ -48,7 +51,7 @@ class LangchainLLM(LLMProvider):
 
     - Plain text: await generate("...prompt...")
     - Structured: await generate_structured("...prompt...", MySchema)
- 
+
     Env:
       OPENAI_API_KEY must be set if using OpenAI models.
     """
@@ -67,9 +70,7 @@ class LangchainLLM(LLMProvider):
             model=model,
             api_key=api_key,
         )
-        self._prompt = ChatPromptTemplate.from_messages(
-            [("user", "{input}")]
-        )
+        self._prompt = ChatPromptTemplate.from_messages([("user", "{input}")])
 
         logger.info("LangChain LLM 초기화 완료", model=model, provider="OpenAI")
 
@@ -86,13 +87,13 @@ class LangchainLLM(LLMProvider):
 
     async def generate_structured(self, prompt: str, schema: type[T]) -> T:
         """
-        Return a Pydantic-validated object using LangChain's structured output. 
+        Return a Pydantic-validated object using LangChain's structured output.
         """
         logger.debug(
             "구조화된 생성 요청",
             model=self.model,
             schema=schema.__name__,
-            prompt_length=len(prompt)
+            prompt_length=len(prompt),
         )
 
         chain = self._prompt | self.llm.with_structured_output(schema=schema)
@@ -101,6 +102,6 @@ class LangchainLLM(LLMProvider):
         logger.debug(
             "구조화된 생성 완료",
             schema=schema.__name__,
-            result_type=type(result).__name__
+            result_type=type(result).__name__,
         )
         return result

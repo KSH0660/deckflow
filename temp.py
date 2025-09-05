@@ -1,5 +1,6 @@
 import os
 import time
+
 import dotenv
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
@@ -17,9 +18,7 @@ set_llm_cache(SQLiteCache(database_path="langchain.db"))
 # --- 2. LLM 초기화 ---
 # 캐시가 설정된 후에 LLM을 초기화해야 캐시 기능이 적용됩니다.
 llm = ChatOpenAI(
-    model="gpt-5-nano",
-    api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0.7
+    model="gpt-5-nano", api_key=os.getenv("OPENAI_API_KEY"), temperature=0.7
 )
 
 # --- 3. 캐시 동작 확인 ---
@@ -35,7 +34,9 @@ end_time = time.time()
 print(f"질문: {prompt}")
 print(f"답변: {response_1.content}")
 print(f"소요 시간: {end_time - start_time:.4f}초")
-print("💡 스크립트를 처음 실행했거나 DB에 없는 질문이면 API를 호출하고, 아니라면 캐시를 사용합니다.")
+print(
+    "💡 스크립트를 처음 실행했거나 DB에 없는 질문이면 API를 호출하고, 아니라면 캐시를 사용합니다."
+)
 print("------------------------------------\n")
 
 

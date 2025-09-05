@@ -7,9 +7,11 @@ class CreateDeckRequest(BaseModel):
     prompt: str = Field(..., min_length=5, max_length=5000)
     style: dict[str, str] | None = None
 
+
 class CreateDeckResponse(BaseModel):
     deck_id: str
     status: str = "generating"
+
 
 class DeckStatusResponse(BaseModel):
     deck_id: str

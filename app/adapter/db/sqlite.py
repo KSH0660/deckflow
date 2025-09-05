@@ -17,14 +17,16 @@ class SQLiteRepository(Repository):
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS decks (
                     deck_id TEXT PRIMARY KEY,
                     data TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     updated_at TEXT
                 )
-            """)
+            """
+            )
             conn.commit()
 
     async def save_deck(self, deck_id: UUID, data: dict[str, Any]) -> None:
@@ -32,17 +34,19 @@ class SQLiteRepository(Repository):
         now = datetime.now().isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR REPLACE INTO decks (deck_id, data, created_at, updated_at)
                 VALUES (?, ?, ?, ?)
-            """, (str(deck_id), data_json, now, now))
+            """,
+                (str(deck_id), data_json, now, now),
+            )
             conn.commit()
 
     async def get_deck(self, deck_id: UUID) -> dict[str, Any] | None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
-                "SELECT data FROM decks WHERE deck_id = ?",
-                (str(deck_id),)
+                "SELECT data FROM decks WHERE deck_id = ?", (str(deck_id),)
             )
             row = cursor.fetchone()
 
