@@ -1,10 +1,11 @@
-from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional
 from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 
 class CreateDeckRequest(BaseModel):
     prompt: str = Field(..., min_length=5, max_length=5000)
-    style: Optional[Dict[str, str]] = None
+    style: dict[str, str] | None = None
 
 class CreateDeckResponse(BaseModel):
     deck_id: str
@@ -15,5 +16,5 @@ class DeckStatusResponse(BaseModel):
     status: str
     slide_count: int
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    updated_at: datetime | None = None
+    completed_at: datetime | None = None
