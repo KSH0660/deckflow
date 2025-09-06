@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
@@ -20,6 +20,14 @@ class Settings:
     # Concurrency limits
     max_decks: int = 3
     max_slide_concurrency: int = 3
+
+    # CORS
+    cors_origins: list[str] = field(
+        default_factory=lambda: [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ]
+    )
 
 
 def _to_int(value: str | None, default: int) -> int:
@@ -40,6 +48,10 @@ def load_settings() -> Settings:
     s.max_slide_concurrency = _to_int(
         os.getenv("DECKFLOW_MAX_SLIDE_CONCURRENCY"), s.max_slide_concurrency
     )
+    # Parse CORS origins: comma-separated list
+    cors_env = os.getenv("DECKFLOW_CORS_ORIGINS")
+    if cors_env:
+        s.cors_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
     return s
 
 

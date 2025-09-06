@@ -24,6 +24,7 @@
 - 저장소 백엔드: `DECKFLOW_REPO=sqlite|memory` (기본: sqlite)
 - SQLite 파일 경로: `DECKFLOW_SQLITE_PATH=decks.db`
 - 동시성 제한: `DECKFLOW_MAX_DECKS=3` (동시 덱 생성 수), `DECKFLOW_MAX_SLIDE_CONCURRENCY=3` (덱 내 동시 슬라이드 수)
+- CORS 허용 오리진: `DECKFLOW_CORS_ORIGINS` (콤마 구분, 기본: `http://localhost:3000,http://127.0.0.1:3000`)
 
 실행
 - API 서버: `make dev` (기본 포트 8000)
@@ -54,6 +55,16 @@ curl -sS -X POST \
 3) 목록 조회
 - 엔드포인트: `GET /api/v1/decks?limit=10`
 
+4) 덱 전체 데이터 조회 (프론트 직접 렌더/편집용)
+- 엔드포인트: `GET /api/v1/decks/{deck_id}/data`
+- 설명: 저장된 덱의 전체 JSON을 반환합니다. 각 슬라이드의 계획(`plan`)과 렌더된 HTML(`content.html_content`)을 포함합니다.
+
+5) 생성 취소
+- 엔드포인트: `POST /api/v1/decks/{deck_id}/cancel`
+
+6) 결과 내보내기
+- 엔드포인트: `GET /api/v1/decks/{deck_id}/export?format=html|pdf&layout=widescreen|a4|a4-landscape&embed=inline|iframe&inline=bool`
+
 ## Make 명령어
 
 - `make dev` — FastAPI 서버 실행 (PORT 변경 가능)
@@ -81,3 +92,42 @@ curl -sS -X POST \
 - 프론트: Streamlit (미리보기/다운로드)
 - 로깅: structlog
 - Export: Playwright(Chromium) 또는 WeasyPrint/wkhtmltopdf (선택)
+
+## CORS 설정
+
+- 기본 허용 오리진: `http://localhost:3000`, `http://127.0.0.1:3000`
+- 환경 변수로 변경 가능: `DECKFLOW_CORS_ORIGINS="http://localhost:5173,https://app.example.com"`
+- 서버는 FastAPI CORS 미들웨어를 사용하여 `methods/headers/credentials` 를 모두 허용하도록 설정되어 있습니다.
+
+## 헬스체크
+
+- 라이브니스 체크: `GET /healthz`
+  - 응답 예: `{ "status": "ok", "service": "DeckFlow", "version": "0.1.0" }`
+
+- 레디니스 체크: `GET /readyz`
+  - 확인 항목:
+    - 저장소 연결 상태(백엔드별 초기화/쿼리 확인)
+    - LLM 키 존재 여부(네트워크 호출은 수행하지 않음)
+    - 선택적 PDF 변환 도구 가용성(Playwright/WeasyPrint/wkhtmltopdf)
+  - 상태 규칙:
+    - `ok`: 저장소 및 LLM 준비 완료 → 200
+    - `degraded`: 저장소만 OK, LLM 키 없음 → 503
+    - `error`: 저장소 오류 → 503
+  - 응답 예:
+    ```json
+    {
+      "status": "ok",
+      "service": "DeckFlow",
+      "version": "0.1.0",
+      "repo_backend": "sqlite",
+      "repo_ready": true,
+      "repo_error": null,
+      "llm_ready": true,
+      "pdf": {
+        "available": true,
+        "playwright": true,
+        "weasyprint": false,
+        "wkhtmltopdf": true
+      }
+    }
+    ```

@@ -179,3 +179,17 @@ async def export_deck(
     return StreamingResponse(
         iter([pdf_bytes]), media_type="application/pdf", headers=headers
     )
+
+
+@router.get("/decks/{deck_id}/data")
+async def get_deck_data(deck_id: UUID, s: AppSettings = Depends(get_settings)):
+    """Return the full stored deck JSON for detailed client-side rendering.
+
+    Note: This returns the raw stored structure which may include nested slide
+    plans and rendered HTML content. Intended for first-party frontends.
+    """
+    repo = current_repo()
+    deck = await repo.get_deck(deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    return deck
