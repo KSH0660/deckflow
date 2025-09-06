@@ -15,7 +15,7 @@ class Repository(ABC):
     @abstractmethod
     async def update_deck_status(self, deck_id: UUID, status: str) -> None:
         pass
-    
+
     @abstractmethod
     async def list_all_decks(self, limit: int = 10) -> list[dict[str, Any]]:
         """List recent decks with basic info (id, title, created_at, etc.)"""

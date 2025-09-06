@@ -1,8 +1,5 @@
-import hashlib
-import os
-import random
-import time
 import json
+
 from pydantic import BaseModel
 
 from app.logging import get_logger
@@ -13,59 +10,114 @@ logger = get_logger(__name__)
 # 색상 테마별 색상 매핑 (유지)
 COLOR_THEME_MAPPING = {
     "professional_blue": {
-        "primary": "#1e40af", "secondary": "#3b82f6", "accent": "#60a5fa",
-        "background": "#ffffff", "surface": "#f8fafc", "text_primary": "#1e293b", "text_secondary": "#64748b"
+        "primary": "#1e40af",
+        "secondary": "#3b82f6",
+        "accent": "#60a5fa",
+        "background": "#ffffff",
+        "surface": "#f8fafc",
+        "text_primary": "#1e293b",
+        "text_secondary": "#64748b",
     },
     "corporate_gray": {
-        "primary": "#374151", "secondary": "#6b7280", "accent": "#9ca3af",
-        "background": "#ffffff", "surface": "#f9fafb", "text_primary": "#111827", "text_secondary": "#6b7280"
+        "primary": "#374151",
+        "secondary": "#6b7280",
+        "accent": "#9ca3af",
+        "background": "#ffffff",
+        "surface": "#f9fafb",
+        "text_primary": "#111827",
+        "text_secondary": "#6b7280",
     },
     "vibrant_purple": {
-        "primary": "#7c3aed", "secondary": "#a855f7", "accent": "#c084fc",
-        "background": "#ffffff", "surface": "#faf5ff", "text_primary": "#581c87", "text_secondary": "#7c3aed"
+        "primary": "#7c3aed",
+        "secondary": "#a855f7",
+        "accent": "#c084fc",
+        "background": "#ffffff",
+        "surface": "#faf5ff",
+        "text_primary": "#581c87",
+        "text_secondary": "#7c3aed",
     },
     "modern_teal": {
-        "primary": "#0d9488", "secondary": "#14b8a6", "accent": "#5eead4",
-        "background": "#ffffff", "surface": "#f0fdfa", "text_primary": "#134e4a", "text_secondary": "#0f766e"
+        "primary": "#0d9488",
+        "secondary": "#14b8a6",
+        "accent": "#5eead4",
+        "background": "#ffffff",
+        "surface": "#f0fdfa",
+        "text_primary": "#134e4a",
+        "text_secondary": "#0f766e",
     },
     "energetic_orange": {
-        "primary": "#ea580c", "secondary": "#fb923c", "accent": "#fed7aa",
-        "background": "#ffffff", "surface": "#fff7ed", "text_primary": "#9a3412", "text_secondary": "#ea580c"
+        "primary": "#ea580c",
+        "secondary": "#fb923c",
+        "accent": "#fed7aa",
+        "background": "#ffffff",
+        "surface": "#fff7ed",
+        "text_primary": "#9a3412",
+        "text_secondary": "#ea580c",
     },
     "nature_green": {
-        "primary": "#059669", "secondary": "#10b981", "accent": "#6ee7b7",
-        "background": "#ffffff", "surface": "#ecfdf5", "text_primary": "#064e3b", "text_secondary": "#047857"
+        "primary": "#059669",
+        "secondary": "#10b981",
+        "accent": "#6ee7b7",
+        "background": "#ffffff",
+        "surface": "#ecfdf5",
+        "text_primary": "#064e3b",
+        "text_secondary": "#047857",
     },
     "elegant_burgundy": {
-        "primary": "#991b1b", "secondary": "#dc2626", "accent": "#fca5a5",
-        "background": "#ffffff", "surface": "#fef2f2", "text_primary": "#7f1d1d", "text_secondary": "#991b1b"
+        "primary": "#991b1b",
+        "secondary": "#dc2626",
+        "accent": "#fca5a5",
+        "background": "#ffffff",
+        "surface": "#fef2f2",
+        "text_primary": "#7f1d1d",
+        "text_secondary": "#991b1b",
     },
     "tech_dark": {
-        "primary": "#111827", "secondary": "#374151", "accent": "#06b6d4",
-        "background": "#000000", "surface": "#1f2937", "text_primary": "#f9fafb", "text_secondary": "#d1d5db"
+        "primary": "#111827",
+        "secondary": "#374151",
+        "accent": "#06b6d4",
+        "background": "#000000",
+        "surface": "#1f2937",
+        "text_primary": "#f9fafb",
+        "text_secondary": "#d1d5db",
     },
     "warm_sunset": {
-        "primary": "#f97316", "secondary": "#eab308", "accent": "#f472b6",
-        "background": "#ffffff", "surface": "#fffbeb", "text_primary": "#92400e", "text_secondary": "#d97706"
+        "primary": "#f97316",
+        "secondary": "#eab308",
+        "accent": "#f472b6",
+        "background": "#ffffff",
+        "surface": "#fffbeb",
+        "text_primary": "#92400e",
+        "text_secondary": "#d97706",
     },
     "minimal_monochrome": {
-        "primary": "#000000", "secondary": "#374151", "accent": "#6b7280",
-        "background": "#ffffff", "surface": "#f9fafb", "text_primary": "#111827", "text_secondary": "#6b7280"
+        "primary": "#000000",
+        "secondary": "#374151",
+        "accent": "#6b7280",
+        "background": "#ffffff",
+        "surface": "#f9fafb",
+        "text_primary": "#111827",
+        "text_secondary": "#6b7280",
     },
 }
 
 # 레이아웃 타입별 asset 폴더 매핑 (유지)
 LAYOUT_TYPE_ASSET_MAPPING = {
-    "title_slide": "title_slide", "content_slide": "content_slide", "comparison": "comparison",
-    "data_visual": "data_visual", "process_flow": "process_flow", "feature_showcase": "feature_showcase",
-    "testimonial": "testimonial", "call_to_action": "call_to_action",
+    "title_slide": "title_slide",
+    "content_slide": "content_slide",
+    "comparison": "comparison",
+    "data_visual": "data_visual",
+    "process_flow": "process_flow",
+    "feature_showcase": "feature_showcase",
+    "testimonial": "testimonial",
+    "call_to_action": "call_to_action",
 }
- 
 
-# --- 새로운 프롬프트 시스템 --- 
-RENDER_PROMPT = """You are a presentation HTML layout assistant. 
-Produce a complete, self-contained HTML slide based on the provided context and data. 
-You MUST use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>) and apply utility classes for all styling. 
+
+# --- 새로운 프롬프트 시스템 ---
+RENDER_PROMPT = """You are a presentation HTML layout assistant.
+Produce a complete, self-contained HTML slide based on the provided context and data.
+You MUST use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>) and apply utility classes for all styling.
 Your output should be only the HTML code. No Markdown or other text.
 
 ## Deck Context (for tone and consistency)
@@ -87,13 +139,13 @@ Your output should be only the HTML code. No Markdown or other text.
     - Body: `class="w-full h-screen flex items-center justify-center bg-gray-100 p-0 m-0 overflow-hidden"`
     - Main container: `class="w-full max-w-4xl h-full max-h-screen mx-auto bg-white shadow-lg rounded-lg overflow-hidden flex flex-col"`
     - Content area: `class="flex-1 p-6 overflow-hidden flex flex-col justify-center"`
-5.  **HEIGHT CONSTRAINTS - MANDATORY**: 
+5.  **HEIGHT CONSTRAINTS - MANDATORY**:
     - NEVER use fixed heights that exceed screen height
     - Use `h-screen`, `max-h-screen`, `h-full` for containers
     - Content must use `flex-1`, `space-y-2` (not space-y-4 or larger)
     - Text sizes: `text-sm` to `text-2xl` maximum (NO text-3xl or larger)
     - Padding: `p-2` to `p-6` maximum (NO p-8 or larger)
-6.  **CONTENT FITTING STRATEGY**: 
+6.  **CONTENT FITTING STRATEGY**:
     - Limit bullet points to 3-4 maximum
     - Use compact text (`text-sm`, `text-base`)
     - Minimal spacing between elements (`space-y-1`, `space-y-2`)
@@ -105,15 +157,17 @@ Your output should be only the HTML code. No Markdown or other text.
 11. **Data Representation**: If the JSON contains lists (`key_points`, `data_points`, etc.), display them as clean, readable lists or grids with COMPACT spacing.
 12. **Color**: The design should reflect the specified `color_preference` in the choice of Tailwind CSS classes (e.g., `bg-blue-700`, `text-gray-800`).
 13. **No Placeholders**: The final HTML should contain the actual data from the JSON, not placeholders like `[[TITLE]]`.
-14. **ABSOLUTE REQUIREMENT - NO VERTICAL OVERFLOW**: 
+14. **ABSOLUTE REQUIREMENT - NO VERTICAL OVERFLOW**:
     - ALL content MUST fit within screen height without scrolling
     - Use `overflow-hidden` on all containers
     - Test with shorter content if needed
     - Content that doesn't fit should be omitted, not overflowed
 """
 
+
 class SlideContent(BaseModel):
     html_content: str
+
 
 def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
     """슬라이드 콘텐츠의 기본 품질을 검증합니다."""
@@ -124,31 +178,53 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         raise ValueError("Generated HTML content is empty.")
 
     if '<script src="https://cdn.tailwindcss.com"></script>' not in html:
-        logger.warning("Tailwind CSS CDN 스크립트가 누락되었습니다.", slide_title=slide_title)
+        logger.warning(
+            "Tailwind CSS CDN 스크립트가 누락되었습니다.", slide_title=slide_title
+        )
 
     if "</html>" not in html.lower():
-        logger.warning("완전한 HTML 문서가 아닙니다. `</html>` 태그가 없습니다.", slide_title=slide_title)
+        logger.warning(
+            "완전한 HTML 문서가 아닙니다. `</html>` 태그가 없습니다.",
+            slide_title=slide_title,
+        )
 
     if len(html) < 200:
-        logger.warning("생성된 HTML이 너무 짧습니다.", slide_title=slide_title, length=len(html))
+        logger.warning(
+            "생성된 HTML이 너무 짧습니다.", slide_title=slide_title, length=len(html)
+        )
 
     # Check for overflow prevention
     overflow_checks = [
         ("overflow-hidden 클래스", "overflow-hidden" in html),
-        ("h-screen 또는 max-h-screen", any(h in html for h in ["h-screen", "max-h-screen", "h-full"])),
+        (
+            "h-screen 또는 max-h-screen",
+            any(h in html for h in ["h-screen", "max-h-screen", "h-full"]),
+        ),
         ("적절한 flex 레이아웃", "flex" in html),
-        ("너무 큰 텍스트 피하기", not any(large in html for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"])),
-        ("과도한 패딩/마진 피하기", not any(large in html for large in ["p-8", "p-10", "p-12", "m-8", "m-10", "m-12"])),
+        (
+            "너무 큰 텍스트 피하기",
+            not any(
+                large in html
+                for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"]
+            ),
+        ),
+        (
+            "과도한 패딩/마진 피하기",
+            not any(
+                large in html
+                for large in ["p-8", "p-10", "p-12", "m-8", "m-10", "m-12"]
+            ),
+        ),
     ]
-    
+
     failed_checks = [check for check, passed in overflow_checks if not passed]
     if failed_checks:
         logger.warning(
-            "세로 오버플로우 방지 체크 실패", 
-            slide_title=slide_title, 
-            failed_checks=failed_checks
+            "세로 오버플로우 방지 체크 실패",
+            slide_title=slide_title,
+            failed_checks=failed_checks,
         )
-    
+
     logger.debug("슬라이드 콘텐츠 기본 검증 통과.", slide_title=slide_title)
 
 
@@ -165,7 +241,7 @@ async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideConte
     )
 
     try:
-        prompt_vars = { 
+        prompt_vars = {
             "topic": deck_context.get("deck_title", ""),
             "audience": deck_context.get("audience", ""),
             "theme": deck_context.get("core_message", ""),
@@ -175,9 +251,15 @@ async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideConte
 
         formatted_prompt = RENDER_PROMPT.format(**prompt_vars)
 
-        logger.debug("From-scratch 프롬프트 준비 완료", prompt_length=len(formatted_prompt))
+        logger.debug(
+            "From-scratch 프롬프트 준비 완료", prompt_length=len(formatted_prompt)
+        )
 
-        logger.info("🤖 [WRITE_CONTENT] LLM 호출 시작", slide_title=slide_title, step="content_generation")
+        logger.info(
+            "🤖 [WRITE_CONTENT] LLM 호출 시작",
+            slide_title=slide_title,
+            step="content_generation",
+        )
         content = await llm.generate_structured(formatted_prompt, schema=SlideContent)
 
         _validate_slide_content(content, slide_title)
@@ -186,7 +268,7 @@ async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideConte
             "슬라이드 생성 완료",
             slide_title=slide_title,
             html_length=len(content.html_content),
-            step="content_generation_complete"
+            step="content_generation_complete",
         )
 
         return content
@@ -198,58 +280,3 @@ async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideConte
             slide_title=slide_title,
         )
         raise RuntimeError(f"슬라이드 콘텐츠 생성에 실패했습니다: {e}") from e
-
-
-if __name__ == "__main__":
-    import asyncio
-    from app.adapter.llm.langchain_client import LangchainLLM
-    from app.logging import configure_logging
-    from app.service.module.plan_deck import ColorTheme, LayoutType
-
-    configure_logging(level="DEBUG", compact=True)
-
-    async def main():
-        """슬라이드 콘텐츠 생성 데모"""
-        llm = LangchainLLM()
-
-        # Test data
-        slide_info = {
-            "slide_title": "혁신적인 AI 솔루션",
-            "message": "AI가 만들어가는 새로운 미래를 경험해보세요",
-            "layout_type": LayoutType.FEATURE_SHOWCASE.value,
-            "key_points": [
-                "자동화된 워크플로우로 생산성 300% 향상",
-                "머신러닝 기반 예측으로 리스크 95% 감소",
-                "직관적인 UI로 누구나 쉽게 사용 가능",
-            ],
-            "data_points": ["사용자 만족도 98%", "평균 도입 기간 2주", "ROI 450%"]
-        }
-        deck_context = {
-            "deck_title": "AI 혁신 솔루션 발표",
-            "audience": "기술 임원진 및 의사결정권자",
-            "core_message": "AI로 비즈니스 혁신을 이루고 경쟁우위를 확보하세요",
-            "goal": "persuade",
-            "color_theme": ColorTheme.TECH_DARK.value,
-        }
-
-        try:
-            logger.info("=== 슬라이드 콘텐츠 생성 데모 시작 (From-Scratch) ===")
-            start_time = time.time()
-
-            content = await write_content(slide_info, deck_context, llm)
-            
-            end_time = time.time()
-            logger.info(f"🎉 슬라이드 콘텐츠 생성 성공! (소요 시간: {end_time - start_time:.2f}초)")
-            logger.info(f"📏 생성된 HTML 길이: {len(content.html_content):,}자")
-
-            # Save the output to a file for review
-            output_file = "/tmp/generated_slide_from_scratch.html"
-            with open(output_file, "w", encoding="utf-8") as f:
-                f.write(content.html_content)
-            logger.info(f"💾 파일 저장 완료: {output_file}")
-
-        except Exception as e:
-            logger.error("데모 실행 실패", error=str(e))
-            raise
-
-    asyncio.run(main())

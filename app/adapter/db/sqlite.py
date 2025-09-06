@@ -37,7 +37,9 @@ class SQLiteRepository(Repository):
                 logger.info("SQLite 데이터베이스 초기화 완료", db_path=self.db_path)
 
         except Exception as e:
-            logger.error("SQLite 데이터베이스 초기화 실패", error=str(e), db_path=self.db_path)
+            logger.error(
+                "SQLite 데이터베이스 초기화 실패", error=str(e), db_path=self.db_path
+            )
             raise
 
     async def save_deck(self, deck_id: UUID, data: dict[str, Any]) -> None:
@@ -62,7 +64,9 @@ class SQLiteRepository(Repository):
             logger.debug("덱 저장 완료", deck_id=str(deck_id), data_size=len(data_json))
 
         except json.JSONEncodeError as e:
-            logger.error("덱 데이터 JSON 직렬화 실패", deck_id=str(deck_id), error=str(e))
+            logger.error(
+                "덱 데이터 JSON 직렬화 실패", deck_id=str(deck_id), error=str(e)
+            )
             raise ValueError(f"Invalid data format for deck {deck_id}: {e}") from e
         except Exception as e:
             logger.error("덱 저장 실패", deck_id=str(deck_id), error=str(e))
@@ -100,7 +104,9 @@ class SQLiteRepository(Repository):
         try:
             deck_data = await self.get_deck(deck_id)
             if deck_data is None:
-                logger.warning("상태 업데이트할 덱을 찾을 수 없음", deck_id=str(deck_id))
+                logger.warning(
+                    "상태 업데이트할 덱을 찾을 수 없음", deck_id=str(deck_id)
+                )
                 raise ValueError(f"Deck {deck_id} not found")
 
             deck_data["status"] = status
@@ -110,26 +116,31 @@ class SQLiteRepository(Repository):
             logger.debug("덱 상태 업데이트 완료", deck_id=str(deck_id), status=status)
 
         except Exception as e:
-            logger.error("덱 상태 업데이트 실패", deck_id=str(deck_id), status=status, error=str(e))
+            logger.error(
+                "덱 상태 업데이트 실패",
+                deck_id=str(deck_id),
+                status=status,
+                error=str(e),
+            )
             raise
-    
+
     async def list_all_decks(self, limit: int = 10) -> list[dict[str, Any]]:
         """List recent decks with basic info"""
         try:
             await self._init_db()
-            
+
             async with aiosqlite.connect(self.db_path) as db:
                 cursor = await db.execute(
                     """
-                    SELECT deck_id, data, created_at, updated_at 
-                    FROM decks 
-                    ORDER BY created_at DESC 
+                    SELECT deck_id, data, created_at, updated_at
+                    FROM decks
+                    ORDER BY created_at DESC
                     LIMIT ?
                     """,
-                    (limit,)
+                    (limit,),
                 )
                 rows = await cursor.fetchall()
-                
+
                 decks = []
                 for row in rows:
                     deck_id, data_json, created_at, updated_at = row
@@ -141,16 +152,16 @@ class SQLiteRepository(Repository):
                             "status": data.get("status", "unknown"),
                             "created_at": created_at,
                             "updated_at": updated_at,
-                            "slide_count": len(data.get("slides", []))
+                            "slide_count": len(data.get("slides", [])),
                         }
                         decks.append(deck_info)
                     except json.JSONDecodeError:
                         logger.warning("덱 데이터 파싱 실패, 스킵", deck_id=deck_id)
                         continue
-                
+
                 logger.debug("덱 목록 조회 완료", count=len(decks))
                 return decks
-                
+
         except Exception as e:
             logger.error("덱 목록 조회 실패", error=str(e))
             raise

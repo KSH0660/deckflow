@@ -17,6 +17,8 @@ class DeckStatusResponse(BaseModel):
     deck_id: str
     status: str
     slide_count: int
+    progress: int | None = None
+    step: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
     completed_at: datetime | None = None

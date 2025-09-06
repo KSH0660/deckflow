@@ -21,6 +21,8 @@ dependencies = [
     "streamlit>=1.49.1",
     "langchain-openai>=0.3.32",
     "aiosqlite>=0.21.0",
+    "weasyprint>=66.0",
+    "playwright>=1.55.0",
 ]
 
 [project.optional-dependencies]
@@ -70,4 +72,9 @@ no_implicit_optional = true
 [dependency-groups]
 dev = [
     "ruff>=0.12.11",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests",
 ]

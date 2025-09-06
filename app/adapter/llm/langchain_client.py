@@ -58,7 +58,7 @@ class LangchainLLM(LLMProvider):
 
     def __init__(
         self,
-        model: str = "gpt-5-nano",
+        model: str = "gpt-4o-mini",
     ) -> None:
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -83,19 +83,19 @@ class LangchainLLM(LLMProvider):
         result = resp.content or ""
 
         # Log token usage if available
-        if hasattr(resp, 'usage_metadata') and resp.usage_metadata:
+        if hasattr(resp, "usage_metadata") and resp.usage_metadata:
             usage = resp.usage_metadata
             logger.info(
-                "텍스트 생성 완료 (토큰 사용량)", 
+                "텍스트 생성 완료 (토큰 사용량)",
                 model=self.model,
-                input_tokens=getattr(usage, 'input_tokens', 0),
-                output_tokens=getattr(usage, 'output_tokens', 0), 
-                total_tokens=getattr(usage, 'total_tokens', 0),
-                response_length=len(result)
+                input_tokens=getattr(usage, "input_tokens", 0),
+                output_tokens=getattr(usage, "output_tokens", 0),
+                total_tokens=getattr(usage, "total_tokens", 0),
+                response_length=len(result),
             )
         else:
             logger.debug("텍스트 생성 완료", response_length=len(result))
-        
+
         return result
 
     async def generate_structured(self, prompt: str, schema: type[T]) -> T:
@@ -112,33 +112,33 @@ class LangchainLLM(LLMProvider):
         # Use structured output with token usage tracking
         structured_llm = self.llm.with_structured_output(schema=schema)
         messages = self._prompt.format_messages(input=prompt)
-        
+
         # Get structured response (this should include usage metadata in newer versions)
         resp = await structured_llm.ainvoke(messages)
-        
+
         # Extract the actual result (resp might be wrapped)
         if isinstance(resp, schema):
             result = resp
         else:
             result = resp
-        
+
         # Try to log token usage - check different possible locations
         usage_logged = False
-        
+
         # Check if response has usage metadata directly
-        if hasattr(resp, 'usage_metadata') and resp.usage_metadata:
+        if hasattr(resp, "usage_metadata") and resp.usage_metadata:
             usage = resp.usage_metadata
             logger.info(
                 "구조화된 생성 완료 (토큰 사용량)",
                 model=self.model,
                 schema=schema.__name__,
-                input_tokens=getattr(usage, 'input_tokens', 0),
-                output_tokens=getattr(usage, 'output_tokens', 0),
-                total_tokens=getattr(usage, 'total_tokens', 0),
+                input_tokens=getattr(usage, "input_tokens", 0),
+                output_tokens=getattr(usage, "output_tokens", 0),
+                total_tokens=getattr(usage, "total_tokens", 0),
                 result_type=type(result).__name__,
             )
             usage_logged = True
-        
+
         # If no usage metadata found, log without token info
         if not usage_logged:
             logger.debug(
@@ -146,5 +146,5 @@ class LangchainLLM(LLMProvider):
                 schema=schema.__name__,
                 result_type=type(result).__name__,
             )
-        
+
         return result

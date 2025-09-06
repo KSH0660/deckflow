@@ -129,13 +129,16 @@ class SlidePlan(BaseModel):
         default_factory=list, description="Statistics, numbers, metrics with context"
     )
     expert_insights: list[str] = Field(
-        default_factory=list, description="Professional insights, trends, industry facts"
+        default_factory=list,
+        description="Professional insights, trends, industry facts",
     )
     supporting_facts: list[str] = Field(
-        default_factory=list, description="Supporting facts, research findings, benchmarks"
+        default_factory=list,
+        description="Supporting facts, research findings, benchmarks",
     )
     quantitative_details: list[str] = Field(
-        default_factory=list, description="Specific numbers, percentages, growth rates, comparisons"
+        default_factory=list,
+        description="Specific numbers, percentages, growth rates, comparisons",
     )
 
 
@@ -176,7 +179,7 @@ async def plan_deck(prompt: str, llm) -> DeckPlan:
             deck_title=plan.deck_title,
             slide_count=len(plan.slides),
             goal=plan.goal.value,
-            step="plan_generation_complete"
+            step="plan_generation_complete",
         )
 
         for slide in plan.slides:
@@ -209,7 +212,7 @@ def _calculate_plan_score(plan: DeckPlan) -> dict:
     }
 
     slide_count = len(plan.slides)
-    
+
     # 구조적 완성도 (25점 만점)
     if 5 <= slide_count <= 8:  # 최적 슬라이드 수
         score_details["structure"] += 12
@@ -267,8 +270,12 @@ def _calculate_plan_score(plan: DeckPlan) -> dict:
 
     # 데이터 밀도 보너스 (3점) - 모든 필드가 채워진 슬라이드 비율
     fully_loaded_slides = [
-        s for s in plan.slides 
-        if s.data_points and s.expert_insights and s.supporting_facts and s.quantitative_details
+        s
+        for s in plan.slides
+        if s.data_points
+        and s.expert_insights
+        and s.supporting_facts
+        and s.quantitative_details
     ]
     if len(fully_loaded_slides) > slide_count * 0.5:  # 50% 이상이 풀로 채워짐
         score_details["data_richness"] += 3
@@ -293,8 +300,10 @@ def _calculate_plan_score(plan: DeckPlan) -> dict:
         score_details["clarity"] += 2
 
     score_details["total"] = (
-        score_details["structure"] + score_details["content"] + 
-        score_details["data_richness"] + score_details["clarity"]
+        score_details["structure"]
+        + score_details["content"]
+        + score_details["data_richness"]
+        + score_details["clarity"]
     )
     return score_details
 
@@ -327,15 +336,26 @@ def _validate_plan_quality(plan: DeckPlan) -> None:
     # 데이터 풍부도 검증 - 새로운 기준들
     slides_without_data = [s for s in plan.slides if not s.data_points]
     if len(slides_without_data) > len(plan.slides) * 0.3:  # 30% 이상이 데이터 없음
-        logger.warning("데이터 포인트가 부족한 슬라이드가 많음", count=len(slides_without_data))
+        logger.warning(
+            "데이터 포인트가 부족한 슬라이드가 많음", count=len(slides_without_data)
+        )
 
     slides_without_insights = [s for s in plan.slides if not s.expert_insights]
-    if len(slides_without_insights) > len(plan.slides) * 0.4:  # 40% 이상이 인사이트 없음
-        logger.warning("전문가 인사이트가 부족한 슬라이드가 많음", count=len(slides_without_insights))
+    if (
+        len(slides_without_insights) > len(plan.slides) * 0.4
+    ):  # 40% 이상이 인사이트 없음
+        logger.warning(
+            "전문가 인사이트가 부족한 슬라이드가 많음",
+            count=len(slides_without_insights),
+        )
 
     slides_without_quant = [s for s in plan.slides if not s.quantitative_details]
-    if len(slides_without_quant) > len(plan.slides) * 0.5:  # 50% 이상이 정량 데이터 없음
-        logger.warning("정량적 세부사항이 부족한 슬라이드가 많음", count=len(slides_without_quant))
+    if (
+        len(slides_without_quant) > len(plan.slides) * 0.5
+    ):  # 50% 이상이 정량 데이터 없음
+        logger.warning(
+            "정량적 세부사항이 부족한 슬라이드가 많음", count=len(slides_without_quant)
+        )
 
     empty_slides = [s for s in plan.slides if not s.key_points]
     if empty_slides:
@@ -366,7 +386,7 @@ def _validate_plan_quality(plan: DeckPlan) -> None:
         총점=f"{score_info['total']}/100",
         등급=grade,
         구조점수=f"{score_info['structure']}/25",
-        내용점수=f"{score_info['content']}/35", 
+        내용점수=f"{score_info['content']}/35",
         데이터풍부도=f"{score_info['data_richness']}/25",
         명확성점수=f"{score_info['clarity']}/15",
         총데이터포인트=total_data_points,
@@ -374,53 +394,3 @@ def _validate_plan_quality(plan: DeckPlan) -> None:
         총팩트=total_facts,
         총정량데이터=total_quant,
     )
-
-
-if __name__ == "__main__":
-    import asyncio
-    import time
-
-    from app.adapter.llm.langchain_client import LangchainLLM
-    from app.logging import configure_logging
-
-    configure_logging(level="DEBUG", compact=True)
-
-    async def main():
-        """덱 플랜 생성 데모 - 장인정신으로 시간도 측정하자"""
-        llm = LangchainLLM()
-
-        try:
-            logger.info("=== 덱 플랜 생성 데모 시작 ===")
-            start_time = time.time()
-
-            # 덱 플랜 생성
-            plan = await plan_deck(
-                prompt="Samsung vs Hynix 메모리 반도체 기술 비교 분석 프레젠테이션",
-                llm=llm,
-            )
-
-            end_time = time.time()
-            execution_time = end_time - start_time
-
-            logger.info("🎉 덱 플랜 생성 성공!")
-            logger.info(f"⏱️  총 실행시간: {execution_time:.2f}초")
-            logger.info(f"📋 제목: {plan.deck_title}")
-            logger.info(f"🎯 목표: {plan.goal.value}")
-            logger.info(f"🎨 색 테마: {plan.color_theme.value}")
-            logger.info(f"📊 슬라이드 수: {len(plan.slides)}")
-            logger.info(
-                f"⚡ 슬라이드당 평균 시간: {execution_time/len(plan.slides):.2f}초"
-            )
-
-            # 슬라이드별 상세 정보
-            logger.info("=== 생성된 슬라이드 목록 ===")
-            for slide in plan.slides:
-                logger.info(
-                    f"  {slide.slide_id}. {slide.slide_title} ({slide.layout_type})"
-                )
-
-        except Exception as e:
-            logger.error("데모 실행 실패", error=str(e))
-            raise
-
-    asyncio.run(main())
