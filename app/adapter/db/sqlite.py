@@ -48,16 +48,46 @@ class SQLiteRepository(Repository):
             # Ensure database is initialized
             await self._init_db()
 
-            data_json = json.dumps(data, default=str)
-            now = datetime.now().isoformat()
+            data_json = json.dumps(data, default=str, ensure_ascii=False)
+            now_iso = datetime.now().isoformat()
 
+            # Preserve created_at if the record already exists; otherwise prefer
+            # value from payload, falling back to now.
             async with aiosqlite.connect(self.db_path) as db:
+                cur = await db.execute(
+                    "SELECT created_at FROM decks WHERE deck_id = ?",
+                    (str(deck_id),),
+                )
+                row = await cur.fetchone()
+                existing_created = row[0] if row else None
+
+                # Determine created_at column value
+                if existing_created:
+                    created_col = existing_created
+                else:
+                    payload_created = data.get("created_at")
+                    if hasattr(payload_created, "isoformat"):
+                        created_col = payload_created.isoformat()
+                    elif payload_created is not None:
+                        created_col = str(payload_created)
+                    else:
+                        created_col = now_iso
+
+                # Determine updated_at column value
+                payload_updated = data.get("updated_at")
+                if hasattr(payload_updated, "isoformat"):
+                    updated_col = payload_updated.isoformat()
+                elif payload_updated is not None:
+                    updated_col = str(payload_updated)
+                else:
+                    updated_col = now_iso
+
                 await db.execute(
                     """
                     INSERT OR REPLACE INTO decks (deck_id, data, created_at, updated_at)
                     VALUES (?, ?, ?, ?)
                     """,
-                    (str(deck_id), data_json, now, now),
+                    (str(deck_id), data_json, created_col, updated_col),
                 )
                 await db.commit()
 
