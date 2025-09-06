@@ -20,6 +20,7 @@ dependencies = [
     "mypy>=1.17.1",
     "streamlit>=1.49.1",
     "langchain-openai>=0.3.32",
+    "aiosqlite>=0.21.0",
 ]
 
 [project.optional-dependencies]

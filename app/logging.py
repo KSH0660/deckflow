@@ -5,12 +5,56 @@ from typing import Any
 import structlog
 
 
-def configure_logging(level: str = None) -> None:
+def compact_renderer(logger, name, event_dict):
+    """Compact renderer for cleaner log output."""
+    level = event_dict.get('level', '').upper()
+    timestamp = event_dict.get('timestamp', '')
+    event = event_dict.get('event', '')
+    
+    # Extract just the module name (e.g., write_slide_content instead of app.service.module.write_slide_content)
+    logger_name = name or ''
+    if '.' in logger_name:
+        logger_name = logger_name.split('.')[-1]
+    
+    # Format timestamp to be shorter (just time, no date/timezone)
+    if 'T' in timestamp:
+        time_part = timestamp.split('T')[1]
+        if '.' in time_part:
+            time_part = time_part.split('.')[0]  # Remove microseconds
+        timestamp = time_part
+    
+    # Build compact log line
+    log_parts = []
+    
+    # Add level and time
+    if level:
+        log_parts.append(f"[{level[:1]}]")  # Just first letter: [I], [E], [D]
+    if timestamp:
+        log_parts.append(f"{timestamp}")
+    if logger_name:
+        log_parts.append(f"[{logger_name}]")
+    
+    # Add main message
+    if event:
+        log_parts.append(event)
+    
+    # Add other key-value pairs in compact format
+    for key, value in event_dict.items():
+        if key not in ['level', 'timestamp', 'event', 'logger']:
+            if isinstance(value, str) and len(value) > 50:
+                value = f"{value[:47]}..."
+            log_parts.append(f"{key}={value}")
+    
+    return " ".join(log_parts)
+
+
+def configure_logging(level: str = None, compact: bool = True) -> None:
     """
     Configure structlog with sensible defaults for the application.
 
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR). Defaults to INFO or LOG_LEVEL env var
+        compact: Use compact logging format (default True)
 
     """
     if level is None:
@@ -29,7 +73,11 @@ def configure_logging(level: str = None) -> None:
         structlog.processors.UnicodeDecoder(),
     ]
 
-    processors.append(structlog.dev.ConsoleRenderer(colors=True))
+    # Choose renderer based on compact setting
+    if compact:
+        processors.append(compact_renderer)
+    else:
+        processors.append(structlog.dev.ConsoleRenderer(colors=True))
 
     structlog.configure(
         processors=processors,

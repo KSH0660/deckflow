@@ -19,3 +19,21 @@ class InMemoryRepository(Repository):
         if deck_id in self._decks:
             self._decks[deck_id]["status"] = status
             self._decks[deck_id]["updated_at"] = datetime.now()
+    
+    async def list_all_decks(self, limit: int = 10) -> list[dict[str, Any]]:
+        """List recent decks with basic info"""
+        decks = []
+        for deck_id, data in self._decks.items():
+            deck_info = {
+                "deck_id": str(deck_id),
+                "title": data.get("deck_title", "Untitled"),
+                "status": data.get("status", "unknown"),
+                "created_at": data.get("created_at"),
+                "updated_at": data.get("updated_at"),
+                "slide_count": len(data.get("slides", []))
+            }
+            decks.append(deck_info)
+        
+        # Sort by created_at (newest first)
+        decks.sort(key=lambda x: x.get("created_at", datetime.min), reverse=True)
+        return decks[:limit]

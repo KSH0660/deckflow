@@ -4,13 +4,16 @@ from uuid import uuid4
 
 from pydantic import BaseModel
 
-from app.service.module.plan_deck import DeckPlan, plan_deck
+from app.service.module.plan_deck import DeckPlan, SlidePlan, plan_deck
 from app.service.module.write_slide_content import SlideContent, write_content
 
+from app.logging import get_logger
+logger = get_logger(__name__)
 
 class Slide(BaseModel):
     order: int
     content: SlideContent
+    plan: dict  # Store slide plan information
 
 
 class GeneratedDeck(BaseModel):
@@ -22,15 +25,27 @@ class GeneratedDeck(BaseModel):
     completed_at: datetime
 
 
-async def generate_deck(prompt: str, llm, repo) -> str:
+async def generate_deck(prompt: str, llm, repo, progress_callback=None) -> str:
     """Main orchestrator for deck generation following: deck plan > layout select > write content"""
     deck_id = uuid4()
 
+    def update_progress(step: str, progress: int):
+        """Internal progress updater"""
+        if progress_callback:
+            progress_callback(step, progress)
+
+    # Initialize token usage tracking
+    logger.info("🎯 [GENERATE_DECK] 전체 덱 생성 시작", deck_id=str(deck_id), prompt_preview=prompt[:100])
+
     try:
         # Step 1: Generate deck plan
+        update_progress("Planning presentation structure...", 30)
+        logger.info("📋 [GENERATE_DECK] 덱 계획 단계 시작")
         deck_plan: DeckPlan = await plan_deck(prompt, llm)
+        logger.info("📋 [GENERATE_DECK] 덱 계획 단계 완료", slide_count=len(deck_plan.slides))
 
         # Initialize deck in repository
+        update_progress("Initializing deck data...", 40)
         deck_data = {
             "id": str(deck_id),
             "deck_title": deck_plan.deck_title,
@@ -47,6 +62,7 @@ async def generate_deck(prompt: str, llm, repo) -> str:
         await repo.save_deck(deck_id, deck_data)
 
         # Step 2 & 3: For each slide, select layout and generate content (parallel processing)
+        update_progress("Starting parallel slide generation...", 50)
 
         # Prepare deck context (shared across all slides)
         deck_context = {
@@ -65,6 +81,7 @@ async def generate_deck(prompt: str, llm, repo) -> str:
             return Slide(
                 order=i + 1,
                 content=content,
+                plan=slide_info,  # Store the plan information
             )
 
         # Create tasks for parallel execution
@@ -74,15 +91,20 @@ async def generate_deck(prompt: str, llm, repo) -> str:
         ]
 
         # Execute all slide generation tasks in parallel
+        update_progress("Generating all slides in parallel...", 60)
+        logger.info("🎨 [GENERATE_DECK] 슬라이드 콘텐츠 생성 단계 시작", slide_count=len(slide_tasks))
         slides = await asyncio.gather(*slide_tasks)
+        logger.info("🎨 [GENERATE_DECK] 슬라이드 콘텐츠 생성 단계 완료", generated_slides=len(slides))
 
         # Update deck with completed slides
+        update_progress("Finalizing presentation...", 95)
         deck_data["slides"] = [slide.model_dump() for slide in slides]
         deck_data["status"] = "completed"
         deck_data["completed_at"] = datetime.now()
 
         await repo.save_deck(deck_id, deck_data)
 
+        logger.info("🎉 [GENERATE_DECK] 전체 덱 생성 완료", deck_id=str(deck_id), total_slides=len(slides))
         return str(deck_id)
 
     except Exception as e:
@@ -100,7 +122,7 @@ if __name__ == "__main__":
     from app.logging import configure_logging, get_logger
 
     logger = get_logger(__name__)
-    configure_logging(level="DEBUG")
+    configure_logging(level="DEBUG", compact=True)
 
     class MockRepository:
         """테스트용 모의 레포지토리"""
