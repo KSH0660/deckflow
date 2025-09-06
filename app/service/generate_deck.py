@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from uuid import uuid4
 
@@ -45,27 +46,35 @@ async def generate_deck(prompt: str, llm, repo) -> str:
         }
         await repo.save_deck(deck_id, deck_data)
 
-        # Step 2 & 3: For each slide, select layout and generate content
-        slides = []
-        for i, slide_plan in enumerate(deck_plan.slides):
+        # Step 2 & 3: For each slide, select layout and generate content (parallel processing)
 
+        # Prepare deck context (shared across all slides)
+        deck_context = {
+            "deck_title": deck_plan.deck_title,
+            "audience": deck_plan.audience,
+            "core_message": deck_plan.core_message,
+            "goal": deck_plan.goal.value,
+            "color_theme": deck_plan.color_theme.value,
+        }
+
+        async def generate_slide_content(i: int, slide_plan) -> Slide:
+            """Generate content for a single slide"""
             slide_info = slide_plan.model_dump()  # json
-
-            # Content generation (pass deck plan context)
-            deck_context = {
-                "deck_title": deck_plan.deck_title,
-                "audience": deck_plan.audience,
-                "core_message": deck_plan.core_message,
-                "goal": deck_plan.goal.value,
-                "color_theme": deck_plan.color_theme.value,
-            }
             content: SlideContent = await write_content(slide_info, deck_context, llm)
 
-            slide = Slide(
+            return Slide(
                 order=i + 1,
                 content=content,
             )
-            slides.append(slide)
+
+        # Create tasks for parallel execution
+        slide_tasks = [
+            generate_slide_content(i, slide_plan)
+            for i, slide_plan in enumerate(deck_plan.slides)
+        ]
+
+        # Execute all slide generation tasks in parallel
+        slides = await asyncio.gather(*slide_tasks)
 
         # Update deck with completed slides
         deck_data["slides"] = [slide.model_dump() for slide in slides]

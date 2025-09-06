@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visual Slide - Chart Placeholder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900 flex flex-col justify-center min-h-screen p-8">
+    <h1 class="text-5xl font-bold mb-8 text-center text-gray-900">{{ title }}</h1>
+    <div class="flex-grow flex items-center justify-center mb-8">
+        <div class="w-full max-w-4xl h-96 bg-gray-50 border-2 border-gray-300 border-dashed rounded-lg flex items-center justify-center">
+            <div class="text-center text-gray-500">
+                <div class="text-6xl mb-4">📊</div>
+                <p class="text-2xl">{{ chart_placeholder_text | default("Chart Placeholder") }}</p>
+            </div>
+        </div>
+    </div>
+    <p class="text-xl text-center text-gray-600">{{ caption }}</p>
+</body>
+</html>

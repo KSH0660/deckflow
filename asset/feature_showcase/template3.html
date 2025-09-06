@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Showcase Slide - Vertical Stack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900 flex flex-col justify-center min-h-screen p-8">
+    <h1 class="text-4xl font-bold mb-8 text-center text-gray-900">{{ title }}</h1>
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="flex items-center gap-8 p-6 bg-blue-50 rounded-2xl border border-blue-200">
+            <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <span class="text-3xl">{{ feature1_icon | default("🚀") }}</span>
+            </div>
+            <div>
+                <h3 class="text-2xl font-bold mb-2 text-blue-900">{{ feature1_title }}</h3>
+                <p class="text-lg text-gray-700">{{ feature1_description }}</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-8 p-6 bg-green-50 rounded-2xl border border-green-200">
+            <div class="w-20 h-20 bg-green-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <span class="text-3xl">{{ feature2_icon | default("⚡") }}</span>
+            </div>
+            <div>
+                <h3 class="text-2xl font-bold mb-2 text-green-900">{{ feature2_title }}</h3>
+                <p class="text-lg text-gray-700">{{ feature2_description }}</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-8 p-6 bg-purple-50 rounded-2xl border border-purple-200">
+            <div class="w-20 h-20 bg-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <span class="text-3xl">{{ feature3_icon | default("🎯") }}</span>
+            </div>
+            <div>
+                <h3 class="text-2xl font-bold mb-2 text-purple-900">{{ feature3_title }}</h3>
+                <p class="text-lg text-gray-700">{{ feature3_description }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

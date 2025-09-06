@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Showcase Slide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900 flex flex-col justify-center min-h-screen p-8">
+    <h1 class="text-5xl font-bold mb-12 text-center text-gray-900">{{ title }}</h1>
+    <div class="grid grid-cols-3 gap-8">
+        <div class="text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-3xl">{{ feature1_icon | default("🚀") }}</span>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-gray-900">{{ feature1_title }}</h3>
+            <p class="text-lg text-gray-600">{{ feature1_description }}</p>
+        </div>
+        <div class="text-center">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-3xl">{{ feature2_icon | default("⚡") }}</span>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-gray-900">{{ feature2_title }}</h3>
+            <p class="text-lg text-gray-600">{{ feature2_description }}</p>
+        </div>
+        <div class="text-center">
+            <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-3xl">{{ feature3_icon | default("🎯") }}</span>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-gray-900">{{ feature3_title }}</h3>
+            <p class="text-lg text-gray-600">{{ feature3_description }}</p>
+        </div>
+    </div>
+</body>
+</html>

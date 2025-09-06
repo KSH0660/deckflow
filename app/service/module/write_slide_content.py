@@ -175,49 +175,32 @@ def _get_template_examples(layout_type: str, max_templates: int = 3) -> list[str
 
 
 MASTER_WRITER_PROMPT = """
-You are an expert presentation designer who creates stunning HTML slides using Tailwind CSS.
+You are a presentation HTML layout assistant who creates stunning HTML slides using Tailwind CSS.
 
-Create a complete HTML slide based on the provided information that matches the presentation theme and maintains visual consistency.
+Choose the best template among the given candidates and produce a complete HTML for the slide.
+Use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>) and apply utility classes appropriately.
+Replace any placeholders/comments from the chosen template with real content. No Markdown.
 
-**Slide Information:**
-- Slide Title: {slide_title}
-- Message: {message}
-- Layout Type: {layout_type}
-- Key Points: {key_points}
-- Data Points: {data_points}
+Deck context (for tone/consistency): topic='{deck_title}', audience='{audience}'.
 
-**Presentation Context:**
-- Deck Title: {deck_title}
-- Audience: {audience}
-- Core Message: {core_message}
-- Goal: {goal}
-- Color Theme: {color_theme}
+Slide JSON:
+{slide_json}
 
-**Color Theme: {color_theme}**
-Create a cohesive color scheme that embodies the "{color_theme}" aesthetic. Choose colors that work harmoniously together and fit the theme's personality. Use your expertise to select appropriate colors for backgrounds, text, accents, and UI elements.
-
-**Template Examples for {layout_type} Layout:**
+**Candidate Templates (ONLY these):**
 {template_examples}
 
-**HTML Requirements:**
-1. Must include: <script src="https://cdn.tailwindcss.com"></script>
-2. Must be 16:9 aspect ratio (use w-screen h-screen)
-3. Prevent vertical overflow (use overflow-hidden)
-4. Apply the specified color theme consistently (replace template colors with the provided palette)
-5. Make content visually engaging and professional
-6. Use the template examples as inspiration but create original content
-7. Include placeholder variables like {{variable_name}} for dynamic content
-8. Ensure responsive design within the 16:9 constraint
+**Guidelines:**
+- Insert <script src="https://cdn.tailwindcss.com"></script> in <head>.
+- Keep it self-contained (no external CSS/JS besides Tailwind CDN).
+- Use semantic elements and Tailwind utility classes for spacing/typography/layout.
+- Replace placeholders like [[TITLE]] and commented sections (e.g., <!-- POINTS -->) with actual content.
+- If 'data_points' exist, render a neat key-value list or small metric grid.
+- Must be 16:9 aspect ratio (use w-screen h-screen)
+- Prevent vertical overflow (use overflow-hidden)
+- Apply the color theme: {color_theme}
+- Make content visually engaging and professional
 
-**Instructions:**
-- Study the provided template examples to understand the layout structure and design patterns
-- Create a new slide that follows similar layout principles but with your own creative interpretation
-- Replace template placeholder content with the actual slide information provided
-- Apply the specified color palette throughout the design
-- Ensure the final result is polished, professional, and fits the presentation context
-- Make it better than the templates while maintaining their structural excellence
-
-Create a complete, ready-to-use HTML slide that surpasses the template quality.
+Create a complete, ready-to-use HTML slide that follows the template structure but with your original content.
 """
 
 
@@ -256,11 +239,15 @@ async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideConte
             else "No template examples available for this layout type."
         )
 
+        import json
+
+        # 프롬프트 변수 준비
         prompt_vars = {
-            **slide_info,  # 슬라이드 기본 정보
-            **deck_context,  # 덱 컨텍스트
-            "color_theme": mapped_color_theme,  # 색상 테마
-            "template_examples": template_examples_text,  # 템플릿 예제
+            "deck_title": deck_context.get("deck_title", ""),
+            "audience": deck_context.get("audience", ""),
+            "slide_json": json.dumps(slide_info, indent=2),
+            "template_examples": template_examples_text,
+            "color_theme": json.dumps(mapped_color_theme, indent=2),
         }
 
         # 프롬프트 포맷팅 - 한 줄로 끝!

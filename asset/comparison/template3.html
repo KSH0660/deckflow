@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Slide - Table Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-8">
+    <div class="bg-white rounded-3xl shadow-lg p-12 max-w-6xl w-full">
+        <h1 class="text-4xl font-bold mb-8 text-center text-gray-900">{{ title }}</h1>
+        <div class="grid grid-cols-2 gap-8 max-h-[calc(100vh-250px)]">
+            <div class="space-y-4">
+                <div class="bg-blue-600 text-white p-4 rounded-t-xl">
+                    <h2 class="text-2xl font-bold text-center">{{ column1_title }}</h2>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-b-xl min-h-[300px] overflow-y-auto">
+                    <div class="text-lg leading-relaxed text-gray-700">
+                        {{ column1_content | safe }}
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-green-600 text-white p-4 rounded-t-xl">
+                    <h2 class="text-2xl font-bold text-center">{{ column2_title }}</h2>
+                </div>
+                <div class="bg-green-50 p-6 rounded-b-xl min-h-[300px] overflow-y-auto">
+                    <div class="text-lg leading-relaxed text-gray-700">
+                        {{ column2_content | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

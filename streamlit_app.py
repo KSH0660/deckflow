@@ -6,7 +6,11 @@ from uuid import UUID
 import streamlit as st
 
 from app.adapter.factory import current_llm, current_repo
+from app.logging import configure_logging, get_logger
 from app.service.generate_deck import generate_deck
+
+logger = get_logger(__name__)
+configure_logging(level="INFO")
 
 
 def main():

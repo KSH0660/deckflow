@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Showcase Slide - Card Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex flex-col justify-center min-h-screen p-8">
+    <h1 class="text-4xl font-bold mb-12 text-center text-gray-900">{{ title }}</h1>
+    <div class="grid grid-cols-3 gap-6">
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span class="text-2xl">{{ feature1_icon | default("🚀") }}</span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-gray-900">{{ feature1_title }}</h3>
+            <p class="text-gray-600 leading-relaxed">{{ feature1_description }}</p>
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow">
+            <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span class="text-2xl">{{ feature2_icon | default("⚡") }}</span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-gray-900">{{ feature2_title }}</h3>
+            <p class="text-gray-600 leading-relaxed">{{ feature2_description }}</p>
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span class="text-2xl">{{ feature3_icon | default("🎯") }}</span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-gray-900">{{ feature3_title }}</h3>
+            <p class="text-gray-600 leading-relaxed">{{ feature3_description }}</p>
+        </div>
+    </div>
+</body>
+</html>
