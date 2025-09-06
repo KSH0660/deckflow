@@ -175,7 +175,7 @@ def display_deck_content(deck_id: str, repo: SQLiteRepository):
                 slide_plan = slide.get("plan", {})
                 slide_title = slide_plan.get("slide_title", f"슬라이드 {i+1}")
 
-                with st.expander(f"슬라이드 {i+1}: {slide_title}", expanded=i == 0):
+                with st.expander(f"슬라이드 {i+1}: {slide_title}", expanded=True):
                     slide_content = slide.get("content", {})
                     html_content = slide_content.get("html_content", "")
                     if html_content:
