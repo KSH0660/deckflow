@@ -82,7 +82,7 @@ export default function Home() {
 
               <div className="flex items-center gap-3">
                 <div className="text-sm text-gray-500">
-                  Claude Sonnet 4
+                  Deckflow
                 </div>
                 <button
                   type="submit"
