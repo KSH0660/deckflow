@@ -1,9 +1,14 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.adapter.factory import current_llm, current_repo
-from app.api.schema import CreateDeckRequest, CreateDeckResponse, DeckStatusResponse
+from app.api.schema import (
+    CreateDeckRequest,
+    CreateDeckResponse,
+    DeckStatusResponse,
+    DeckListItemResponse,
+)
 from app.service.generate_deck import generate_deck
 
 router = APIRouter(tags=["decks"])
@@ -25,11 +30,21 @@ async def get_deck_status(deck_id: UUID):
     deck = await repo.get_deck(deck_id)
     if not deck:
         raise HTTPException(status_code=404, detail="Deck not found")
+    # deck is stored as dict in repositories
     return DeckStatusResponse(
-        deck_id=str(deck.id),
-        status=deck.status,
-        slide_count=len(deck.slides),
-        created_at=deck.created_at,
-        updated_at=deck.updated_at,
-        completed_at=deck.completed_at,
+        deck_id=str(deck.get("id", deck_id)),
+        status=deck.get("status", "unknown"),
+        slide_count=len(deck.get("slides", [])),
+        created_at=deck.get("created_at"),
+        updated_at=deck.get("updated_at"),
+        completed_at=deck.get("completed_at"),
     )
+
+
+@router.get("/decks", response_model=list[DeckListItemResponse])
+async def list_decks(limit: int = Query(default=10, ge=1, le=100)):
+    """Return recent decks with basic info."""
+    repo = current_repo()
+    decks = await repo.list_all_decks(limit=limit)
+    # Re-shape keys if necessary; repositories already return matching keys
+    return decks

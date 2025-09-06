@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api.decks import router as decks_router
+from app.api.deck import router as decks_router
 
 
 def create_app() -> FastAPI:
