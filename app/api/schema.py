@@ -20,3 +20,12 @@ class DeckStatusResponse(BaseModel):
     created_at: datetime
     updated_at: datetime | None = None
     completed_at: datetime | None = None
+
+
+class DeckListItemResponse(BaseModel):
+    deck_id: str
+    title: str
+    status: str
+    slide_count: int
+    created_at: datetime
+    updated_at: datetime | None = None
