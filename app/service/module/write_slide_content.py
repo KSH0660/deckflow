@@ -175,7 +175,7 @@ def _get_template_examples(layout_type: str, max_templates: int = 3) -> list[str
 
 
 MASTER_WRITER_PROMPT = """
-You are a presentation HTML layout assistant who creates stunning HTML slides using Tailwind CSS.
+You are a presentation HTML layout assistant who creates stunning, *readable* HTML slides using Tailwind CSS.
 
 Choose the best template among the given candidates and produce a complete HTML for the slide.
 Use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>) and apply utility classes appropriately.
@@ -189,19 +189,54 @@ Slide JSON:
 **Candidate Templates (ONLY these):**
 {template_examples}
 
-**Guidelines:**
-- Insert <script src="https://cdn.tailwindcss.com"></script> in <head>.
-- Keep it self-contained (no external CSS/JS besides Tailwind CDN).
-- Use semantic elements and Tailwind utility classes for spacing/typography/layout.
-- Replace placeholders like [[TITLE]] and commented sections (e.g., <!-- POINTS -->) with actual content.
-- If 'data_points' exist, render a neat key-value list or small metric grid.
-- Must be 16:9 aspect ratio (use w-screen h-screen)
-- Prevent vertical overflow (use overflow-hidden)
-- Apply the color theme: {color_theme}
-- Make content visually engaging and professional
+**Hard Layout Rules (must enforce):**
+- Canvas & Aspect:
+  - The slide must render at a strict 16:9 area centered on screen.
+  - Use a full-viewport wrapper (w-screen h-screen) with flex center; inside it, create a 16:9 slide surface using either:
+    - width/height pair of 1920x1080 (w-[1920px] h-[1080px]) **or**
+    - responsive min-dimension math (e.g., w-[min(100vw,177.78vh)] h-[min(56.25vw,100vh)]).
+  - The visible slide surface must set overflow-hidden to prevent scrollbars.
+- Safe Area:
+  - Keep a consistent inner safe area: padding of at least 5-8% of the slide's shorter edge (e.g., p-[5%]) so no key text hugs the edges.
+- Typographic Legibility:
+  - Minimum body text >= 24px equivalent (Tailwind: text-xl or larger).
+  - Main title prominent (e.g., text-5xl to text-6xl), subtitle smaller (text-2xl~3xl). Maintain clear hierarchy.
+  - Use tight, consistent line-length (max-w-prose or max-w-[65ch]) for paragraphs.
+- Grid & Alignment:
+  - Establish a predictable grid per template (e.g., grid grid-cols-12 gap-6) and align elements to it for consistency across slides.
+  - Keep vertical rhythm consistent (space-y-* or gap-*). Avoid random spacing.
+- Contrast & Theme:
+  - Apply the provided color theme: {color_theme}. Ensure WCAG-friendly contrast for text vs background.
+  - Prefer a simple, professional palette with strong contrast for headings and key metrics.
+- Media Handling:
+  - Images/plots/videos must not overflow: use object-contain, max-h-full, rounded-lg, and a subtle shadow.
+  - If an image conveys meaning, include descriptive alt text.
+- Data Blocks:
+  - If 'data_points' exist, render as a clean key-value list or compact metric grid (2-4 columns). Emphasize values (font-semibold) and provide concise labels (text-sm).
+- Economy of Content:
+  - Avoid dense paragraphs. Prefer 3-5 crisp bullets max per section.
+  - Use icons/small accents sparingly; never let decoration compete with the message.
+- Motion Discipline:
+  - Use minimal, tasteful CSS transitions/animations if at all; no distracting motion or parallax. The slide must be stable on first paint.
+- Accessibility:
+  - Use semantic elements (header, main, footer) and aria-labels where helpful. Provide alt text for images and title text that summarizes the slide.
+- Robustness:
+  - No external CSS/JS besides Tailwind CDN. No runtime dependencies.
+  - The final HTML must be self-contained and render cleanly with no vertical scroll.
 
-Create a complete, ready-to-use HTML slide that follows the template structure but with your original content.
+**Implementation Details:**
+- Insert <script src="https://cdn.tailwindcss.com"></script> in <head>.
+- Use semantic elements and Tailwind utility classes for spacing/typography/layout.
+- Replace placeholders like [[TITLE]] and commented sections (e.g., <!-- POINTS -->) with actual content from Slide JSON and deck context.
+- If tables are needed, style them for readability (compact, striped, text-sm, even row padding).
+- Prefer system-safe fonts via Tailwind defaults; ensure consistent heading/body sizes across slides.
+- Keep interactive focus states sane (focus-visible ring) even if interaction is minimal.
+
+**Output Requirements:**
+- Return a complete, ready-to-use HTML document that strictly follows the chosen template structure and the rules above.
+- Do not output Markdown. Produce one <html> document with <head> and <body>.
 """
+
 
 
 class SlideContent(BaseModel):
