@@ -8,6 +8,11 @@ import streamlit as st
 from app.adapter.db.sqlite import SQLiteRepository
 from app.adapter.llm.langchain_client import LangchainLLM
 from app.logging import configure_logging, get_logger
+from app.service.export_deck import (
+    PDF_ERROR_DETAIL,
+    render_deck_to_html,
+    try_render_deck_pdf,
+)
 from app.service.generate_deck import generate_deck
 
 # --- 기본 설정 ---
@@ -16,6 +21,7 @@ configure_logging(level="INFO", compact=True)
 
 
 # --- UI 헬퍼 함수 ---
+
 
 def setup_sidebar():
     """사이드바 UI 컴포넌트를 설정합니다."""
@@ -55,6 +61,7 @@ def setup_sidebar():
         )
     return model_name, db_path
 
+
 def show_creation_view(repo: SQLiteRepository, model_name: str):
     """새로운 덱을 생성하는 UI를 표시합니다."""
     st.header("📋 새로운 덱 생성")
@@ -75,6 +82,7 @@ def show_creation_view(repo: SQLiteRepository, model_name: str):
             else:
                 generate_presentation(prompt.strip(), repo, model_name)
 
+
 def show_deck_view(deck_id: str, repo: SQLiteRepository):
     """선택된 덱의 내용을 표시합니다."""
     if st.button("⬅️ 새로 만들기 화면으로 돌아가기"):
@@ -82,6 +90,7 @@ def show_deck_view(deck_id: str, repo: SQLiteRepository):
         st.rerun()
 
     display_deck_content(deck_id, repo)
+
 
 def display_recent_decks(repo: SQLiteRepository):
     """데이터베이스에서 최근에 생성된 덱을 표시합니다."""
@@ -92,13 +101,15 @@ def display_recent_decks(repo: SQLiteRepository):
         if stored_decks:
             for deck in stored_decks:
                 with st.container():
-                    deck_id = deck['deck_id']
+                    deck_id = deck["deck_id"]
                     st.write(f"**{deck['title']}**")
                     st.caption(
                         f"ID: `{deck_id[:8]}...` | 슬라이드: {deck['slide_count']} | 상태: {deck['status']}"
                     )
 
-                    if st.button("덱 보기", key=f"view_stored_{deck_id}", type="secondary"):
+                    if st.button(
+                        "덱 보기", key=f"view_stored_{deck_id}", type="secondary"
+                    ):
                         st.session_state["view_deck_id"] = deck_id
                         st.rerun()
                     st.divider()
@@ -110,6 +121,7 @@ def display_recent_decks(repo: SQLiteRepository):
 
 
 # --- 핵심 로직 함수 ---
+
 
 def generate_presentation(prompt: str, repo: SQLiteRepository, model_name: str):
     """프레젠테이션 생성 과정을 처리하고 진행 상태를 표시합니다."""
@@ -133,7 +145,9 @@ def generate_presentation(prompt: str, repo: SQLiteRepository, model_name: str):
         progress_bar.progress(100, "✅ 생성 완료!")
         status_text.empty()
 
-        st.success(f"🎉 **{model_name}**을 사용하여 {generation_time:.2f}초 만에 덱을 생성했습니다!")
+        st.success(
+            f"🎉 **{model_name}**을 사용하여 {generation_time:.2f}초 만에 덱을 생성했습니다!"
+        )
         st.info(f"**덱 ID:** `{deck_id}`")
 
         # 새로 생성된 덱을 즉시 볼 수 있도록 세션 상태 설정
@@ -145,6 +159,7 @@ def generate_presentation(prompt: str, repo: SQLiteRepository, model_name: str):
         status_text.empty()
         st.error(f"❌ 생성 실패: {str(e)}")
 
+
 def display_deck_content(deck_id: str, repo: SQLiteRepository):
     """덱의 전체 내용과 모든 슬라이드를 가져와 표시합니다."""
     try:
@@ -153,7 +168,44 @@ def display_deck_content(deck_id: str, repo: SQLiteRepository):
             st.warning("덱을 찾을 수 없습니다.")
             return
 
-        st.header(f"📑: {deck_data.get('deck_title', '생성된 프레젠테이션')}")
+        title = deck_data.get("deck_title", "생성된 프레젠테이션")
+        st.header(f"📑: {title}")
+
+        # --- Export buttons ---
+        with st.container():
+            export_cols = st.columns(2)
+            with export_cols[0]:
+                try:
+                    # Use widescreen layout with iframe embedding for fidelity
+                    combined_html = render_deck_to_html(
+                        deck_data, layout="widescreen", embed="iframe"
+                    )
+                    st.download_button(
+                        "⬇️ Export HTML",
+                        data=combined_html,
+                        file_name=f"{title}.html",
+                        mime="text/html",
+                        key=f"export_html_{deck_id}",
+                    )
+                except Exception as e:
+                    st.error(f"HTML 내보내기 오류: {e}")
+            with export_cols[1]:
+                try:
+                    # Try generating PDF; may return None if converter isn't available
+                    pdf_bytes = try_render_deck_pdf(combined_html, layout="widescreen")
+                    if pdf_bytes:
+                        st.download_button(
+                            "🧾 Export PDF",
+                            data=pdf_bytes,
+                            file_name=f"{title}.pdf",
+                            mime="application/pdf",
+                            key=f"export_pdf_{deck_id}",
+                        )
+                    else:
+                        detail = PDF_ERROR_DETAIL or "weasyprint 또는 wkhtmltopdf 필요"
+                        st.info(f"PDF 변환기 없음: {detail}")
+                except Exception as e:
+                    st.warning(f"PDF 내보내기 실패: {e}")
 
         with st.expander("덱 정보", expanded=False):
             col1, col2, col3 = st.columns(3)
@@ -162,9 +214,11 @@ def display_deck_content(deck_id: str, repo: SQLiteRepository):
             created_at = deck_data.get("created_at")
             col3.metric(
                 "생성일",
-                created_at.strftime("%Y-%m-%d %H:%M")
-                if isinstance(created_at, datetime)
-                else "N/A",
+                (
+                    created_at.strftime("%Y-%m-%d %H:%M")
+                    if isinstance(created_at, datetime)
+                    else "N/A"
+                ),
             )
             st.write(f"**대상 청중:** {deck_data.get('audience', 'N/A')}")
             st.write(f"**핵심 메시지:** {deck_data.get('core_message', 'N/A')}")
@@ -197,6 +251,7 @@ def display_deck_content(deck_id: str, repo: SQLiteRepository):
 
 
 # --- 메인 앱 ---
+
 
 def main():
     """Streamlit 앱을 실행하는 메인 함수"""

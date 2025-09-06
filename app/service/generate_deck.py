@@ -1,4 +1,5 @@
 import asyncio
+import time
 from datetime import datetime
 from uuid import uuid4
 
@@ -6,6 +7,12 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 from app.logging import get_logger
+from app.metrics import (
+    active_deck_generations,
+    deck_generation_duration_seconds,
+    deck_generation_total,
+    slide_generation_total,
+)
 from app.service.module.plan_deck import DeckPlan, plan_deck
 from app.service.module.write_slide_content import SlideContent, write_content
 
@@ -50,16 +57,29 @@ async def generate_deck(
             else:
                 progress_callback(step, progress)
 
-    # Initialize token usage tracking
+    # Initialize metrics tracking
+    start_time = time.time()
+    active_deck_generations.inc()
+    
     logger.info(
         "🎯 [GENERATE_DECK] 전체 덱 생성 시작",
         deck_id=str(deck_id),
         prompt_preview=prompt[:100],
     )
 
+    class GenerationCancelled(Exception):
+        pass
+
+    async def check_cancelled():
+        deck = await repo.get_deck(deck_id)
+        if deck and deck.get("status") == "cancelled":
+            raise GenerationCancelled("Deck generation was cancelled")
+
     try:
         # Enforce global deck concurrency (queue if saturated)
         async with deck_semaphore:
+            # Early cancellation check on entry
+            await check_cancelled()
             # Step 1: Generate deck plan
             await update_progress("Planning presentation structure...", 30)
             logger.info("📋 [GENERATE_DECK] 덱 계획 단계 시작")
@@ -136,6 +156,9 @@ async def generate_deck(
                     f"Starting slide {i+1}/{total_slides}: {slide_title}", 60
                 )
 
+                # Cancellation check before heavy work
+                await check_cancelled()
+
                 # Generate slide content
                 async with slide_semaphore:
                     content: SlideContent = await write_content(
@@ -211,9 +234,27 @@ async def generate_deck(
                 deck_id=str(deck_id),
                 total_slides=len(slides),
             )
+            
+            # Record successful completion metrics
+            duration = time.time() - start_time
+            deck_generation_duration_seconds.observe(duration)
+            deck_generation_total.labels(status="completed").inc()
+            slide_generation_total.inc(len(slides))
+            
             return str(deck_id)
 
+    except GenerationCancelled:
+        logger.info("🛑 덱 생성 취소됨", deck_id=str(deck_id))
+        # Record cancellation metrics
+        deck_generation_total.labels(status="cancelled").inc()
+        # Do not overwrite status; API will have marked as cancelled
+        return str(deck_id)
     except Exception as e:
+        # Record failure metrics
+        deck_generation_total.labels(status="failed").inc()
         # Mark as failed
         await repo.update_deck_status(deck_id, "failed")
         raise e
+    finally:
+        # Always decrement active counter
+        active_deck_generations.dec()

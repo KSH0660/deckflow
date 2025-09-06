@@ -46,6 +46,8 @@ async def create_deck(req: CreateDeckRequest, s: AppSettings = Depends(get_setti
 
     async def progress_cb(step: str, progress: int, _slide: dict | None = None):
         deck = await repo.get_deck(deck_uuid) or {}
+        if deck.get("status") == "cancelled":
+            return
         deck.update(
             {
                 "status": "generating",
@@ -100,6 +102,42 @@ async def list_decks(
     return decks
 
 
+@router.post("/decks/{deck_id}/cancel", response_model=DeckStatusResponse)
+async def cancel_deck(deck_id: UUID, s: AppSettings = Depends(get_settings)):
+    repo = current_repo()
+    deck = await repo.get_deck(deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    # If already terminal, just return current state
+    if deck.get("status") in {"completed", "failed", "cancelled"}:
+        return DeckStatusResponse(
+            deck_id=str(deck.get("id", deck_id)),
+            status=deck.get("status", "unknown"),
+            slide_count=len(deck.get("slides", [])),
+            progress=deck.get("progress"),
+            step=deck.get("step"),
+            created_at=deck.get("created_at"),
+            updated_at=deck.get("updated_at"),
+            completed_at=deck.get("completed_at"),
+        )
+
+    deck["status"] = "cancelled"
+    deck["step"] = "Cancelled by user"
+    deck["updated_at"] = datetime.now()
+    await repo.save_deck(deck_id, deck)
+
+    return DeckStatusResponse(
+        deck_id=str(deck.get("id", deck_id)),
+        status=deck.get("status", "unknown"),
+        slide_count=len(deck.get("slides", [])),
+        progress=deck.get("progress"),
+        step=deck.get("step"),
+        created_at=deck.get("created_at"),
+        updated_at=deck.get("updated_at"),
+        completed_at=deck.get("completed_at"),
+    )
+
+
 @router.get("/decks/{deck_id}/export")
 async def export_deck(
     deck_id: UUID,
@@ -109,11 +147,7 @@ async def export_deck(
     inline: bool = False,
     s: AppSettings = Depends(get_settings),
 ):
-    """Export a deck as combined HTML or best-effort PDF.
-
-    - HTML: single printable HTML with page breaks between slides.
-    - PDF: tries WeasyPrint or wkhtmltopdf if available; returns 501 if unavailable.
-    """
+    """Export a deck as combined HTML or best-effort PDF."""
     repo = current_repo()
     deck = await repo.get_deck(deck_id)
     if not deck:
@@ -130,7 +164,6 @@ async def export_deck(
             content=html, media_type="text/html; charset=utf-8", headers=headers
         )
 
-    # format == "pdf"
     pdf_bytes = try_render_deck_pdf(html, layout=layout)
     if not pdf_bytes:
         raise HTTPException(

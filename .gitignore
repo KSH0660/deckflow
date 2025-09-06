@@ -110,3 +110,9 @@ docker-compose.override.yml
 # ------------------
 .pre-commit-config.yaml~
 .pre-commit-hooks.yaml~
+
+# monitoring stack
+monitoring/*
+!monitoring/docker-compose.yml
+!monitoring/prometheus/prometheus.yml
+!monitoring/grafana/provisioning/**

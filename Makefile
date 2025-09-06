@@ -7,7 +7,7 @@ OUT ?=
 LAYOUT ?= widescreen
 EMBED ?= iframe
 
-.PHONY: dev streamlit pre-commit deck-list deck-create deck-create-id deck-status deck-status-watch deck-export-html deck-export-pdf
+.PHONY: dev streamlit pre-commit deck-list deck-create deck-create-id deck-status deck-status-watch deck-cancel deck-export-html deck-export-pdf
 
 # dev server
 dev:
@@ -54,3 +54,8 @@ deck-status-watch:
 	  [ "$$STATUS" = "completed" ] && break; \
 	  sleep 2; \
 	done
+
+# cancel deck (requires DECK=<deck_id>)
+deck-cancel:
+	@[ -n "$(DECK)" ] || (echo "Usage: make deck-cancel DECK=<deck_id> [PORT=$(PORT)]"; exit 1)
+	curl -sS -X POST "$(BASE)/api/v1/decks/$(DECK)/cancel" | python -m json.tool

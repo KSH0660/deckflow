@@ -23,6 +23,7 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "weasyprint>=66.0",
     "playwright>=1.55.0",
+    "prometheus-fastapi-instrumentator>=7.1.0",
 ]
 
 [project.optional-dependencies]
