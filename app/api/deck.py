@@ -11,11 +11,14 @@ from app.api.schema import (
     CreateDeckResponse,
     DeckListItemResponse,
     DeckStatusResponse,
+    ModifySlideRequest,
+    ModifySlideResponse,
 )
 from app.core.config import Settings as AppSettings
 from app.core.config import settings as app_settings
 from app.service.export_deck import render_deck_to_html, try_render_deck_pdf
 from app.service.generate_deck import generate_deck
+from app.service.modify_slide import modify_slide
 
 router = APIRouter(tags=["decks"])
 
@@ -101,6 +104,67 @@ async def list_decks(
     decks = await repo.list_all_decks(limit=limit)
     # Re-shape keys if necessary; repositories already return matching keys
     return decks
+
+
+@router.post("/decks/{deck_id}/slides/{slide_order}/modify", response_model=ModifySlideResponse)
+async def modify_slide_endpoint(
+    deck_id: UUID, 
+    slide_order: int, 
+    req: ModifySlideRequest, 
+    s: AppSettings = Depends(get_settings)
+):
+    """Modify a specific slide in the deck."""
+    repo = current_repo()
+    deck = await repo.get_deck(deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    if deck.get("status") not in {"completed"}:
+        raise HTTPException(status_code=400, detail="Can only modify slides in completed decks")
+    
+    slides = deck.get("slides", [])
+    if not slides or slide_order < 1 or slide_order > len(slides):
+        raise HTTPException(status_code=404, detail="Slide not found")
+
+    async def progress_cb(step: str, progress: int, _slide: dict | None = None):
+        deck = await repo.get_deck(deck_id) or {}
+        if deck.get("status") == "cancelled":
+            return
+        
+        # 진행률이 100%가 되면 completed 상태로 변경, 그렇지 않으면 modifying
+        if progress >= 100:
+            deck.update(
+                {
+                    "status": "completed",
+                    "progress": None,
+                    "step": None,
+                    "updated_at": datetime.now(),
+                }
+            )
+        else:
+            deck.update(
+                {
+                    "status": "modifying",
+                    "progress": int(progress),
+                    "step": step,
+                    "updated_at": datetime.now(),
+                }
+            )
+        await repo.save_deck(deck_id, deck)
+
+    # Fire-and-forget background task
+    asyncio.create_task(
+        modify_slide(
+            deck_id=deck_id,
+            slide_order=slide_order,
+            modification_prompt=req.modification_prompt,
+            llm=current_llm(model=s.llm_model),
+            repo=repo,
+            progress_callback=progress_cb,
+        )
+    )
+
+    return ModifySlideResponse(deck_id=str(deck_id), slide_order=slide_order)
 
 
 @router.post("/decks/{deck_id}/cancel", response_model=DeckStatusResponse)

@@ -25,10 +25,10 @@ export default function DecksPage() {
       if (response.ok) {
         const deckList = await response.json();
         
-        // For each deck, fetch detailed status if generating
+        // For each deck, fetch detailed status if generating or modifying
         const enrichedDecks = await Promise.all(
           deckList.map(async (deck: any) => {
-            if (deck.status === 'generating') {
+            if (deck.status === 'generating' || deck.status === 'modifying') {
               try {
                 const statusResponse = await fetch(`http://localhost:8000/api/v1/decks/${deck.deck_id}`);
                 if (statusResponse.ok) {
@@ -63,7 +63,7 @@ export default function DecksPage() {
 
   // Separate effect for polling
   useEffect(() => {
-    if (decks.some(deck => deck.status === 'generating')) {
+    if (decks.some(deck => deck.status === 'generating' || deck.status === 'modifying')) {
       const interval = setInterval(fetchDecks, 3000);
       return () => clearInterval(interval);
     }
@@ -75,6 +75,8 @@ export default function DecksPage() {
         return 'bg-green-100 text-green-800';
       case 'generating':
         return 'bg-blue-100 text-blue-800';
+      case 'modifying':
+        return 'bg-orange-100 text-orange-800';
       case 'failed':
         return 'bg-red-100 text-red-800';
       case 'cancelled':
@@ -90,6 +92,8 @@ export default function DecksPage() {
         return '완료됨';
       case 'generating':
         return '생성 중';
+      case 'modifying':
+        return '수정 중';
       case 'failed':
         return '실패';
       case 'cancelled':
@@ -221,7 +225,7 @@ export default function DecksPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {deck.status === 'completed' && (
+                    {(deck.status === 'completed' || deck.status === 'modifying') && (
                       <>
                         <Link 
                           href={`/decks/${deck.deck_id}/preview`}
@@ -229,7 +233,14 @@ export default function DecksPage() {
                         >
                           미리보기
                         </Link>
-                        <button className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <button 
+                          disabled={deck.status === 'modifying'}
+                          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                            deck.status === 'modifying'
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
+                        >
                           내보내기
                         </button>
                       </>

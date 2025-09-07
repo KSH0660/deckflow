@@ -25,6 +25,18 @@ interface DeckData {
   progress: number;
   step: string;
   created_at: string;
+  updated_at?: string;
+}
+
+interface DeckStatus {
+  deck_id: string;
+  status: 'completed' | 'modifying' | 'generating' | 'failed' | 'cancelled';
+  slide_count: number;
+  progress?: number;
+  step?: string;
+  created_at: string;
+  updated_at?: string;
+  completed_at?: string;
 }
 
 export default function DeckPreview() {
@@ -36,6 +48,11 @@ export default function DeckPreview() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModifyModalOpen, setIsModifyModalOpen] = useState(false);
+  const [modificationPrompt, setModificationPrompt] = useState('');
+  const [isModifying, setIsModifying] = useState(false);
+  const [deckStatus, setDeckStatus] = useState<DeckStatus | null>(null);
+  const [modifyingSlides, setModifyingSlides] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (deckId) {
@@ -43,15 +60,68 @@ export default function DeckPreview() {
     }
   }, [deckId]);
 
+  // 페이지 포커스 시 상태 재확인
+  useEffect(() => {
+    const handleFocus = () => {
+      if (modifyingSlides.size > 0) {
+        fetchDeckData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [modifyingSlides.size]);
+
+  // 슬라이드 수정 중일 때 상태 폴링
+  useEffect(() => {
+    if (modifyingSlides.size > 0) {
+      const interval = setInterval(async () => {
+        const status = await fetchDeckStatus();
+        // 덱 상태가 completed이거나 modifying이 아닌 경우 수정 완료로 간주
+        if (status && (status.status === 'completed' || status.status !== 'modifying')) {
+          console.log('Modification completed, refreshing deck data...');
+          // 수정이 완료되면 덱 데이터를 다시 불러오고 수정 중인 슬라이드 목록 초기화
+          await fetchDeckData();
+          setModifyingSlides(new Set());
+        }
+      }, 2000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [modifyingSlides.size]);
+
+  const fetchDeckStatus = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}`);
+      if (response.ok) {
+        const status = await response.json();
+        setDeckStatus(status);
+        return status;
+      }
+    } catch (error) {
+      console.error('Error fetching deck status:', error);
+    }
+    return null;
+  };
+
   const fetchDeckData = async () => {
     try {
+      // 상태도 함께 확인
+      const status = await fetchDeckStatus();
+      
       const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/data`);
       if (response.ok) {
         const data = await response.json();
         setDeckData(data);
         
-        // If deck is not completed, redirect to status page
-        if (data.status !== 'completed') {
+        // 덱 상태가 completed이고 수정 중인 슬라이드가 있다면 수정이 완료된 것으로 간주
+        if (status?.status === 'completed' && modifyingSlides.size > 0) {
+          console.log('Deck is completed, clearing modifying slides...');
+          setModifyingSlides(new Set());
+        }
+        
+        // 덱이 완료되지 않은 경우에만 상태 페이지로 리다이렉트
+        if (data.status !== 'completed' && data.status !== 'modifying') {
           router.push(`/decks/${deckId}/status`);
           return;
         }
@@ -77,6 +147,42 @@ export default function DeckPreview() {
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1);
     }
+  };
+
+  const handleModifySlide = async () => {
+    if (!modificationPrompt.trim()) {
+      alert('수정 내용을 입력해주세요.');
+      return;
+    }
+
+    const slideNumber = currentSlide + 1;
+    setIsModifying(true);
+    
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${slideNumber}/modify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          modification_prompt: modificationPrompt,
+        }),
+      });
+
+      if (response.ok) {
+        setIsModifyModalOpen(false);
+        setModificationPrompt('');
+        // 현재 슬라이드를 수정 중인 슬라이드 목록에 추가
+        setModifyingSlides(prev => new Set([...prev, slideNumber]));
+        alert('슬라이드 수정이 시작되었습니다.');
+      } else {
+        alert('슬라이드 수정 요청에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error modifying slide:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    }
+    setIsModifying(false);
   };
 
   if (isLoading) {
@@ -136,15 +242,31 @@ export default function DeckPreview() {
             </button>
             <div>
               <h1 className="text-lg font-semibold text-gray-900">{deckData.deck_title}</h1>
-              <p className="text-sm text-gray-500">
-                {currentSlide + 1} / {deckData.slides.length} 슬라이드
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">
+                  {currentSlide + 1} / {deckData.slides.length} 슬라이드
+                </p>
+                {modifyingSlides.has(currentSlide + 1) && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-orange-600"></div>
+                    <span>이 슬라이드 수정 중...</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-              편집
+            <button 
+              onClick={() => setIsModifyModalOpen(true)}
+              disabled={modifyingSlides.has(currentSlide + 1)}
+              className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                modifyingSlides.has(currentSlide + 1)
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {modifyingSlides.has(currentSlide + 1) ? '수정 중...' : '슬라이드 수정'}
             </button>
             <button className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
               내보내기
@@ -262,6 +384,49 @@ export default function DeckPreview() {
           </div>
         </div>
       </div>
+
+      {/* Modify Slide Modal */}
+      {isModifyModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              슬라이드 {currentSlide + 1} 수정
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              현재 슬라이드: {currentSlideData?.plan?.slide_title || `슬라이드 ${currentSlide + 1}`}
+            </p>
+            <textarea
+              value={modificationPrompt}
+              onChange={(e) => setModificationPrompt(e.target.value)}
+              placeholder="어떤 부분을 수정하고 싶으신가요? 구체적으로 설명해주세요."
+              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              disabled={isModifying}
+            />
+            <div className="flex items-center justify-end gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setIsModifyModalOpen(false);
+                  setModificationPrompt('');
+                }}
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={isModifying}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleModifySlide}
+                disabled={isModifying || !modificationPrompt.trim()}
+                className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                {isModifying && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {isModifying ? '수정 중...' : '수정하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

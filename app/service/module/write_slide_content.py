@@ -131,6 +131,8 @@ Your output should be only the HTML code. No Markdown or other text.
 {slide_json}
 ```
 
+{modification_context}
+
 ## Guidelines
 1.  **Output Format**: Your response MUST be a single, complete HTML document starting with `<!DOCTYPE html>`.
 2.  **Tailwind CSS**: You MUST insert `<script src="https://cdn.tailwindcss.com"></script>` in the `<head>`.
@@ -228,56 +230,74 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
     logger.debug("슬라이드 콘텐츠 기본 검증 통과.", slide_title=slide_title)
 
 
-async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideContent:
+async def write_content(slide_info: dict, deck_context: dict, llm, is_modification: bool = False, modification_prompt: str = "") -> SlideContent:
     """HTML 슬라이드 콘텐츠 생성 - 프롬프트 기반의 'from-scratch' 방식"""
     if not slide_info or not deck_context:
         raise ValueError("슬라이드 정보와 덱 컨텍스트는 필수입니다")
 
     slide_title = slide_info.get("slide_title", "Untitled Slide")
+    mode_text = "Modification" if is_modification else "From-Scratch"
     logger.info(
-        "슬라이드 콘텐츠 생성 시작 (From-Scratch)",
+        f"슬라이드 콘텐츠 생성 시작 ({mode_text})",
         slide_title=slide_title,
         layout_type=slide_info.get("layout_type", "content_slide"),
+        is_modification=is_modification,
     )
 
     try:
+        # 수정 컨텍스트 준비
+        modification_context = ""
+        if is_modification and modification_prompt:
+            modification_context = f"""
+## MODIFICATION REQUEST
+The user wants to modify this existing slide with the following request:
+"{modification_prompt}"
+
+Please incorporate these changes while maintaining the overall structure and design consistency with the deck theme.
+Focus on addressing the specific modification request while keeping the professional appearance.
+"""
+
         prompt_vars = {
             "topic": deck_context.get("deck_title", ""),
             "audience": deck_context.get("audience", ""),
             "theme": deck_context.get("core_message", ""),
             "color_preference": deck_context.get("color_theme", "professional_blue"),
             "slide_json": json.dumps(slide_info, indent=2, ensure_ascii=False),
+            "modification_context": modification_context,
         }
 
         formatted_prompt = RENDER_PROMPT.format(**prompt_vars)
 
         logger.debug(
-            "From-scratch 프롬프트 준비 완료", prompt_length=len(formatted_prompt)
+            f"{mode_text} 프롬프트 준비 완료", prompt_length=len(formatted_prompt)
         )
 
         logger.info(
             "🤖 [WRITE_CONTENT] LLM 호출 시작",
             slide_title=slide_title,
             step="content_generation",
-            prompt_length=len(formatted_prompt)
+            prompt_length=len(formatted_prompt),
+            is_modification=is_modification
         )
         content = await llm.generate_structured(formatted_prompt, schema=SlideContent)
 
         _validate_slide_content(content, slide_title)
 
         logger.info(
-            "슬라이드 생성 완료",
+            f"슬라이드 {mode_text.lower()} 완료",
             slide_title=slide_title,
             html_length=len(content.html_content),
             step="content_generation_complete",
+            is_modification=is_modification,
         )
 
         return content
 
     except Exception as e:
         logger.error(
-            "슬라이드 콘텐츠 생성 실패 (From-Scratch)",
+            f"슬라이드 콘텐츠 {mode_text.lower()} 실패",
             error=str(e),
             slide_title=slide_title,
+            is_modification=is_modification,
         )
-        raise RuntimeError(f"슬라이드 콘텐츠 생성에 실패했습니다: {e}") from e
+        raise RuntimeError(f"슬라이드 콘텐츠 {'수정' if is_modification else '생성'}에 실패했습니다: {e}") from e

@@ -43,6 +43,18 @@ class DeckListItemResponse(BaseModel):
     completed_at: datetime | None = None
 
 
+class ModifySlideRequest(BaseModel):
+    """개별 슬라이드 수정 요청"""
+    modification_prompt: str = Field(..., min_length=5, max_length=2000)
+
+
+class ModifySlideResponse(BaseModel):
+    """슬라이드 수정 응답"""
+    deck_id: str
+    slide_order: int
+    status: str = "modifying"
+
+
 class FileUploadResponse(BaseModel):
     """파일 업로드 응답"""
     filename: str
