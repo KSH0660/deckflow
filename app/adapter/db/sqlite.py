@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import asyncio
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -16,31 +17,42 @@ logger = get_logger(__name__)
 class SQLiteRepository(Repository):
     def __init__(self, db_path: str = "decks.db"):
         self.db_path = db_path
+        # Ensure DB initialization runs once per process
+        self._initialized: bool = False
+        self._init_lock = asyncio.Lock()
 
     async def _init_db(self) -> None:
         """Initialize database and create tables if they don't exist."""
-        try:
-            Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        if self._initialized:
+            return
 
-            async with aiosqlite.connect(self.db_path) as db:
-                await db.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS decks (
-                        deck_id TEXT PRIMARY KEY,
-                        data TEXT NOT NULL,
-                        created_at TEXT NOT NULL,
-                        updated_at TEXT NOT NULL
+        async with self._init_lock:
+            if self._initialized:
+                return
+            try:
+                Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+
+                async with aiosqlite.connect(self.db_path) as db:
+                    await db.execute(
+                        """
+                        CREATE TABLE IF NOT EXISTS decks (
+                            deck_id TEXT PRIMARY KEY,
+                            data TEXT NOT NULL,
+                            created_at TEXT NOT NULL,
+                            updated_at TEXT NOT NULL
+                        )
+                        """
                     )
-                    """
-                )
-                await db.commit()
+                    await db.commit()
+                # Mark as initialized and log once per process
+                self._initialized = True
                 logger.info("SQLite 데이터베이스 초기화 완료", db_path=self.db_path)
 
-        except Exception as e:
-            logger.error(
-                "SQLite 데이터베이스 초기화 실패", error=str(e), db_path=self.db_path
-            )
-            raise
+            except Exception as e:
+                logger.error(
+                    "SQLite 데이터베이스 초기화 실패", error=str(e), db_path=self.db_path
+                )
+                raise
 
     async def save_deck(self, deck_id: UUID, data: dict[str, Any]) -> None:
         """Save deck data to database."""

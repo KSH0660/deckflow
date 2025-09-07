@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import FileUpload, { FileInfo } from '@/components/FileUpload';
 
 export default function Home() {
   const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [files, setFiles] = useState<FileInfo[]>([]);
+  const [showFileUpload, setShowFileUpload] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +22,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, files }),
       });
       
       if (response.ok) {
@@ -62,12 +65,22 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setShowFileUpload(!showFileUpload)}
+                  className={`relative p-2 rounded-lg transition-colors ${
+                    showFileUpload || files.length > 0 
+                      ? 'bg-orange-100 text-orange-600' 
+                      : 'hover:bg-gray-100 text-gray-500'
+                  }`}
                   title="파일 첨부"
                 >
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
+                  {files.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {files.length}
+                    </span>
+                  )}
                 </button>
                 <button
                   type="button"
@@ -103,6 +116,16 @@ export default function Home() {
             </div>
           </div>
         </form>
+
+        {/* File Upload Section */}
+        {showFileUpload && (
+          <div className="mt-4">
+            <FileUpload 
+              onFilesChange={setFiles}
+              disabled={isLoading}
+            />
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="mt-6 text-center">

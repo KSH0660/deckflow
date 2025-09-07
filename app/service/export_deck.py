@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import html as htmlmod
 import re
 import shutil
 import subprocess
 import tempfile
 from datetime import datetime
-import html as htmlmod
 from typing import Any
 
 # Stores the last error message from a failed PDF attempt for diagnostics

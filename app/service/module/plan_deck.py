@@ -166,7 +166,7 @@ async def plan_deck(prompt: str, llm) -> DeckPlan:
 
     enhanced_prompt = EXPERT_DATA_STRATEGIST_PROMPT.format(prompt=prompt)
 
-    logger.debug("프롬프트 준비 완료", prompt_length=len(enhanced_prompt))
+    logger.info("프롬프트 준비 완료", prompt_length=len(enhanced_prompt))
 
     try:
         logger.info("🤖 [PLAN_DECK] LLM 호출 시작", step="plan_generation")

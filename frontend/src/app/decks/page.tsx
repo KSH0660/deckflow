@@ -12,6 +12,7 @@ interface Deck {
   step?: string;
   created_at: string;
   updated_at?: string;
+  completed_at?: string;
 }
 
 export default function DecksPage() {
@@ -98,6 +99,58 @@ export default function DecksPage() {
     }
   };
 
+  const formatDuration = (startTime: string, endTime?: string) => {
+    const start = new Date(startTime);
+    const end = endTime ? new Date(endTime) : new Date();
+    const diffMs = end.getTime() - start.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    
+    // 디버깅을 위한 로그
+    console.log('Duration calculation:', {
+      startTime,
+      endTime,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      diffMs,
+      diffSeconds
+    });
+    
+    if (diffSeconds < 0) {
+      return '계산 오류';
+    }
+    
+    if (diffSeconds < 60) {
+      return `${diffSeconds}초`;
+    } else if (diffSeconds < 3600) {
+      const minutes = Math.floor(diffSeconds / 60);
+      const seconds = diffSeconds % 60;
+      return seconds > 0 ? `${minutes}분 ${seconds}초` : `${minutes}분`;
+    } else {
+      const hours = Math.floor(diffSeconds / 3600);
+      const minutes = Math.floor((diffSeconds % 3600) / 60);
+      return minutes > 0 ? `${hours}시간 ${minutes}분` : `${hours}시간`;
+    }
+  };
+
+  const handleCancel = async (deckId: string, deckTitle: string) => {
+    const confirmed = window.confirm(`"${deckTitle}" 덱 생성을 취소하시겠습니까?`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/cancel`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        // Refresh decks after cancellation
+        fetchDecks();
+      }
+    } catch (error) {
+      console.error('Error cancelling deck:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -148,6 +201,22 @@ export default function DecksPage() {
                       <span>{deck.slide_count}개 슬라이드</span>
                       <span>•</span>
                       <span>{new Date(deck.created_at).toLocaleDateString('ko-KR')}</span>
+                      {(deck.status === 'completed' || deck.status === 'failed' || deck.status === 'cancelled') && (
+                        <>
+                          <span>•</span>
+                          <span className="font-medium text-blue-600">
+                            소요시간: {formatDuration(deck.created_at, deck.completed_at || deck.updated_at)}
+                          </span>
+                        </>
+                      )}
+                      {deck.status === 'generating' && (
+                        <>
+                          <span>•</span>
+                          <span className="text-orange-600">
+                            진행시간: {formatDuration(deck.created_at)}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -168,9 +237,17 @@ export default function DecksPage() {
                     
                     {deck.status === 'generating' && (
                       <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 text-sm text-blue-600">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                          {deck.step || '생성 중...'}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 text-sm text-blue-600">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            {deck.step || '생성 중...'}
+                          </div>
+                          <button 
+                            onClick={() => handleCancel(deck.deck_id, deck.title)}
+                            className="px-3 py-1 text-xs text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+                          >
+                            취소
+                          </button>
                         </div>
                         {deck.progress && (
                           <div className="w-32">

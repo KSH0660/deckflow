@@ -22,7 +22,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Initialize Prometheus metrics
     instrumentator = Instrumentator()
     instrumentator.instrument(app).expose(app, endpoint="/metrics")

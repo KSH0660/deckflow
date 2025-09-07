@@ -8,7 +8,10 @@ from dataclasses import dataclass, field
 class Settings:
     # OpenAI / LLM
     openai_api_key: str | None = None
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "gpt-5-mini"
+    
+    # File summarization LLM (separate cheaper model)
+    summarization_model: str = "gpt-5-nano"
 
     # Logging
     log_level: str = "INFO"
@@ -41,6 +44,7 @@ def load_settings() -> Settings:
     s = Settings()
     s.openai_api_key = os.getenv("OPENAI_API_KEY")
     s.llm_model = os.getenv("LLM_MODEL", s.llm_model)
+    s.summarization_model = os.getenv("SUMMARIZATION_MODEL", s.summarization_model)
     s.log_level = os.getenv("LOG_LEVEL", s.log_level)
     s.repo = os.getenv("DECKFLOW_REPO", s.repo).lower()
     s.sqlite_path = os.getenv("DECKFLOW_SQLITE_PATH", s.sqlite_path)

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import shutil
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.core.config import settings as s
 from app.adapter.factory import current_repo
-
+from app.core.config import settings as s
 
 router = APIRouter(tags=["health"])
 

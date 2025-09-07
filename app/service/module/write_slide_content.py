@@ -259,6 +259,7 @@ async def write_content(slide_info: dict, deck_context: dict, llm) -> SlideConte
             "🤖 [WRITE_CONTENT] LLM 호출 시작",
             slide_title=slide_title,
             step="content_generation",
+            prompt_length=len(formatted_prompt)
         )
         content = await llm.generate_structured(formatted_prompt, schema=SlideContent)
 

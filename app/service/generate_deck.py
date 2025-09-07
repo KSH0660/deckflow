@@ -39,15 +39,88 @@ deck_semaphore = asyncio.Semaphore(max(1, settings.max_decks))
 
 
 async def generate_deck(
-    prompt: str, llm, repo, progress_callback=None, deck_id=None
+    prompt: str, llm, repo, progress_callback=None, deck_id=None, files=None
 ) -> str:
     """Main orchestrator for deck generation following: deck plan > layout select > write content
+
+    Args:
+        prompt: 사용자 입력 프롬프트
+        llm: Language model instance
+        repo: Repository instance
+        progress_callback: 진행상황 콜백 함수
+        deck_id: 덱 ID (optional)
+        files: 업로드된 파일 정보 리스트 (optional)
 
     Concurrency limits:
     - Global deck-level semaphore controls how many decks can generate in parallel.
     - Per-deck slide semaphore (env DECKFLOW_MAX_SLIDE_CONCURRENCY) limits concurrent slide generations for this deck.
     """
     deck_id = deck_id or uuid4()
+
+    # 파일 내용이 있으면 프롬프트와 결합
+    enhanced_prompt = prompt
+    if files:
+        logger.info(
+            "📎 [GENERATE_DECK] 파일 기반 덱 생성 요청",
+            deck_id=str(deck_id),
+            file_count=len(files),
+            files=[{
+                "filename": f.filename,
+                "content_type": f.content_type,
+                "size_kb": round(f.size / 1024, 2),
+                "text_length": len(f.extracted_text)
+            } for f in files]
+        )
+        
+        file_contents = []
+        total_file_text_length = 0
+        
+        for file_info in files:
+            file_text_length = len(file_info.extracted_text)
+            total_file_text_length += file_text_length
+            
+            logger.debug(
+                "📎 [GENERATE_DECK] 파일 내용 처리",
+                filename=file_info.filename,
+                content_type=file_info.content_type,
+                size_bytes=file_info.size,
+                extracted_text_length=file_text_length,
+                text_preview=file_info.extracted_text[:100] + ("..." if file_text_length > 100 else "")
+            )
+            
+            file_content = f"""
+
+=== File: {file_info.filename} ===
+File type: {file_info.content_type}
+Size: {file_info.size} bytes
+
+Content:
+{file_info.extracted_text}
+
+=== End of File ===
+"""
+            file_contents.append(file_content)
+
+        enhanced_prompt = f"""{prompt}
+
+Please generate a presentation based on the content of the following uploaded files:
+{''.join(file_contents)}
+
+Please create a more specific and detailed presentation based on the content of these files."""
+        
+        logger.info(
+            "📎 [GENERATE_DECK] 향상된 프롬프트 생성 완료",
+            deck_id=str(deck_id),
+            original_prompt_length=len(prompt),
+            total_file_text_length=total_file_text_length,
+            enhanced_prompt_length=len(enhanced_prompt)
+        )
+    else:
+        logger.info(
+            "📝 [GENERATE_DECK] 기본 프롬프트 기반 덱 생성 요청",
+            deck_id=str(deck_id),
+            prompt_length=len(prompt)
+        )
 
     async def update_progress(step: str, progress: int, slide_data: dict = None):
         """Internal progress updater with real-time data"""
@@ -60,7 +133,7 @@ async def generate_deck(
     # Initialize metrics tracking
     start_time = time.time()
     active_deck_generations.inc()
-    
+
     logger.info(
         "🎯 [GENERATE_DECK] 전체 덱 생성 시작",
         deck_id=str(deck_id),
@@ -83,7 +156,7 @@ async def generate_deck(
             # Step 1: Generate deck plan
             await update_progress("Planning presentation structure...", 30)
             logger.info("📋 [GENERATE_DECK] 덱 계획 단계 시작")
-            deck_plan: DeckPlan = await plan_deck(prompt, llm)
+            deck_plan: DeckPlan = await plan_deck(enhanced_prompt, llm)
             logger.info(
                 "📋 [GENERATE_DECK] 덱 계획 단계 완료",
                 slide_count=len(deck_plan.slides),
@@ -234,13 +307,13 @@ async def generate_deck(
                 deck_id=str(deck_id),
                 total_slides=len(slides),
             )
-            
+
             # Record successful completion metrics
             duration = time.time() - start_time
             deck_generation_duration_seconds.observe(duration)
             deck_generation_total.labels(status="completed").inc()
             slide_generation_total.inc(len(slides))
-            
+
             return str(deck_id)
 
     except GenerationCancelled:

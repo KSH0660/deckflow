@@ -1,11 +1,11 @@
 """Custom metrics for DeckFlow monitoring."""
 
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Gauge, Histogram
 
 # Deck generation metrics
 deck_generation_total = Counter(
-    "deckflow_deck_generation_total", 
-    "Total number of deck generation requests", 
+    "deckflow_deck_generation_total",
+    "Total number of deck generation requests",
     ["status"]
 )
 

@@ -66,6 +66,7 @@ async def create_deck(req: CreateDeckRequest, s: AppSettings = Depends(get_setti
             repo=repo,
             progress_callback=progress_cb,
             deck_id=deck_uuid,
+            files=req.files,
         )
     )
 
