@@ -152,7 +152,6 @@ export default function DeckPreview() {
 
   const handleModifySlide = async () => {
     if (!modificationPrompt.trim()) {
-      alert('수정 내용을 입력해주세요.');
       return;
     }
 
@@ -166,16 +165,15 @@ export default function DeckPreview() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          modification_prompt: modificationPrompt,
+          modification_prompt: modificationPrompt.trim(),
         }),
       });
 
       if (response.ok) {
-        setIsModifyModalOpen(false);
-        setModificationPrompt('');
         // 현재 슬라이드를 수정 중인 슬라이드 목록에 추가
         setModifyingSlides(prev => new Set([...prev, slideNumber]));
-        alert('슬라이드 수정이 시작되었습니다.');
+        // 프롬프트 초기화
+        setModificationPrompt('');
       } else {
         alert('슬라이드 수정 요청에 실패했습니다.');
       }
@@ -429,90 +427,53 @@ export default function DeckPreview() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Natural Language Modification Section */}
-        <div className="bg-gray-50 border-t border-gray-200 p-6">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">자연어로 슬라이드 수정하기</h3>
-            <div className="flex gap-3">
+
+      {/* Bottom Prompt-style Modification Section */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+        <div className="max-w-6xl mx-auto p-4">
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
               <textarea
                 value={modificationPrompt}
                 onChange={(e) => setModificationPrompt(e.target.value)}
-                placeholder="어떤 부분을 수정하고 싶으신가요? 구체적으로 설명해주세요. (예: 제목을 더 임팩트 있게 바꿔줘, 두 번째 포인트를 더 자세히 설명해줘)"
-                className="flex-1 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows={3}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && modificationPrompt.trim() && !modifyingSlides.has(currentSlide + 1)) {
+                    e.preventDefault();
+                    handleModifySlide();
+                  }
+                }}
+                placeholder="💬 이 슬라이드를 어떻게 수정할까요? 자연어로 설명해주세요. (Enter로 실행, Shift+Enter로 줄바꿈)"
+                className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
+                rows={2}
                 disabled={modifyingSlides.has(currentSlide + 1)}
               />
-              <button
-                onClick={() => setIsModifyModalOpen(true)}
-                disabled={modifyingSlides.has(currentSlide + 1) || !modificationPrompt.trim()}
-                className={`px-6 py-2 text-sm rounded-lg transition-colors whitespace-nowrap ${
-                  modifyingSlides.has(currentSlide + 1) || !modificationPrompt.trim()
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-orange-600 hover:bg-orange-700 text-white'
-                }`}
-              >
-                {modifyingSlides.has(currentSlide + 1) ? '수정 중...' : '수정 요청'}
-              </button>
-            </div>
-            {modifyingSlides.has(currentSlide + 1) && (
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm text-yellow-700">AI가 슬라이드를 수정하고 있습니다...</span>
+              {modifyingSlides.has(currentSlide + 1) && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-orange-600">
+                  <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span>AI가 슬라이드를 수정하고 있습니다...</span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <button
+              onClick={handleModifySlide}
+              disabled={modifyingSlides.has(currentSlide + 1) || !modificationPrompt.trim()}
+              className={`px-6 py-3 rounded-lg transition-colors flex items-center gap-2 ${
+                modifyingSlides.has(currentSlide + 1) || !modificationPrompt.trim()
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-orange-600 hover:bg-orange-700 text-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              <span>✨</span>
+              {modifyingSlides.has(currentSlide + 1) ? '수정 중...' : 'AI 수정'}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Modify Slide Modal */}
-      {isModifyModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">
-              슬라이드 수정 확인
-            </h3>
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">현재 슬라이드:</p>
-              <p className="font-medium text-gray-900">
-                {currentSlideData?.plan?.slide_title || `슬라이드 ${currentSlide + 1}`}
-              </p>
-            </div>
-            <div className="mb-6">
-              <p className="text-sm text-gray-600 mb-2">수정 요청:</p>
-              <div className="p-3 bg-gray-50 rounded-lg border">
-                <p className="text-sm text-gray-800">"{modificationPrompt}"</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              이 요청으로 슬라이드를 AI가 자동으로 수정합니다. 수정된 내용은 언제든지 다시 변경할 수 있습니다.
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => {
-                  setIsModifyModalOpen(false);
-                }}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                disabled={isModifying}
-              >
-                취소
-              </button>
-              <button
-                onClick={handleModifySlide}
-                disabled={isModifying}
-                className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
-              >
-                {isModifying && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                )}
-                {isModifying ? '수정 중...' : '수정 시작'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add bottom padding to prevent overlap with fixed prompt */}
+      <div className="h-24"></div>
     </div>
   );
 }

@@ -119,8 +119,12 @@ async def modify_slide_endpoint(
     if not deck:
         raise HTTPException(status_code=404, detail="Deck not found")
     
-    if deck.get("status") not in {"completed"}:
-        raise HTTPException(status_code=400, detail="Can only modify slides in completed decks")
+    current_status = deck.get("status")
+    if current_status not in {"completed", "modifying"}:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Can only modify slides in completed or modifying decks. Current status: {current_status}"
+        )
     
     slides = deck.get("slides", [])
     if not slides or slide_order < 1 or slide_order > len(slides):
