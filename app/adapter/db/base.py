@@ -20,3 +20,7 @@ class Repository(ABC):
     async def list_all_decks(self, limit: int = 10) -> list[dict[str, Any]]:
         """List recent decks with basic info (id, title, created_at, etc.)"""
         pass
+
+    @abstractmethod
+    async def delete_deck(self, deck_id: UUID) -> None:
+        pass

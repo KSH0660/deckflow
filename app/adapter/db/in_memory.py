@@ -37,3 +37,8 @@ class InMemoryRepository(Repository):
         # Sort by created_at (newest first)
         decks.sort(key=lambda x: x.get("created_at", datetime.min), reverse=True)
         return decks[:limit]
+
+    async def delete_deck(self, deck_id: UUID) -> None:
+        """Delete a deck from memory storage."""
+        if deck_id in self._decks:
+            del self._decks[deck_id]

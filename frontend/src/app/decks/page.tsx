@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Deck {
   deck_id: string;
@@ -18,6 +19,8 @@ interface Deck {
 export default function DecksPage() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingDecks, setDeletingDecks] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const fetchDecks = useCallback(async () => {
     try {
@@ -136,6 +139,13 @@ export default function DecksPage() {
     }
   };
 
+  const handleDoubleClick = (deck: Deck) => {
+    // Only navigate to preview for completed or modifying decks
+    if (deck.status === 'completed' || deck.status === 'modifying') {
+      router.push(`/decks/${deck.deck_id}/preview`);
+    }
+  };
+
   const handleCancel = async (deckId: string, deckTitle: string) => {
     const confirmed = window.confirm(`"${deckTitle}" 덱 생성을 취소하시겠습니까?`);
     if (!confirmed) {
@@ -152,6 +162,35 @@ export default function DecksPage() {
       }
     } catch (error) {
       console.error('Error cancelling deck:', error);
+    }
+  };
+
+  const handleDeleteDeck = async (deckId: string, deckTitle: string) => {
+    const confirmed = window.confirm(`"${deckTitle}"을(를) 정말 삭제하시겠습니까?\n\n삭제된 덱은 복구할 수 없습니다.`);
+    if (!confirmed) return;
+    
+    setDeletingDecks(prev => new Set([...prev, deckId]));
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        // Remove deck from local state
+        setDecks(prev => prev.filter(deck => deck.deck_id !== deckId));
+        alert('덱이 성공적으로 삭제되었습니다.');
+      } else {
+        throw new Error('삭제 실패');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('덱 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeletingDecks(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(deckId);
+        return newSet;
+      });
     }
   };
 
@@ -188,15 +227,20 @@ export default function DecksPage() {
             {decks.map((deck) => (
               <div
                 key={deck.deck_id}
-                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className={`bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow ${
+                  (deck.status === 'completed' || deck.status === 'modifying') 
+                    ? 'cursor-pointer' 
+                    : ''
+                }`}
+                onDoubleClick={() => handleDoubleClick(deck)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-medium text-gray-900 truncate">
+                      <h3 className="text-lg font-medium text-gray-900 truncate max-w-md">
                         {deck.title}
                       </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(deck.status)}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(deck.status)}`}>
                         {getStatusText(deck.status)}
                       </span>
                     </div>
@@ -224,14 +268,18 @@ export default function DecksPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {(deck.status === 'completed' || deck.status === 'modifying') && (
                       <>
                         <Link 
                           href={`/decks/${deck.deck_id}/preview`}
-                          className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="미리보기"
                         >
-                          미리보기
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
                         </Link>
                         <button 
                           disabled={deck.status === 'modifying'}
@@ -242,6 +290,20 @@ export default function DecksPage() {
                           }`}
                         >
                           내보내기
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteDeck(deck.deck_id, deck.title)}
+                          disabled={deletingDecks.has(deck.deck_id)}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
+                          title="삭제"
+                        >
+                          {deletingDecks.has(deck.deck_id) ? (
+                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
                         </button>
                       </>
                     )}
@@ -275,6 +337,23 @@ export default function DecksPage() {
                           </div>
                         )}
                       </div>
+                    )}
+
+                    {(deck.status === 'failed' || deck.status === 'cancelled') && (
+                      <button 
+                        onClick={() => handleDeleteDeck(deck.deck_id, deck.title)}
+                        disabled={deletingDecks.has(deck.deck_id)}
+                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
+                        title="삭제"
+                      >
+                        {deletingDecks.has(deck.deck_id) ? (
+                          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>

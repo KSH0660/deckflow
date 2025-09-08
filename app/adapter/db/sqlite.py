@@ -207,3 +207,15 @@ class SQLiteRepository(Repository):
         except Exception as e:
             logger.error("덱 목록 조회 실패", error=str(e))
             raise
+
+    async def delete_deck(self, deck_id: UUID) -> None:
+        """Delete a deck from the database."""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("DELETE FROM decks WHERE deck_id = ?", (str(deck_id),))
+                await db.commit()
+                logger.info("덱 삭제 완료", deck_id=str(deck_id))
+
+        except Exception as e:
+            logger.error("덱 삭제 실패", deck_id=str(deck_id), error=str(e))
+            raise

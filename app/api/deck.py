@@ -307,3 +307,22 @@ async def save_edited_html(request: Request, deck_id: str = Query(...), slide_or
         raise HTTPException(status_code=400, detail=f"잘못된 deck_id 형식: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}")
+
+
+@router.delete("/decks/{deck_id}")
+async def delete_deck(deck_id: UUID, s: AppSettings = Depends(get_settings)):
+    """Delete a specific deck."""
+    repo = current_repo()
+    
+    # Check if deck exists
+    deck = await repo.get_deck(deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    try:
+        # Delete the deck from repository
+        await repo.delete_deck(deck_id)
+        return {"status": "success", "message": "Deck deleted successfully", "deck_id": str(deck_id)}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"덱 삭제 실패: {str(e)}")
