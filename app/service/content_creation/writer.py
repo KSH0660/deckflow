@@ -62,34 +62,18 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
             "생성된 HTML이 너무 짧습니다.", slide_title=slide_title, length=len(html)
         )
 
-    # Check for overflow prevention
-    overflow_checks = [
-        ("overflow-hidden 클래스", "overflow-hidden" in html),
-        (
-            "h-screen 또는 max-h-screen",
-            any(h in html for h in ["h-screen", "max-h-screen", "h-full"]),
-        ),
-        ("적절한 flex 레이아웃", "flex" in html),
-        (
-            "너무 큰 텍스트 피하기",
-            not any(
-                large in html
-                for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"]
-            ),
-        ),
-        (
-            "과도한 패딩/마진 피하기",
-            not any(
-                large in html
-                for large in ["p-8", "p-10", "p-12", "m-8", "m-10", "m-12"]
-            ),
-        ),
+    # Check for key requirements from simplified prompt
+    requirement_checks = [
+        ("16:9 aspect ratio", "aspect-ratio: 16/9" in html or "aspect-ratio:16/9" in html),
+        ("overflow prevention", "overflow-hidden" in html),
+        ("responsive height", any(h in html for h in ["h-screen", "max-h-screen", "h-full"])),
+        ("text size limits", not any(large in html for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"])),
     ]
 
-    failed_checks = [check for check, passed in overflow_checks if not passed]
+    failed_checks = [check for check, passed in requirement_checks if not passed]
     if failed_checks:
         logger.warning(
-            "세로 오버플로우 방지 체크 실패",
+            "슬라이드 요구사항 체크 실패",
             slide_title=slide_title,
             failed_checks=failed_checks,
         )
