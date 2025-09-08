@@ -6,56 +6,36 @@ from .models import SlideContent
 logger = get_logger(__name__)
 
 
-RENDER_PROMPT = """You are a presentation HTML layout assistant.
-Produce a complete, self-contained HTML slide based on the provided context and data.
-You MUST use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>) and apply utility classes for all styling.
-Your output should be only the HTML code. No Markdown or other text.
+RENDER_PROMPT = """You are an HTML layout assistant. Create a single HTML slide that accurately reflects the slide content. Use 16:9 aspect ratio and ensure elements don't overlap. Use Tailwind CSS via CDN and avoid common, monotonous layouts.
 
-## Deck Context (for tone and consistency)
-- Topic: {topic}
-- Audience: {audience}
-- Core Message: {theme}
-- Color Preference: {color_preference}
+Topic: {topic}
+Audience: {audience} 
+Theme: {theme}
+Color preference: {color_preference}
 
-## Slide JSON (Data to Render)
-```json
 {slide_json}
-```
 
 {modification_context}
 
-## Guidelines
-1.  **Output Format**: Your response MUST be a single, complete HTML document starting with `<!DOCTYPE html>`.
-2.  **Tailwind CSS**: You MUST insert `<script src="https://cdn.tailwindcss.com"></script>` in the `<head>`.
-3.  **Self-Contained**: The HTML must be self-contained. Do not use any external CSS or JS other than the Tailwind CDN.
-4.  **Container Setup**: CRITICAL - Use this exact structure:
-    - Body: `class="w-full h-screen flex items-center justify-center bg-gray-100 p-0 m-0 overflow-hidden"`
-    - Main container: `class="w-full max-w-4xl h-full max-h-screen mx-auto bg-white shadow-lg rounded-lg overflow-hidden flex flex-col"`
-    - Content area: `class="flex-1 p-6 overflow-hidden flex flex-col justify-center"`
-5.  **HEIGHT CONSTRAINTS - MANDATORY**:
-    - NEVER use fixed heights that exceed screen height
-    - Use `h-screen`, `max-h-screen`, `h-full` for containers
-    - Content must use `flex-1`, `space-y-2` (not space-y-4 or larger)
-    - Text sizes: `text-sm` to `text-2xl` maximum (NO text-3xl or larger)
-    - Padding: `p-2` to `p-6` maximum (NO p-8 or larger)
-6.  **CONTENT FITTING STRATEGY**:
-    - Limit bullet points to 3-4 maximum
-    - Use compact text (`text-sm`, `text-base`)
-    - Minimal spacing between elements (`space-y-1`, `space-y-2`)
-    - If content is too much, summarize or truncate
-7.  **Semantic HTML**: Use semantic elements like `<main>`, `<section>`, `<h1>`, `<p>`, `<ul>` for structure.
-8.  **Styling**: Use Tailwind CSS utility classes extensively for ALL styling, including layout, spacing, typography, and colors.
-9.  **Design**: The visual design must be professional, clean, and modern. It should clearly present all information from the Slide JSON.
-10. **Visual Hierarchy**: Create a strong visual hierarchy. The `slide_title` should be prominent but not larger than `text-2xl`.
-11. **Data Representation**: If the JSON contains lists (`key_points`, `data_points`, etc.), display them as clean, readable lists or grids with COMPACT spacing.
-12. **Color**: The design should reflect the specified `color_preference` in the choice of Tailwind CSS classes (e.g., `bg-blue-700`, `text-gray-800`).
-13. **No Placeholders**: The final HTML should contain the actual data from the JSON, not placeholders like `[[TITLE]]`.
-14. **ABSOLUTE REQUIREMENT - NO VERTICAL OVERFLOW**:
-    - ALL content MUST fit within screen height without scrolling
-    - Use `overflow-hidden` on all containers
-    - Test with shorter content if needed
-    - Content that doesn't fit should be omitted, not overflowed
-"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
+        .slide-container {{ width: 100vw; height: 100vh; aspect-ratio: 16/9; }}
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <!-- Your slide content here -->
+    </div>
+</body>
+</html>
+
+Output only the complete HTML. Ensure 16:9 aspect ratio, no element overlapping, and creative professional design. NO VERTICAL OVERFLOW - use max-h-screen and h-screen. Text should be text-2xl maximum."""
 
 
 def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
@@ -152,7 +132,6 @@ Focus on addressing the specific modification request while keeping the professi
             "slide_json": json.dumps(slide_info, indent=2, ensure_ascii=False),
             "modification_context": modification_context,
         }
-
         formatted_prompt = RENDER_PROMPT.format(**prompt_vars)
 
         logger.debug(
