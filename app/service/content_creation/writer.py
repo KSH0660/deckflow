@@ -52,22 +52,60 @@ def _inject_tinymce_script(html: str) -> str:
   markEditable(document);
   initTiny();
 
-  // 5) 저장(예: 페이지 전체 HTML 수집 → 서버 전송)
-  async function saveEditedHtml() {
-    // TinyMCE 편집 내용 적용(편집중 블러 처리 등)
-    tinymce.editors.forEach(ed => ed.undoManager.add());
-    // 페이지 전체 HTML 직렬화
-    const html = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
-    await fetch('/api/save', {
-      method: 'POST',
-      headers: {'Content-Type': 'text/html;charset=utf-8'},
-      body: html
-    });
-    alert('저장 완료!');
-  }
+  // 5) 저장 함수 (수동 호출용)
+  window.saveEditedHtml = async function() {
+    try {
+      console.log('Starting save process...');
+      
+      // TinyMCE 편집 내용 적용 (안전한 방식)
+      if (window.tinymce && window.tinymce.editors) {
+        console.log('TinyMCE editors found:', window.tinymce.editors.length);
+        for (let i = 0; i < window.tinymce.editors.length; i++) {
+          const ed = window.tinymce.editors[i];
+          if (ed && ed.undoManager && ed.undoManager.add) {
+            ed.undoManager.add();
+          }
+        }
+      } else {
+        console.log('TinyMCE not available or no editors found');
+      }
+      
+      // 페이지 전체 HTML 직렬화
+      let html;
+      try {
+        html = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
+      } catch (htmlError) {
+        console.error('HTML serialization failed:', htmlError);
+        html = document.body.innerHTML; // fallback
+      }
+      
+      // Extract deck_id and slide_order from URL or passed parameters
+      const deckId = window.location.pathname.split('/')[2]; // Extract from /decks/{id}/preview
+      const slideOrder = window.__currentSlideOrder || 1; // Set by frontend
+      
+      console.log('Saving with deckId:', deckId, 'slideOrder:', slideOrder);
+      
+      const response = await fetch(`/api/save?deck_id=\${deckId}&slide_order=\${slideOrder}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/html;charset=utf-8'},
+        body: html
+      });
+      
+      if (response.ok) {
+        console.log('Save successful');
+        return { success: true, message: '저장 완료!' };
+      } else {
+        console.error('Save failed with status:', response.status);
+        throw new Error('서버 저장 실패');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      throw error;
+    }
+  };
 
-  // 전역에서 호출할 수 있게
-  window.__saveEditedHtml = saveEditedHtml;
+  // 전역에서 호출할 수 있게 (호환성을 위한 alias)
+  window.__saveEditedHtml = window.saveEditedHtml;
 </script>'''
     
     if '</body>' in html:
@@ -115,7 +153,10 @@ Topic: {topic} | Audience: {audience} | Theme: {theme} | Colors: {color_preferen
 </body>
 </html>
 
-FINAL CHECK: Does content fit in one screen? If not, remove content until it does."""
+FINAL CHECK: Does content fit in one screen? If not, remove content until it does.
+You may add custom color theme preferences inside the <style> section. 
+Avoid using monotonous layouts—each slide should feel distinctive and engaging.
+"""
 
 
 def _validate_slide_content(content: SlideContent, slide_title: str) -> None:

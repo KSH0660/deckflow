@@ -260,21 +260,46 @@ async def get_deck_data(deck_id: UUID, s: AppSettings = Depends(get_settings)):
     return deck
 
 
-@router.post("/api/save")
-async def save_edited_html(request: Request):
+@router.post("/save")
+async def save_edited_html(request: Request, deck_id: str = Query(...), slide_order: int = Query(...)):
     """Save edited HTML content from TinyMCE inline editor"""
     try:
         # Get the raw HTML content from request body
         html_content = await request.body()
         html_str = html_content.decode('utf-8')
         
-        # Extract deck_id and slide info from HTML content
-        # This is a simple approach - you might want to pass these as query params instead
+        # Get repository
+        repo = current_repo()
         
-        # For now, just return success - you can implement actual saving logic
-        # by parsing the HTML to identify which slide was edited and updating the database
+        # Get current deck
+        deck_uuid = UUID(deck_id)
+        deck = await repo.get_deck(deck_uuid)
+        if not deck:
+            raise HTTPException(status_code=404, detail="Deck not found")
+        
+        # Find the slide to update
+        slide_found = False
+        for slide in deck.get("slides", []):
+            if slide.get("order") == slide_order:
+                # Update the slide's HTML content
+                if "content" not in slide:
+                    slide["content"] = {}
+                slide["content"]["html_content"] = html_str
+                slide_found = True
+                break
+        
+        if not slide_found:
+            raise HTTPException(status_code=404, detail=f"Slide {slide_order} not found")
+        
+        # Update the deck's updated_at timestamp
+        deck["updated_at"] = datetime.now()
+        
+        # Save back to database
+        await repo.save_deck(deck_uuid, deck)
         
         return {"status": "success", "message": "편집 내용이 저장되었습니다"}
         
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"잘못된 deck_id 형식: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}")

@@ -53,6 +53,7 @@ export default function DeckPreview() {
   const [isModifying, setIsModifying] = useState(false);
   const [deckStatus, setDeckStatus] = useState<DeckStatus | null>(null);
   const [modifyingSlides, setModifyingSlides] = useState<Set<number>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (deckId) {
@@ -185,6 +186,52 @@ export default function DeckPreview() {
     setIsModifying(false);
   };
 
+  const handleSaveSlide = async () => {
+    setIsSaving(true);
+    try {
+      // Get the current slide's HTML from iframe
+      const iframe = document.querySelector('iframe') as HTMLIFrameElement;
+      let htmlContent = '';
+      
+      if (iframe && iframe.contentDocument) {
+        // Apply any TinyMCE changes first
+        if ((iframe.contentWindow as any)?.tinymce?.editors) {
+          const editors = (iframe.contentWindow as any).tinymce.editors;
+          for (let i = 0; i < editors.length; i++) {
+            const ed = editors[i];
+            if (ed && ed.undoManager && ed.undoManager.add) {
+              ed.undoManager.add();
+            }
+          }
+        }
+        
+        // Get the complete HTML
+        htmlContent = '<!DOCTYPE html>\n' + iframe.contentDocument.documentElement.outerHTML;
+      } else {
+        throw new Error('iframe 접근 실패');
+      }
+      
+      // Save to backend
+      const response = await fetch(`http://localhost:8000/api/v1/save?deck_id=${deckId}&slide_order=${currentSlide + 1}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/html;charset=utf-8'},
+        body: htmlContent
+      });
+      
+      if (response.ok) {
+        alert('슬라이드가 저장되었습니다!');
+      } else {
+        throw new Error('서버 저장 실패');
+      }
+      
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full bg-gray-50">
@@ -258,15 +305,14 @@ export default function DeckPreview() {
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => setIsModifyModalOpen(true)}
-              disabled={modifyingSlides.has(currentSlide + 1)}
-              className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                modifyingSlides.has(currentSlide + 1)
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              onClick={handleSaveSlide}
+              disabled={isSaving}
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition-colors flex items-center gap-2"
             >
-              {modifyingSlides.has(currentSlide + 1) ? '수정 중...' : '슬라이드 수정'}
+              {isSaving && (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              )}
+              {isSaving ? '저장 중...' : '저장'}
             </button>
             <button className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
               내보내기
@@ -383,6 +429,42 @@ export default function DeckPreview() {
             </div>
           </div>
         </div>
+
+        {/* Natural Language Modification Section */}
+        <div className="bg-gray-50 border-t border-gray-200 p-6">
+          <div className="max-w-4xl mx-auto">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">자연어로 슬라이드 수정하기</h3>
+            <div className="flex gap-3">
+              <textarea
+                value={modificationPrompt}
+                onChange={(e) => setModificationPrompt(e.target.value)}
+                placeholder="어떤 부분을 수정하고 싶으신가요? 구체적으로 설명해주세요. (예: 제목을 더 임팩트 있게 바꿔줘, 두 번째 포인트를 더 자세히 설명해줘)"
+                className="flex-1 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                disabled={modifyingSlides.has(currentSlide + 1)}
+              />
+              <button
+                onClick={() => setIsModifyModalOpen(true)}
+                disabled={modifyingSlides.has(currentSlide + 1) || !modificationPrompt.trim()}
+                className={`px-6 py-2 text-sm rounded-lg transition-colors whitespace-nowrap ${
+                  modifyingSlides.has(currentSlide + 1) || !modificationPrompt.trim()
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-orange-600 hover:bg-orange-700 text-white'
+                }`}
+              >
+                {modifyingSlides.has(currentSlide + 1) ? '수정 중...' : '수정 요청'}
+              </button>
+            </div>
+            {modifyingSlides.has(currentSlide + 1) && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm text-yellow-700">AI가 슬라이드를 수정하고 있습니다...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Modify Slide Modal */}
@@ -390,23 +472,27 @@ export default function DeckPreview() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">
-              슬라이드 {currentSlide + 1} 수정
+              슬라이드 수정 확인
             </h3>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">현재 슬라이드:</p>
+              <p className="font-medium text-gray-900">
+                {currentSlideData?.plan?.slide_title || `슬라이드 ${currentSlide + 1}`}
+              </p>
+            </div>
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2">수정 요청:</p>
+              <div className="p-3 bg-gray-50 rounded-lg border">
+                <p className="text-sm text-gray-800">"{modificationPrompt}"</p>
+              </div>
+            </div>
             <p className="text-sm text-gray-600 mb-4">
-              현재 슬라이드: {currentSlideData?.plan?.slide_title || `슬라이드 ${currentSlide + 1}`}
+              이 요청으로 슬라이드를 AI가 자동으로 수정합니다. 수정된 내용은 언제든지 다시 변경할 수 있습니다.
             </p>
-            <textarea
-              value={modificationPrompt}
-              onChange={(e) => setModificationPrompt(e.target.value)}
-              placeholder="어떤 부분을 수정하고 싶으신가요? 구체적으로 설명해주세요."
-              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              disabled={isModifying}
-            />
-            <div className="flex items-center justify-end gap-2 mt-4">
+            <div className="flex items-center justify-end gap-2">
               <button
                 onClick={() => {
                   setIsModifyModalOpen(false);
-                  setModificationPrompt('');
                 }}
                 className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 disabled={isModifying}
@@ -415,13 +501,13 @@ export default function DeckPreview() {
               </button>
               <button
                 onClick={handleModifySlide}
-                disabled={isModifying || !modificationPrompt.trim()}
+                disabled={isModifying}
                 className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
               >
                 {isModifying && (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 )}
-                {isModifying ? '수정 중...' : '수정하기'}
+                {isModifying ? '수정 중...' : '수정 시작'}
               </button>
             </div>
           </div>
