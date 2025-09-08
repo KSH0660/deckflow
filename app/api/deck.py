@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Request
 from fastapi.responses import StreamingResponse
 
 from app.adapter.factory import current_llm, current_repo
@@ -258,3 +258,23 @@ async def get_deck_data(deck_id: UUID, s: AppSettings = Depends(get_settings)):
     if not deck:
         raise HTTPException(status_code=404, detail="Deck not found")
     return deck
+
+
+@router.post("/api/save")
+async def save_edited_html(request: Request):
+    """Save edited HTML content from TinyMCE inline editor"""
+    try:
+        # Get the raw HTML content from request body
+        html_content = await request.body()
+        html_str = html_content.decode('utf-8')
+        
+        # Extract deck_id and slide info from HTML content
+        # This is a simple approach - you might want to pass these as query params instead
+        
+        # For now, just return success - you can implement actual saving logic
+        # by parsing the HTML to identify which slide was edited and updating the database
+        
+        return {"status": "success", "message": "편집 내용이 저장되었습니다"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}")

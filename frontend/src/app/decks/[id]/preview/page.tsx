@@ -285,7 +285,7 @@ export default function DeckPreview() {
                 srcDoc={currentSlideData.content.html_content}
                 className="w-full h-full border-0"
                 title={`슬라이드 ${currentSlide + 1}`}
-                sandbox="allow-scripts"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-500">
