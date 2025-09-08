@@ -12,8 +12,8 @@ from app.metrics import (
     slide_generation_total,
 )
 from app.service.content_creation import write_content
+from app.service.deck_generation import plan_deck
 from .models import DeckContext, Slide
-from .planner import plan_deck
 
 logger = get_logger(__name__)
 

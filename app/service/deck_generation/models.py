@@ -82,30 +82,4 @@ class DeckPlan(BaseModel):
     slides: list[SlidePlan]
 
 
-# Generated content models
-class SlideContent(BaseModel):
-    html_content: str
-
-
-class Slide(BaseModel):
-    order: int
-    content: SlideContent
-    plan: dict  # Store slide plan information
-
-
-class GeneratedDeck(BaseModel):
-    deck_id: str
-    title: str
-    status: str
-    slides: list[Slide]
-    created_at: datetime
-    completed_at: datetime
-
-
-# Deck context for generation
-class DeckContext(BaseModel):
-    deck_title: str
-    audience: str
-    core_message: str
-    goal: str
-    color_theme: str
+# Pure planning models - composition models moved to orchestration

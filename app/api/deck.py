@@ -17,7 +17,7 @@ from app.api.schema import (
 from app.core.config import Settings as AppSettings
 from app.core.config import settings as app_settings
 from app.service.export_deck import render_deck_to_html, try_render_deck_pdf
-from app.service.deck_generation import generate_deck
+from app.service.orchestration import generate_deck
 from app.service.modify_slide import modify_slide
 
 router = APIRouter(tags=["decks"])
