@@ -2,7 +2,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-
 # Import FileInfo from file_processing module to avoid duplication
 from app.service.file_processing import FileInfo
 
@@ -41,11 +40,13 @@ class DeckListItemResponse(BaseModel):
 
 class ModifySlideRequest(BaseModel):
     """개별 슬라이드 수정 요청"""
+
     modification_prompt: str = Field(..., min_length=5, max_length=2000)
 
 
 class ModifySlideResponse(BaseModel):
     """슬라이드 수정 응답"""
+
     deck_id: str
     slide_order: int
     status: str = "modifying"
@@ -53,8 +54,43 @@ class ModifySlideResponse(BaseModel):
 
 class FileUploadResponse(BaseModel):
     """파일 업로드 응답"""
+
     filename: str
     content_type: str
     size: int
     extracted_text: str
     message: str = "파일이 성공적으로 처리되었습니다."
+
+
+class SlideVersion(BaseModel):
+    """슬라이드 버전 정보"""
+
+    version_id: str
+    content: str
+    timestamp: datetime
+    is_current: bool = False
+    created_by: str = "user"  # 향후 확장을 위해
+
+
+class SlideVersionHistory(BaseModel):
+    """슬라이드 버전 기록"""
+
+    deck_id: str
+    slide_order: int
+    versions: list[SlideVersion]
+    current_version_id: str
+
+
+class RevertSlideRequest(BaseModel):
+    """슬라이드 버전 되돌리기 요청"""
+
+    version_id: str
+
+
+class RevertSlideResponse(BaseModel):
+    """슬라이드 버전 되돌리기 응답"""
+
+    deck_id: str
+    slide_order: int
+    reverted_to_version: str
+    status: str = "success"
