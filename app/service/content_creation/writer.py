@@ -6,7 +6,9 @@ from .models import SlideContent
 logger = get_logger(__name__)
 
 
-RENDER_PROMPT = """You are an HTML layout assistant. Create a single HTML slide that accurately reflects the slide content. Use 16:9 aspect ratio and ensure elements don't overlap. Use Tailwind CSS via CDN and avoid common, monotonous layouts.
+RENDER_PROMPT = """IMPORTANT: You are creating a STATIC PRINT SLIDE. No scrolling, animations, or JavaScript allowed.
+
+You are an HTML layout assistant. Create a single HTML slide that accurately reflects the slide content. Use 16:9 aspect ratio and ensure elements don't overlap. Use Tailwind CSS via CDN and avoid common, monotonous layouts.
 
 Topic: {topic}
 Audience: {audience} 
@@ -35,7 +37,15 @@ Color preference: {color_preference}
 </body>
 </html>
 
-Output only the complete HTML. Ensure 16:9 aspect ratio, no element overlapping, and creative professional design. NO VERTICAL OVERFLOW - use max-h-screen and h-screen. Text should be text-2xl maximum."""
+CRITICAL REQUIREMENTS:
+- Output only complete HTML (no markdown, no explanations)
+- 16:9 aspect ratio enforced
+- NO element overlapping
+- NO scrolling, NO animations, NO JavaScript
+- NO VERTICAL OVERFLOW - use max-h-screen and h-screen
+- text-2xl maximum
+- Static print slide only
+- Professional creative design"""
 
 
 def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
@@ -68,6 +78,8 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         ("overflow prevention", "overflow-hidden" in html),
         ("responsive height", any(h in html for h in ["h-screen", "max-h-screen", "h-full"])),
         ("text size limits", not any(large in html for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"])),
+        ("no animations", not any(anim in html.lower() for anim in ["@keyframes", "animation:", "transition:", "transform:"])),
+        ("no custom scripts", html.count("<script") <= 1),  # Only Tailwind CDN allowed
     ]
 
     failed_checks = [check for check, passed in requirement_checks if not passed]
