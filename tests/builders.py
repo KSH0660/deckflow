@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from app.service.deck_generation.models import (
+from app.service.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,

@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.service.deck_generation.models import (
+from app.service.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,

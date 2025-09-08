@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from app.service.orchestration import generate_deck
-from app.service.deck_generation.models import (
+from app.service.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,

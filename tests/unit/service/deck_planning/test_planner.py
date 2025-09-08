@@ -3,14 +3,14 @@
 import pytest
 from unittest.mock import AsyncMock
 
-from app.service.deck_generation.models import (
+from app.service.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
-from app.service.deck_generation.planner import (
+from app.service.deck_planning.planner import (
     plan_deck,
     _calculate_plan_score,
     _get_grade,

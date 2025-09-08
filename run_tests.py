@@ -77,7 +77,7 @@ def main():
     if test_type == "specific":
         if len(sys.argv) < 3:
             print("❌ Error: Specify test path for 'specific' mode")
-            print("Example: python run_tests.py specific tests/unit/service/deck_generation/")
+            print("Example: python run_tests.py specific tests/unit/service/deck_planning/")
             return 1
         
         test_path = sys.argv[2]

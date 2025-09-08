@@ -7,7 +7,7 @@ OUT ?=
 LAYOUT ?= widescreen
 EMBED ?= iframe
 
-.PHONY: dev streamlit pre-commit deck-list deck-create deck-create-id deck-status deck-status-watch deck-cancel deck-export-html deck-export-pdf
+.PHONY: dev streamlit pre-commit test deck-list deck-create deck-create-id deck-status deck-status-watch deck-cancel deck-export-html deck-export-pdf
 
 # dev server
 dev:
@@ -20,6 +20,10 @@ streamlit:
 # pre-commit
 pre-commit:
 	uv run pre-commit run --all-files
+
+# tests
+test:
+	uv run pytest -v --tb=short
 
 # curl helpers
 deck-list:
