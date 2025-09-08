@@ -6,16 +6,22 @@ from .models import SlideContent
 logger = get_logger(__name__)
 
 
-RENDER_PROMPT = """IMPORTANT: You are creating a STATIC PRINT SLIDE. No scrolling, animations, or JavaScript allowed.
+RENDER_PROMPT = """CRITICAL: STATIC PRINT SLIDE - CONTENT MUST FIT ON ONE SCREEN
 
-You are an HTML layout assistant. Create a single HTML slide that accurately reflects the slide content. Use 16:9 aspect ratio and ensure elements don't overlap. Use Tailwind CSS via CDN and avoid common, monotonous layouts.
+You are an HTML layout assistant. Create a single HTML slide using Tailwind CSS for {slide_json}. 
 
-Topic: {topic}
-Audience: {audience} 
-Theme: {theme}
-Color preference: {color_preference}
+MANDATORY RULES - NEVER BREAK THESE:
+1. CONTENT LENGTH: Maximum 4 bullet points OR 3 short paragraphs - IF MORE CONTENT EXISTS, SUMMARIZE OR CUT IT
+2. NO VERTICAL OVERFLOW: Content must fit in 100vh - use h-screen, max-h-screen, overflow-hidden
+3. NO LARGE SPACING: Only p-1 to p-6, m-1 to m-6, gap-1 to gap-6 - NEVER p-8+ or m-8+
+4. NO FIXED HEIGHTS: Never use h-16, h-20, h-24+ etc - only h-screen, h-full, max-h-screen
+5. TEXT SIZE LIMIT: Maximum text-2xl - NEVER text-3xl or larger
+6. NO JAVASCRIPT: Only Tailwind CDN script allowed - NO onclick, addEventListener, custom scripts
+7. NO ANIMATIONS: NO @keyframes, animation:, transition:, transform: - completely static
+8. 16:9 ASPECT RATIO: Use aspect-ratio: 16/9 in CSS
+9. IF CONTENT TOO LONG: Cut content, don't try to fit everything - slide must be readable
 
-{slide_json}
+Topic: {topic} | Audience: {audience} | Theme: {theme} | Colors: {color_preference}
 
 {modification_context}
 
@@ -37,15 +43,7 @@ Color preference: {color_preference}
 </body>
 </html>
 
-CRITICAL REQUIREMENTS:
-- Output only complete HTML (no markdown, no explanations)
-- 16:9 aspect ratio enforced
-- NO element overlapping
-- NO scrolling, NO animations, NO JavaScript
-- NO VERTICAL OVERFLOW - use max-h-screen and h-screen
-- text-2xl maximum
-- Static print slide only
-- Professional creative design"""
+FINAL CHECK: Does content fit in one screen? If not, remove content until it does."""
 
 
 def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
@@ -71,6 +69,34 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         logger.warning(
             "생성된 HTML이 너무 짧습니다.", slide_title=slide_title, length=len(html)
         )
+    
+    # Check for content that might cause overflow
+    content_body = html[html.lower().find('<body'):html.lower().rfind('</body>') + 7] if '<body' in html.lower() else html
+    
+    # Count potential overflow indicators
+    overflow_indicators = []
+    
+    # Count bullet points/list items
+    list_items = content_body.count('<li') + content_body.count('•') + content_body.count('-')
+    if list_items > 6:
+        overflow_indicators.append(f"too many list items ({list_items})")
+    
+    # Count paragraphs
+    paragraphs = content_body.count('<p>')
+    if paragraphs > 4:
+        overflow_indicators.append(f"too many paragraphs ({paragraphs})")
+    
+    # Check for very long text content (rough estimate)
+    text_content = len([c for c in content_body if c.isalnum() or c.isspace()])
+    if text_content > 800:  # Rough character limit for fitting on screen
+        overflow_indicators.append(f"content too long (~{text_content} chars)")
+    
+    if overflow_indicators:
+        logger.warning(
+            "콘텐츠가 화면을 초과할 수 있습니다",
+            slide_title=slide_title,
+            indicators=overflow_indicators,
+        )
 
     # Check for key requirements from simplified prompt
     requirement_checks = [
@@ -81,8 +107,26 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         ("no animations", not any(anim in html.lower() for anim in ["@keyframes", "animation:", "transition:", "transform:"])),
         ("no custom scripts", html.count("<script") <= 1),  # Only Tailwind CDN allowed
     ]
+    
+    # Additional strict checks for vertical overflow prevention
+    overflow_prevention_checks = [
+        ("no fixed heights", not any(h in html for h in ["h-96", "h-80", "h-72", "h-64", "h-60", "h-56", "h-52", "h-48", "h-44", "h-40", "h-36", "h-32", "h-28", "h-24", "h-20", "h-16"])),
+        ("no large padding", not any(p in html for p in ["p-12", "p-16", "p-20", "py-12", "py-16", "py-20", "pt-12", "pt-16", "pt-20", "pb-12", "pb-16", "pb-20"])),
+        ("no large margins", not any(m in html for m in ["m-12", "m-16", "m-20", "my-12", "my-16", "my-20", "mt-12", "mt-16", "mt-20", "mb-12", "mb-16", "mb-20"])),
+        ("no large gaps", not any(g in html for g in ["gap-12", "gap-16", "gap-20", "space-y-12", "space-y-16", "space-y-20"])),
+    ]
+    
+    # Check for custom JavaScript content (beyond just script tags)
+    script_content_checks = [
+        ("no onclick handlers", "onclick=" not in html.lower()),
+        ("no event listeners", not any(event in html.lower() for event in ["addeventlistener", "onload=", "onmouseover=", "onmouseout=", "onchange="])),
+        ("no javascript urls", "javascript:" not in html.lower()),
+    ]
 
-    failed_checks = [check for check, passed in requirement_checks if not passed]
+    # Combine all checks
+    all_checks = requirement_checks + overflow_prevention_checks + script_content_checks
+    failed_checks = [check for check, passed in all_checks if not passed]
+    
     if failed_checks:
         logger.warning(
             "슬라이드 요구사항 체크 실패",
