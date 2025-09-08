@@ -2,18 +2,12 @@
 
 import asyncio
 
-from pydantic import BaseModel, Field
-
 from app.adapter.llm.langchain_client import LangchainLLM
 from app.core.config import settings
 from app.logging import get_logger
+from .models import ChunkSummary
 
 logger = get_logger(__name__)
-
-
-class ChunkSummary(BaseModel):
-    """청크 요약 스키마"""
-    summary: str = Field(description="Concise summary of the chunk content in about 500 characters")
 
 
 class FileSummarizer:

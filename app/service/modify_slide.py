@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from app.logging import get_logger
-from app.service.module.write_slide_content import SlideContent, write_content
+from app.service.content_creation import SlideContent, write_content
 
 logger = get_logger(__name__)
 

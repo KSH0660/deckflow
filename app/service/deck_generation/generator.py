@@ -3,8 +3,6 @@ import time
 from datetime import datetime
 from uuid import uuid4
 
-from pydantic import BaseModel
-
 from app.core.config import settings
 from app.logging import get_logger
 from app.metrics import (
@@ -13,25 +11,11 @@ from app.metrics import (
     deck_generation_total,
     slide_generation_total,
 )
-from app.service.module.plan_deck import DeckPlan, plan_deck
-from app.service.module.write_slide_content import SlideContent, write_content
+from app.service.content_creation import write_content
+from .models import DeckContext, Slide
+from .planner import plan_deck
 
 logger = get_logger(__name__)
-
-
-class Slide(BaseModel):
-    order: int
-    content: SlideContent
-    plan: dict  # Store slide plan information
-
-
-class GeneratedDeck(BaseModel):
-    deck_id: str
-    title: str
-    status: str
-    slides: list[Slide]
-    created_at: datetime
-    completed_at: datetime
 
 
 # Global concurrency controls (configured via app.core.config)
@@ -156,7 +140,7 @@ Please create a more specific and detailed presentation based on the content of 
             # Step 1: Generate deck plan
             await update_progress("Planning presentation structure...", 30)
             logger.info("📋 [GENERATE_DECK] 덱 계획 단계 시작")
-            deck_plan: DeckPlan = await plan_deck(enhanced_prompt, llm)
+            deck_plan = await plan_deck(enhanced_prompt, llm)
             logger.info(
                 "📋 [GENERATE_DECK] 덱 계획 단계 완료",
                 slide_count=len(deck_plan.slides),
@@ -234,7 +218,7 @@ Please create a more specific and detailed presentation based on the content of 
 
                 # Generate slide content
                 async with slide_semaphore:
-                    content: SlideContent = await write_content(
+                    content = await write_content(
                         slide_info, deck_context, llm
                     )
 

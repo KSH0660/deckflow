@@ -3,12 +3,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class FileInfo(BaseModel):
-    """업로드된 파일 정보"""
-    filename: str
-    content_type: str
-    size: int
-    extracted_text: str
+# Import FileInfo from file_processing module to avoid duplication
+from app.service.file_processing import FileInfo
 
 
 class CreateDeckRequest(BaseModel):

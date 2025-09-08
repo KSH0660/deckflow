@@ -74,7 +74,7 @@ class FileProcessor:
             )
 
             # 파일 내용이 길다면 요약 적용
-            from app.service.module.file_summary import summarize_file_content
+            from app.service.file_processing import summarize_file_content
 
             logger.info(
                 "🔍 [FILE_PROCESSOR] 파일 내용 요약 검사 중",
