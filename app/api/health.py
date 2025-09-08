@@ -59,6 +59,11 @@ async def readyz():
         "repo_ready": repo_ready,
         "repo_error": repo_error,
         "llm_ready": llm_ready,
+        "llm": {
+            "api_key_present": bool(s.openai_api_key),
+            "base_url": s.openai_base_url or "default",
+            "model": s.llm_model,
+        },
         "pdf": {
             "available": pdf_any,
             "playwright": playwright_available,
@@ -68,4 +73,3 @@ async def readyz():
     }
 
     return JSONResponse(content=payload, status_code=http_code)
-

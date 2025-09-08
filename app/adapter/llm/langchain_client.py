@@ -61,15 +61,18 @@ class LangchainLLM(LLMProvider):
         model: str = "gpt-4o-mini",
     ) -> None:
         api_key = os.getenv("OPENAI_API_KEY")
+        base_url = os.getenv("OPENAI_BASE_URL")
         if not api_key:
             logger.error("OPENAI_API_KEY 환경변수가 설정되지 않음")
             raise ValueError("OPENAI_API_KEY가 필요합니다")
 
         self.model = model
-        self.llm = ChatOpenAI(
-            model=model,
-            api_key=api_key,
-        )
+        chat_kwargs = {"model": model, "api_key": api_key}
+        # Allow custom OpenAI-compatible endpoint
+        if base_url:
+            chat_kwargs["base_url"] = base_url
+
+        self.llm = ChatOpenAI(**chat_kwargs)
         self._prompt = ChatPromptTemplate.from_messages([("user", "{input}")])
 
         logger.info("LangChain LLM 초기화 완료", model=model, provider="OpenAI")

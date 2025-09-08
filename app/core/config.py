@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 class Settings:
     # OpenAI / LLM
     openai_api_key: str | None = None
+    openai_base_url: str | None = None
     llm_model: str = "gpt-5-mini"
     
     # File summarization LLM (separate cheaper model)
@@ -43,6 +44,7 @@ def _to_int(value: str | None, default: int) -> int:
 def load_settings() -> Settings:
     s = Settings()
     s.openai_api_key = os.getenv("OPENAI_API_KEY")
+    s.openai_base_url = os.getenv("OPENAI_BASE_URL")
     s.llm_model = os.getenv("LLM_MODEL", s.llm_model)
     s.summarization_model = os.getenv("SUMMARIZATION_MODEL", s.summarization_model)
     s.log_level = os.getenv("LOG_LEVEL", s.log_level)
