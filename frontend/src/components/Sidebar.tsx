@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  PlusIcon, 
-  DocumentTextIcon, 
+import {
+  PlusIcon,
+  DocumentTextIcon,
   Cog6ToothIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
@@ -61,8 +61,8 @@ export default function Sidebar() {
               key={item.name}
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive 
-                  ? 'bg-gray-700 text-white' 
+                isActive
+                  ? 'bg-gray-700 text-white'
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
             >

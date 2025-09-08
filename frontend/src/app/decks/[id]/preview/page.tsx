@@ -43,7 +43,7 @@ export default function DeckPreview() {
   const params = useParams();
   const router = useRouter();
   const deckId = params.id as string;
-  
+
   const [deckData, setDeckData] = useState<DeckData | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,7 +86,7 @@ export default function DeckPreview() {
           setModifyingSlides(new Set());
         }
       }, 2000);
-      
+
       return () => clearInterval(interval);
     }
   }, [modifyingSlides.size]);
@@ -109,18 +109,18 @@ export default function DeckPreview() {
     try {
       // 상태도 함께 확인
       const status = await fetchDeckStatus();
-      
+
       const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/data`);
       if (response.ok) {
         const data = await response.json();
         setDeckData(data);
-        
+
         // 덱 상태가 completed이고 수정 중인 슬라이드가 있다면 수정이 완료된 것으로 간주
         if (status?.status === 'completed' && modifyingSlides.size > 0) {
           console.log('Deck is completed, clearing modifying slides...');
           setModifyingSlides(new Set());
         }
-        
+
         // 덱이 완료되지 않은 경우에만 상태 페이지로 리다이렉트
         if (data.status !== 'completed' && data.status !== 'modifying') {
           router.push(`/decks/${deckId}/status`);
@@ -157,7 +157,7 @@ export default function DeckPreview() {
 
     const slideNumber = currentSlide + 1;
     setIsModifying(true);
-    
+
     try {
       const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${slideNumber}/modify`, {
         method: 'POST',
@@ -190,7 +190,7 @@ export default function DeckPreview() {
       // Get the current slide's HTML from iframe
       const iframe = document.querySelector('iframe') as HTMLIFrameElement;
       let htmlContent = '';
-      
+
       if (iframe && iframe.contentDocument) {
         // Apply any TinyMCE changes first
         if ((iframe.contentWindow as any)?.tinymce?.editors) {
@@ -202,26 +202,26 @@ export default function DeckPreview() {
             }
           }
         }
-        
+
         // Get the complete HTML
         htmlContent = '<!DOCTYPE html>\n' + iframe.contentDocument.documentElement.outerHTML;
       } else {
         throw new Error('iframe 접근 실패');
       }
-      
+
       // Save to backend
       const response = await fetch(`http://localhost:8000/api/v1/save?deck_id=${deckId}&slide_order=${currentSlide + 1}`, {
         method: 'POST',
         headers: {'Content-Type': 'text/html;charset=utf-8'},
         body: htmlContent
       });
-      
+
       if (response.ok) {
         alert('슬라이드가 저장되었습니다!');
       } else {
         throw new Error('서버 저장 실패');
       }
-      
+
     } catch (error) {
       console.error('Save error:', error);
       alert('저장 중 오류가 발생했습니다.');
@@ -300,9 +300,9 @@ export default function DeckPreview() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={handleSaveSlide}
               disabled={isSaving}
               className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -387,11 +387,11 @@ export default function DeckPreview() {
               <ChevronLeftIcon className="w-4 h-4" />
               이전
             </button>
-            
+
             <span className="text-sm text-gray-500">
               {currentSlide + 1} / {deckData.slides.length}
             </span>
-            
+
             <button
               onClick={nextSlide}
               disabled={currentSlide === deckData.slides.length - 1}

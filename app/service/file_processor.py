@@ -14,8 +14,16 @@ class FileProcessor:
     """파일 타입별 텍스트 추출 및 처리 클래스"""
 
     ALLOWED_EXTENSIONS = {
-        '.txt', '.md', '.pdf', '.docx', '.doc',
-        '.jpg', '.jpeg', '.png', '.gif', '.bmp'
+        ".txt",
+        ".md",
+        ".pdf",
+        ".docx",
+        ".doc",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".bmp",
     }
 
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -40,23 +48,23 @@ class FileProcessor:
             "📄 [FILE_PROCESSOR] 파일 텍스트 추출 시작",
             filename=filename,
             extension=extension,
-            file_size_kb=round(file_size_kb, 2)
+            file_size_kb=round(file_size_kb, 2),
         )
 
         try:
-            if extension == '.txt':
+            if extension == ".txt":
                 extracted_text = cls._extract_from_txt(file_content)
                 parser_library = "python built-in (decode)"
-            elif extension == '.md':
+            elif extension == ".md":
                 extracted_text = cls._extract_from_txt(file_content)
                 parser_library = "python built-in (decode)"
-            elif extension == '.pdf':
+            elif extension == ".pdf":
                 extracted_text = cls._extract_from_pdf(file_content)
                 parser_library = "PyPDF2"
-            elif extension in ['.docx', '.doc']:
+            elif extension in [".docx", ".doc"]:
                 extracted_text = cls._extract_from_docx(file_content)
                 parser_library = "python-docx"
-            elif extension in ['.jpg', '.jpeg', '.png', '.gif', '.bmp']:
+            elif extension in [".jpg", ".jpeg", ".png", ".gif", ".bmp"]:
                 extracted_text = cls._extract_from_image(file_content, filename)
                 parser_library = "Pillow (PIL)"
             else:
@@ -70,7 +78,8 @@ class FileProcessor:
                 parser_library=parser_library,
                 extracted_text_length=text_length,
                 file_size_kb=round(file_size_kb, 2),
-                text_preview=extracted_text[:100] + ("..." if text_length > 100 else "")
+                text_preview=extracted_text[:100]
+                + ("..." if text_length > 100 else ""),
             )
 
             # 파일 내용이 길다면 요약 적용
@@ -79,7 +88,7 @@ class FileProcessor:
             logger.info(
                 "🔍 [FILE_PROCESSOR] 파일 내용 요약 검사 중",
                 filename=filename,
-                text_length=text_length
+                text_length=text_length,
             )
 
             processed_text = await summarize_file_content(extracted_text, filename)
@@ -90,13 +99,13 @@ class FileProcessor:
                     filename=filename,
                     original_length=text_length,
                     processed_length=len(processed_text),
-                    compression_ratio=round(len(processed_text) / text_length, 2)
+                    compression_ratio=round(len(processed_text) / text_length, 2),
                 )
             else:
                 logger.info(
                     "📝 [FILE_PROCESSOR] 파일 내용 요약 불필요 - 원본 사용",
                     filename=filename,
-                    text_length=text_length
+                    text_length=text_length,
                 )
 
             return processed_text
@@ -107,7 +116,7 @@ class FileProcessor:
                 filename=filename,
                 extension=extension,
                 file_size_kb=round(file_size_kb, 2),
-                error=str(e)
+                error=str(e),
             )
             raise
 
@@ -116,21 +125,23 @@ class FileProcessor:
         """텍스트 파일에서 내용 추출"""
         try:
             # UTF-8으로 먼저 시도
-            text = file_content.decode('utf-8')
+            text = file_content.decode("utf-8")
             logger.debug("📝 [TXT_PROCESSOR] UTF-8 인코딩으로 성공적으로 디코드")
             return text
         except UnicodeDecodeError:
             logger.debug("📝 [TXT_PROCESSOR] UTF-8 실패, EUC-KR 시도")
             # 실패하면 EUC-KR로 시도
             try:
-                text = file_content.decode('euc-kr')
+                text = file_content.decode("euc-kr")
                 logger.debug("📝 [TXT_PROCESSOR] EUC-KR 인코딩으로 성공적으로 디코드")
                 return text
             except UnicodeDecodeError:
                 logger.debug("📝 [TXT_PROCESSOR] EUC-KR 실패, latin-1로 폴백")
                 # 마지막으로 latin-1로 시도
-                text = file_content.decode('latin-1', errors='ignore')
-                logger.warning("📝 [TXT_PROCESSOR] latin-1 폴백 사용 (일부 문자가 손실될 수 있음)")
+                text = file_content.decode("latin-1", errors="ignore")
+                logger.warning(
+                    "📝 [TXT_PROCESSOR] latin-1 폴백 사용 (일부 문자가 손실될 수 있음)"
+                )
                 return text
 
     @staticmethod
@@ -147,12 +158,17 @@ class FileProcessor:
             for i, page in enumerate(pdf_reader.pages, 1):
                 page_text = page.extract_text()
                 text += page_text + "\n"
-                logger.debug(f"📋 [PDF_PROCESSOR] 페이지 {i}/{page_count} 처리 완료",
-                           page_text_length=len(page_text))
+                logger.debug(
+                    f"📋 [PDF_PROCESSOR] 페이지 {i}/{page_count} 처리 완료",
+                    page_text_length=len(page_text),
+                )
 
             final_text = text.strip()
-            logger.debug("📋 [PDF_PROCESSOR] PDF 텍스트 추출 완료",
-                        total_pages=page_count, total_text_length=len(final_text))
+            logger.debug(
+                "📋 [PDF_PROCESSOR] PDF 텍스트 추출 완료",
+                total_pages=page_count,
+                total_text_length=len(final_text),
+            )
             return final_text
         except Exception as e:
             logger.error("📋 [PDF_PROCESSOR] PDF 처리 중 오류 발생", error=str(e))
@@ -166,21 +182,26 @@ class FileProcessor:
             doc = Document(docx_file)
             paragraph_count = len(doc.paragraphs)
 
-            logger.debug("📄 [DOCX_PROCESSOR] DOCX 파일 분석 시작", paragraph_count=paragraph_count)
+            logger.debug(
+                "📄 [DOCX_PROCESSOR] DOCX 파일 분석 시작",
+                paragraph_count=paragraph_count,
+            )
 
             text = ""
             non_empty_paragraphs = 0
-            for i, paragraph in enumerate(doc.paragraphs):
+            for _i, paragraph in enumerate(doc.paragraphs):
                 para_text = paragraph.text
                 if para_text.strip():  # 비어있지 않은 문단만 카운트
                     non_empty_paragraphs += 1
                 text += para_text + "\n"
 
             final_text = text.strip()
-            logger.debug("📄 [DOCX_PROCESSOR] DOCX 텍스트 추출 완료",
-                        total_paragraphs=paragraph_count,
-                        non_empty_paragraphs=non_empty_paragraphs,
-                        total_text_length=len(final_text))
+            logger.debug(
+                "📄 [DOCX_PROCESSOR] DOCX 텍스트 추출 완료",
+                total_paragraphs=paragraph_count,
+                non_empty_paragraphs=non_empty_paragraphs,
+                total_text_length=len(final_text),
+            )
             return final_text
         except Exception as e:
             logger.error("📄 [DOCX_PROCESSOR] DOCX 처리 중 오류 발생", error=str(e))
@@ -194,13 +215,15 @@ class FileProcessor:
             width, height = image.size
             format_name = image.format or "Unknown"
 
-            logger.debug("🖼️ [IMAGE_PROCESSOR] 이미지 파일 분석 완료",
-                        filename=filename,
-                        format=format_name,
-                        width=width,
-                        height=height,
-                        mode=image.mode,
-                        has_transparency=image.mode in ('RGBA', 'LA'))
+            logger.debug(
+                "🖼️ [IMAGE_PROCESSOR] 이미지 파일 분석 완료",
+                filename=filename,
+                format=format_name,
+                width=width,
+                height=height,
+                mode=image.mode,
+                has_transparency=image.mode in ("RGBA", "LA"),
+            )
 
             info_text = f"""이미지 파일 정보:
 파일명: {filename}
@@ -211,8 +234,11 @@ class FileProcessor:
 참고: 이미지의 텍스트 내용을 추출하려면 OCR 기능이 필요합니다."""
             return info_text
         except Exception as e:
-            logger.error("🖼️ [IMAGE_PROCESSOR] 이미지 처리 중 오류 발생",
-                        filename=filename, error=str(e))
+            logger.error(
+                "🖼️ [IMAGE_PROCESSOR] 이미지 처리 중 오류 발생",
+                filename=filename,
+                error=str(e),
+            )
             return f"이미지 처리 중 오류 발생: {str(e)}"
 
 
@@ -239,7 +265,7 @@ class FileStorage:
             counter += 1
 
         # 파일 저장
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(content)
 
         return str(file_path)
@@ -256,7 +282,7 @@ class FileStorage:
         """안전한 파일명으로 변환"""
         # 위험한 문자들 제거
         safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
-        safe_name = ''.join(c if c in safe_chars else '_' for c in filename)
+        safe_name = "".join(c if c in safe_chars else "_" for c in filename)
 
         # 길이 제한
         if len(safe_name) > 255:

@@ -60,7 +60,7 @@ export default function FileUpload({ onFilesChange, disabled = false }: FileUplo
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
+
         // 파일 검증
         const validationError = validateFile(file);
         if (validationError) {
@@ -121,8 +121,8 @@ export default function FileUpload({ onFilesChange, disabled = false }: FileUplo
       <div
         className={`
           border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-          ${isDragOver 
-            ? 'border-orange-400 bg-orange-50' 
+          ${isDragOver
+            ? 'border-orange-400 bg-orange-50'
             : 'border-gray-300 hover:border-gray-400'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
@@ -141,7 +141,7 @@ export default function FileUpload({ onFilesChange, disabled = false }: FileUplo
           className="hidden"
           disabled={disabled}
         />
-        
+
         {isUploading ? (
           <div className="flex flex-col items-center">
             <svg className="w-8 h-8 text-orange-500 animate-spin mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

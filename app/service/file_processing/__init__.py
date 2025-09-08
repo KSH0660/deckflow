@@ -1,4 +1,4 @@
-from .models import FileInfo, ChunkSummary
+from .models import ChunkSummary, FileInfo
 from .summarizer import summarize_file_content
 
 __all__ = [

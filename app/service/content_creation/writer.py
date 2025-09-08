@@ -1,6 +1,7 @@
 import json
 
 from app.logging import get_logger
+
 from .models import SlideContent
 
 logger = get_logger(__name__)
@@ -8,7 +9,7 @@ logger = get_logger(__name__)
 
 def _inject_tinymce_script(html: str) -> str:
     """Inject TinyMCE script before closing body tag"""
-    tinymce_script = '''
+    tinymce_script = """
 <!-- TinyMCE Editor Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
 <script>
@@ -56,7 +57,7 @@ def _inject_tinymce_script(html: str) -> str:
   window.saveEditedHtml = async function() {
     try {
       console.log('Starting save process...');
-      
+
       // TinyMCE 편집 내용 적용 (안전한 방식)
       if (window.tinymce && window.tinymce.editors) {
         console.log('TinyMCE editors found:', window.tinymce.editors.length);
@@ -69,7 +70,7 @@ def _inject_tinymce_script(html: str) -> str:
       } else {
         console.log('TinyMCE not available or no editors found');
       }
-      
+
       // 페이지 전체 HTML 직렬화
       let html;
       try {
@@ -78,19 +79,19 @@ def _inject_tinymce_script(html: str) -> str:
         console.error('HTML serialization failed:', htmlError);
         html = document.body.innerHTML; // fallback
       }
-      
+
       // Extract deck_id and slide_order from URL or passed parameters
       const deckId = window.location.pathname.split('/')[2]; // Extract from /decks/{id}/preview
       const slideOrder = window.__currentSlideOrder || 1; // Set by frontend
-      
+
       console.log('Saving with deckId:', deckId, 'slideOrder:', slideOrder);
-      
-      const response = await fetch(`/api/save?deck_id=\${deckId}&slide_order=\${slideOrder}`, {
+
+      const response = await fetch(`/api/save?deck_id=\\${deckId}&slide_order=\\${slideOrder}`, {
         method: 'POST',
         headers: {'Content-Type': 'text/html;charset=utf-8'},
         body: html
       });
-      
+
       if (response.ok) {
         console.log('Save successful');
         return { success: true, message: '저장 완료!' };
@@ -106,17 +107,17 @@ def _inject_tinymce_script(html: str) -> str:
 
   // 전역에서 호출할 수 있게 (호환성을 위한 alias)
   window.__saveEditedHtml = window.saveEditedHtml;
-</script>'''
-    
-    if '</body>' in html:
-        return html.replace('</body>', f'{tinymce_script}\n</body>')
+</script>"""
+
+    if "</body>" in html:
+        return html.replace("</body>", f"{tinymce_script}\n</body>")
     else:
         return html + tinymce_script
 
 
 RENDER_PROMPT = """CRITICAL: STATIC PRINT SLIDE - CONTENT MUST FIT ON ONE SCREEN
 
-You are an HTML layout assistant. Create a single HTML slide using Tailwind CSS for {slide_json}. 
+You are an HTML layout assistant. Create a single HTML slide using Tailwind CSS for {slide_json}.
 
 MANDATORY RULES - NEVER BREAK THESE:
 1. CONTENT LENGTH: Maximum 4 bullet points OR 3 short paragraphs - IF MORE CONTENT EXISTS, SUMMARIZE OR CUT IT
@@ -154,7 +155,7 @@ Topic: {topic} | Audience: {audience} | Theme: {theme} | Colors: {color_preferen
 </html>
 
 FINAL CHECK: Does content fit in one screen? If not, remove content until it does.
-You may add custom color theme preferences inside the <style> section. 
+You may add custom color theme preferences inside the <style> section.
 Avoid using monotonous layouts—each slide should feel distinctive and engaging.
 """
 
@@ -182,28 +183,34 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         logger.warning(
             "생성된 HTML이 너무 짧습니다.", slide_title=slide_title, length=len(html)
         )
-    
+
     # Check for content that might cause overflow
-    content_body = html[html.lower().find('<body'):html.lower().rfind('</body>') + 7] if '<body' in html.lower() else html
-    
+    content_body = (
+        html[html.lower().find("<body") : html.lower().rfind("</body>") + 7]
+        if "<body" in html.lower()
+        else html
+    )
+
     # Count potential overflow indicators
     overflow_indicators = []
-    
+
     # Count bullet points/list items
-    list_items = content_body.count('<li') + content_body.count('•') + content_body.count('-')
+    list_items = (
+        content_body.count("<li") + content_body.count("•") + content_body.count("-")
+    )
     if list_items > 6:
         overflow_indicators.append(f"too many list items ({list_items})")
-    
+
     # Count paragraphs
-    paragraphs = content_body.count('<p>')
+    paragraphs = content_body.count("<p>")
     if paragraphs > 4:
         overflow_indicators.append(f"too many paragraphs ({paragraphs})")
-    
+
     # Check for very long text content (rough estimate)
     text_content = len([c for c in content_body if c.isalnum() or c.isspace()])
     if text_content > 800:  # Rough character limit for fitting on screen
         overflow_indicators.append(f"content too long (~{text_content} chars)")
-    
+
     if overflow_indicators:
         logger.warning(
             "콘텐츠가 화면을 초과할 수 있습니다",
@@ -213,33 +220,140 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
 
     # Check for key requirements from simplified prompt
     requirement_checks = [
-        ("16:9 aspect ratio", "aspect-ratio: 16/9" in html or "aspect-ratio:16/9" in html),
+        (
+            "16:9 aspect ratio",
+            "aspect-ratio: 16/9" in html or "aspect-ratio:16/9" in html,
+        ),
         ("overflow prevention", "overflow-hidden" in html),
-        ("responsive height", any(h in html for h in ["h-screen", "max-h-screen", "h-full"])),
-        ("text size limits", not any(large in html for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"])),
-        ("no animations", not any(anim in html.lower() for anim in ["@keyframes", "animation:", "transition:", "transform:"])),
-        ("no custom scripts", html.count("<script") <= 3),  # Tailwind CDN + TinyMCE (2 scripts) allowed
+        (
+            "responsive height",
+            any(h in html for h in ["h-screen", "max-h-screen", "h-full"]),
+        ),
+        (
+            "text size limits",
+            not any(
+                large in html
+                for large in ["text-3xl", "text-4xl", "text-5xl", "text-6xl"]
+            ),
+        ),
+        (
+            "no animations",
+            not any(
+                anim in html.lower()
+                for anim in ["@keyframes", "animation:", "transition:", "transform:"]
+            ),
+        ),
+        (
+            "no custom scripts",
+            html.count("<script") <= 3,
+        ),  # Tailwind CDN + TinyMCE (2 scripts) allowed
     ]
-    
+
     # Additional strict checks for vertical overflow prevention
     overflow_prevention_checks = [
-        ("no fixed heights", not any(h in html for h in ["h-96", "h-80", "h-72", "h-64", "h-60", "h-56", "h-52", "h-48", "h-44", "h-40", "h-36", "h-32", "h-28", "h-24", "h-20", "h-16"])),
-        ("no large padding", not any(p in html for p in ["p-12", "p-16", "p-20", "py-12", "py-16", "py-20", "pt-12", "pt-16", "pt-20", "pb-12", "pb-16", "pb-20"])),
-        ("no large margins", not any(m in html for m in ["m-12", "m-16", "m-20", "my-12", "my-16", "my-20", "mt-12", "mt-16", "mt-20", "mb-12", "mb-16", "mb-20"])),
-        ("no large gaps", not any(g in html for g in ["gap-12", "gap-16", "gap-20", "space-y-12", "space-y-16", "space-y-20"])),
+        (
+            "no fixed heights",
+            not any(
+                h in html
+                for h in [
+                    "h-96",
+                    "h-80",
+                    "h-72",
+                    "h-64",
+                    "h-60",
+                    "h-56",
+                    "h-52",
+                    "h-48",
+                    "h-44",
+                    "h-40",
+                    "h-36",
+                    "h-32",
+                    "h-28",
+                    "h-24",
+                    "h-20",
+                    "h-16",
+                ]
+            ),
+        ),
+        (
+            "no large padding",
+            not any(
+                p in html
+                for p in [
+                    "p-12",
+                    "p-16",
+                    "p-20",
+                    "py-12",
+                    "py-16",
+                    "py-20",
+                    "pt-12",
+                    "pt-16",
+                    "pt-20",
+                    "pb-12",
+                    "pb-16",
+                    "pb-20",
+                ]
+            ),
+        ),
+        (
+            "no large margins",
+            not any(
+                m in html
+                for m in [
+                    "m-12",
+                    "m-16",
+                    "m-20",
+                    "my-12",
+                    "my-16",
+                    "my-20",
+                    "mt-12",
+                    "mt-16",
+                    "mt-20",
+                    "mb-12",
+                    "mb-16",
+                    "mb-20",
+                ]
+            ),
+        ),
+        (
+            "no large gaps",
+            not any(
+                g in html
+                for g in [
+                    "gap-12",
+                    "gap-16",
+                    "gap-20",
+                    "space-y-12",
+                    "space-y-16",
+                    "space-y-20",
+                ]
+            ),
+        ),
     ]
-    
+
     # Check for custom JavaScript content (beyond just script tags)
     script_content_checks = [
         ("no onclick handlers", "onclick=" not in html.lower()),
-        ("no event listeners", not any(event in html.lower() for event in ["addeventlistener", "onload=", "onmouseover=", "onmouseout=", "onchange="])),
+        (
+            "no event listeners",
+            not any(
+                event in html.lower()
+                for event in [
+                    "addeventlistener",
+                    "onload=",
+                    "onmouseover=",
+                    "onmouseout=",
+                    "onchange=",
+                ]
+            ),
+        ),
         ("no javascript urls", "javascript:" not in html.lower()),
     ]
 
     # Combine all checks
     all_checks = requirement_checks + overflow_prevention_checks + script_content_checks
     failed_checks = [check for check, passed in all_checks if not passed]
-    
+
     if failed_checks:
         logger.warning(
             "슬라이드 요구사항 체크 실패",
@@ -250,7 +364,14 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
     logger.debug("슬라이드 콘텐츠 기본 검증 통과.", slide_title=slide_title)
 
 
-async def write_content(slide_info: dict, deck_context: dict, llm, is_modification: bool = False, modification_prompt: str = "", enable_editing: bool = True) -> SlideContent:
+async def write_content(
+    slide_info: dict,
+    deck_context: dict,
+    llm,
+    is_modification: bool = False,
+    modification_prompt: str = "",
+    enable_editing: bool = True,
+) -> SlideContent:
     """HTML 슬라이드 콘텐츠 생성 - 프롬프트 기반의 'from-scratch' 방식"""
     if not slide_info or not deck_context:
         raise ValueError("슬라이드 정보와 덱 컨텍스트는 필수입니다")
@@ -306,14 +427,14 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             slide_title=slide_title,
             step="content_generation",
             prompt_length=len(formatted_prompt),
-            is_modification=is_modification
+            is_modification=is_modification,
         )
         content = await llm.generate_structured(formatted_prompt, schema=SlideContent)
 
         # Inject TinyMCE script if editing is enabled
         if enable_editing:
             content.html_content = _inject_tinymce_script(content.html_content)
-            logger.info(f"TinyMCE 편집 스크립트 주입 완료", slide_title=slide_title)
+            logger.info("TinyMCE 편집 스크립트 주입 완료", slide_title=slide_title)
 
         _validate_slide_content(content, slide_title)
 
@@ -334,4 +455,6 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             slide_title=slide_title,
             is_modification=is_modification,
         )
-        raise RuntimeError(f"슬라이드 콘텐츠 {'수정' if is_modification else '생성'}에 실패했습니다: {e}") from e
+        raise RuntimeError(
+            f"슬라이드 콘텐츠 {'수정' if is_modification else '생성'}에 실패했습니다: {e}"
+        ) from e

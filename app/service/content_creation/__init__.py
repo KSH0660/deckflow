@@ -1,4 +1,4 @@
-from .models import SlideContent, COLOR_THEME_MAPPING, LAYOUT_TYPE_ASSET_MAPPING
+from .models import COLOR_THEME_MAPPING, LAYOUT_TYPE_ASSET_MAPPING, SlideContent
 from .writer import write_content
 
 __all__ = [

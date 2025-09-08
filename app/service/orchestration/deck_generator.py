@@ -13,7 +13,8 @@ from app.metrics import (
 )
 from app.service.content_creation import write_content
 from app.service.deck_planning import plan_deck
-from .models import DeckContext, Slide
+
+from .models import Slide
 
 logger = get_logger(__name__)
 
@@ -48,30 +49,34 @@ async def generate_deck(
             "📎 [GENERATE_DECK] 파일 기반 덱 생성 요청",
             deck_id=str(deck_id),
             file_count=len(files),
-            files=[{
-                "filename": f.filename,
-                "content_type": f.content_type,
-                "size_kb": round(f.size / 1024, 2),
-                "text_length": len(f.extracted_text)
-            } for f in files]
+            files=[
+                {
+                    "filename": f.filename,
+                    "content_type": f.content_type,
+                    "size_kb": round(f.size / 1024, 2),
+                    "text_length": len(f.extracted_text),
+                }
+                for f in files
+            ],
         )
-        
+
         file_contents = []
         total_file_text_length = 0
-        
+
         for file_info in files:
             file_text_length = len(file_info.extracted_text)
             total_file_text_length += file_text_length
-            
+
             logger.debug(
                 "📎 [GENERATE_DECK] 파일 내용 처리",
                 filename=file_info.filename,
                 content_type=file_info.content_type,
                 size_bytes=file_info.size,
                 extracted_text_length=file_text_length,
-                text_preview=file_info.extracted_text[:100] + ("..." if file_text_length > 100 else "")
+                text_preview=file_info.extracted_text[:100]
+                + ("..." if file_text_length > 100 else ""),
             )
-            
+
             file_content = f"""
 
 === File: {file_info.filename} ===
@@ -91,19 +96,19 @@ Please generate a presentation based on the content of the following uploaded fi
 {''.join(file_contents)}
 
 Please create a more specific and detailed presentation based on the content of these files."""
-        
+
         logger.info(
             "📎 [GENERATE_DECK] 향상된 프롬프트 생성 완료",
             deck_id=str(deck_id),
             original_prompt_length=len(prompt),
             total_file_text_length=total_file_text_length,
-            enhanced_prompt_length=len(enhanced_prompt)
+            enhanced_prompt_length=len(enhanced_prompt),
         )
     else:
         logger.info(
             "📝 [GENERATE_DECK] 기본 프롬프트 기반 덱 생성 요청",
             deck_id=str(deck_id),
-            prompt_length=len(prompt)
+            prompt_length=len(prompt),
         )
 
     async def update_progress(step: str, progress: int, slide_data: dict = None):
@@ -218,9 +223,7 @@ Please create a more specific and detailed presentation based on the content of 
 
                 # Generate slide content
                 async with slide_semaphore:
-                    content = await write_content(
-                        slide_info, deck_context, llm
-                    )
+                    content = await write_content(slide_info, deck_context, llm)
 
                 slide = Slide(
                     order=i + 1,

@@ -10,7 +10,7 @@ class Settings:
     openai_api_key: str | None = None
     openai_base_url: str | None = None
     llm_model: str = "gpt-5-mini"
-    
+
     # File summarization LLM (separate cheaper model)
     summarization_model: str = "gpt-5-nano"
 

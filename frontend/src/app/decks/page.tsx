@@ -27,7 +27,7 @@ export default function DecksPage() {
       const response = await fetch('http://localhost:8000/api/v1/decks?limit=20');
       if (response.ok) {
         const deckList = await response.json();
-        
+
         // For each deck, fetch detailed status if generating or modifying
         const enrichedDecks = await Promise.all(
           deckList.map(async (deck: any) => {
@@ -51,7 +51,7 @@ export default function DecksPage() {
             return deck;
           })
         );
-        
+
         setDecks(enrichedDecks);
       }
     } catch (error) {
@@ -111,7 +111,7 @@ export default function DecksPage() {
     const end = endTime ? new Date(endTime) : new Date();
     const diffMs = end.getTime() - start.getTime();
     const diffSeconds = Math.floor(diffMs / 1000);
-    
+
     // 디버깅을 위한 로그
     console.log('Duration calculation:', {
       startTime,
@@ -121,11 +121,11 @@ export default function DecksPage() {
       diffMs,
       diffSeconds
     });
-    
+
     if (diffSeconds < 0) {
       return '계산 오류';
     }
-    
+
     if (diffSeconds < 60) {
       return `${diffSeconds}초`;
     } else if (diffSeconds < 3600) {
@@ -168,13 +168,13 @@ export default function DecksPage() {
   const handleDeleteDeck = async (deckId: string, deckTitle: string) => {
     const confirmed = window.confirm(`"${deckTitle}"을(를) 정말 삭제하시겠습니까?\n\n삭제된 덱은 복구할 수 없습니다.`);
     if (!confirmed) return;
-    
+
     setDeletingDecks(prev => new Set([...prev, deckId]));
     try {
       const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}`, {
         method: 'DELETE',
       });
-      
+
       if (response.ok) {
         // Remove deck from local state
         setDecks(prev => prev.filter(deck => deck.deck_id !== deckId));
@@ -215,7 +215,7 @@ export default function DecksPage() {
             <div className="text-6xl mb-4">📝</div>
             <h3 className="text-xl font-medium text-gray-600 mb-2">아직 생성된 덱이 없습니다</h3>
             <p className="text-gray-500 mb-6">새로운 프레젠테이션을 만들어보세요</p>
-            <Link 
+            <Link
               href="/"
               className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors inline-block"
             >
@@ -228,8 +228,8 @@ export default function DecksPage() {
               <div
                 key={deck.deck_id}
                 className={`bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow ${
-                  (deck.status === 'completed' || deck.status === 'modifying') 
-                    ? 'cursor-pointer' 
+                  (deck.status === 'completed' || deck.status === 'modifying')
+                    ? 'cursor-pointer'
                     : ''
                 }`}
                 onDoubleClick={() => handleDoubleClick(deck)}
@@ -244,7 +244,7 @@ export default function DecksPage() {
                         {getStatusText(deck.status)}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                       <span>{deck.slide_count}개 슬라이드</span>
                       <span>•</span>
@@ -271,7 +271,7 @@ export default function DecksPage() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {(deck.status === 'completed' || deck.status === 'modifying') && (
                       <>
-                        <Link 
+                        <Link
                           href={`/decks/${deck.deck_id}/preview`}
                           className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                           title="미리보기"
@@ -281,7 +281,7 @@ export default function DecksPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         </Link>
-                        <button 
+                        <button
                           disabled={deck.status === 'modifying'}
                           className={`px-4 py-2 text-sm rounded-lg transition-colors ${
                             deck.status === 'modifying'
@@ -291,7 +291,7 @@ export default function DecksPage() {
                         >
                           내보내기
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteDeck(deck.deck_id, deck.title)}
                           disabled={deletingDecks.has(deck.deck_id)}
                           className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
@@ -307,7 +307,7 @@ export default function DecksPage() {
                         </button>
                       </>
                     )}
-                    
+
                     {deck.status === 'generating' && (
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
@@ -315,7 +315,7 @@ export default function DecksPage() {
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                             {deck.step || '생성 중...'}
                           </div>
-                          <button 
+                          <button
                             onClick={() => handleCancel(deck.deck_id, deck.title)}
                             className="px-3 py-1 text-xs text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
                           >
@@ -329,7 +329,7 @@ export default function DecksPage() {
                               <span>{deck.progress}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
+                              <div
                                 className="bg-blue-600 h-2 rounded-full transition-all duration-500"
                                 style={{ width: `${deck.progress}%` }}
                               ></div>
@@ -340,7 +340,7 @@ export default function DecksPage() {
                     )}
 
                     {(deck.status === 'failed' || deck.status === 'cancelled') && (
-                      <button 
+                      <button
                         onClick={() => handleDeleteDeck(deck.deck_id, deck.title)}
                         disabled={deletingDecks.has(deck.deck_id)}
                         className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"

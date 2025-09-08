@@ -1,8 +1,6 @@
 """Test data builders for flexible POC testing."""
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
+from app.service.content_creation.models import SlideContent
 from app.service.deck_planning.models import (
     ColorTheme,
     DeckPlan,
@@ -10,16 +8,15 @@ from app.service.deck_planning.models import (
     PresentationGoal,
     SlidePlan,
 )
-from app.service.content_creation.models import SlideContent
-from app.service.orchestration.models import DeckContext, GeneratedDeck, Slide
+from app.service.orchestration.models import DeckContext
 
 
 class SlidePlanBuilder:
     """Builder for creating flexible SlidePlan test data."""
-    
+
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
         self._slide_id = 1
         self._slide_title = "Test Slide"
@@ -31,31 +28,31 @@ class SlidePlanBuilder:
         self._supporting_facts = ["Fact 1"]
         self._quantitative_details = ["25% increase"]
         return self
-    
+
     def with_id(self, slide_id: int):
         self._slide_id = slide_id
         return self
-    
+
     def with_title(self, title: str):
         self._slide_title = title
         return self
-    
+
     def with_message(self, message: str):
         self._message = message
         return self
-    
+
     def with_layout(self, layout: LayoutType):
         self._layout_type = layout
         return self
-    
-    def with_key_points(self, points: List[str]):
+
+    def with_key_points(self, points: list[str]):
         self._key_points = points
         return self
-    
-    def with_data_points(self, data: List[str]):
+
+    def with_data_points(self, data: list[str]):
         self._data_points = data
         return self
-    
+
     def minimal(self):
         """Create minimal valid slide plan."""
         self._key_points = []
@@ -64,7 +61,7 @@ class SlidePlanBuilder:
         self._supporting_facts = []
         self._quantitative_details = []
         return self
-    
+
     def rich_content(self):
         """Create content-rich slide plan."""
         self._key_points = ["Key point 1", "Key point 2", "Key point 3", "Key point 4"]
@@ -73,7 +70,7 @@ class SlidePlanBuilder:
         self._supporting_facts = ["Case study results", "Benchmark data"]
         self._quantitative_details = ["25% ROI", "100 users", "$1M savings"]
         return self
-    
+
     def build(self) -> SlidePlan:
         return SlidePlan(
             slide_id=self._slide_id,
@@ -90,10 +87,10 @@ class SlidePlanBuilder:
 
 class DeckPlanBuilder:
     """Builder for creating flexible DeckPlan test data."""
-    
+
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
         self._deck_title = "Test Presentation"
         self._audience = "Test Audience"
@@ -102,51 +99,55 @@ class DeckPlanBuilder:
         self._color_theme = ColorTheme.PROFESSIONAL_BLUE
         self._slides = [SlidePlanBuilder().build()]
         return self
-    
+
     def with_title(self, title: str):
         self._deck_title = title
         return self
-    
+
     def with_audience(self, audience: str):
         self._audience = audience
         return self
-    
+
     def with_message(self, message: str):
         self._core_message = message
         return self
-    
+
     def with_goal(self, goal: PresentationGoal):
         self._goal = goal
         return self
-    
+
     def with_theme(self, theme: ColorTheme):
         self._color_theme = theme
         return self
-    
-    def with_slides(self, slides: List[SlidePlan]):
+
+    def with_slides(self, slides: list[SlidePlan]):
         self._slides = slides
         return self
-    
+
     def with_slide_count(self, count: int):
         """Generate multiple slides with unique IDs."""
         self._slides = []
         for i in range(count):
-            slide = SlidePlanBuilder().with_id(i + 1).with_title(f"Slide {i + 1}").build()
+            slide = (
+                SlidePlanBuilder().with_id(i + 1).with_title(f"Slide {i + 1}").build()
+            )
             self._slides.append(slide)
         return self
-    
+
     def minimal(self):
         """Create minimal valid deck plan."""
         self._deck_title = "Tests"  # Minimal valid (>= 5 chars)
-        self._audience = "Users"   # Minimal valid (>= 5 chars)
+        self._audience = "Users"  # Minimal valid (>= 5 chars)
         self._core_message = "Basic message"  # Minimal valid (>= 10 chars)
         self._slides = [SlidePlanBuilder().minimal().build()]
         return self
-    
+
     def rich_content(self):
         """Create content-rich deck plan."""
         self._deck_title = "Comprehensive Business Strategy Presentation"
-        self._audience = "C-level executives, department heads, and strategic planning teams"
+        self._audience = (
+            "C-level executives, department heads, and strategic planning teams"
+        )
         self._core_message = "Strategic implementation requires data-driven decisions and stakeholder alignment"
         slides = []
         for i in range(6):  # Optimal slide count
@@ -154,7 +155,7 @@ class DeckPlanBuilder:
             slides.append(slide)
         self._slides = slides
         return self
-    
+
     def build(self) -> DeckPlan:
         return DeckPlan(
             deck_title=self._deck_title,
@@ -168,18 +169,18 @@ class DeckPlanBuilder:
 
 class SlideContentBuilder:
     """Builder for creating flexible SlideContent test data."""
-    
+
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
         self._html_content = self._generate_basic_html()
         return self
-    
+
     def with_html(self, html: str):
         self._html_content = html
         return self
-    
+
     def with_theme(self, theme: str):
         """Generate HTML with specific theme colors."""
         if theme == "tech_dark":
@@ -189,7 +190,7 @@ class SlideContentBuilder:
         else:
             self._html_content = self._generate_basic_html()
         return self
-    
+
     def minimal(self):
         """Create minimal valid HTML content."""
         self._html_content = """
@@ -200,7 +201,7 @@ class SlideContentBuilder:
         </html>
         """
         return self
-    
+
     def _generate_basic_html(self) -> str:
         return """
         <!DOCTYPE html>
@@ -218,7 +219,7 @@ class SlideContentBuilder:
         </body>
         </html>
         """
-    
+
     def _generate_dark_html(self) -> str:
         return """
         <!DOCTYPE html>
@@ -236,7 +237,7 @@ class SlideContentBuilder:
         </body>
         </html>
         """
-    
+
     def _generate_blue_html(self) -> str:
         return """
         <!DOCTYPE html>
@@ -254,17 +255,17 @@ class SlideContentBuilder:
         </body>
         </html>
         """
-    
+
     def build(self) -> SlideContent:
         return SlideContent(html_content=self._html_content)
 
 
 class DeckContextBuilder:
     """Builder for creating flexible DeckContext test data."""
-    
+
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
         self._deck_title = "Test Deck"
         self._audience = "Test Users"
@@ -272,19 +273,19 @@ class DeckContextBuilder:
         self._goal = "inform"
         self._color_theme = "professional_blue"
         return self
-    
+
     def with_title(self, title: str):
         self._deck_title = title
         return self
-    
+
     def with_audience(self, audience: str):
         self._audience = audience
         return self
-    
+
     def with_theme(self, theme: str):
         self._color_theme = theme
         return self
-    
+
     def from_deck_plan(self, deck_plan: DeckPlan):
         """Create context from existing deck plan."""
         self._deck_title = deck_plan.deck_title
@@ -293,7 +294,7 @@ class DeckContextBuilder:
         self._goal = deck_plan.goal.value
         self._color_theme = deck_plan.color_theme.value
         return self
-    
+
     def build(self) -> DeckContext:
         return DeckContext(
             deck_title=self._deck_title,
@@ -309,8 +310,8 @@ def any_slide_plan(**overrides) -> SlidePlan:
     """Create any valid slide plan with optional overrides."""
     builder = SlidePlanBuilder()
     for key, value in overrides.items():
-        if hasattr(builder, f'with_{key}'):
-            getattr(builder, f'with_{key}')(value)
+        if hasattr(builder, f"with_{key}"):
+            getattr(builder, f"with_{key}")(value)
     return builder.build()
 
 
@@ -318,8 +319,8 @@ def any_deck_plan(**overrides) -> DeckPlan:
     """Create any valid deck plan with optional overrides."""
     builder = DeckPlanBuilder()
     for key, value in overrides.items():
-        if hasattr(builder, f'with_{key}'):
-            getattr(builder, f'with_{key}')(value)
+        if hasattr(builder, f"with_{key}"):
+            getattr(builder, f"with_{key}")(value)
     return builder.build()
 
 
@@ -327,8 +328,8 @@ def any_slide_content(**overrides) -> SlideContent:
     """Create any valid slide content with optional overrides."""
     builder = SlideContentBuilder()
     for key, value in overrides.items():
-        if hasattr(builder, f'with_{key}'):
-            getattr(builder, f'with_{key}')(value)
+        if hasattr(builder, f"with_{key}"):
+            getattr(builder, f"with_{key}")(value)
     return builder.build()
 
 
@@ -336,8 +337,8 @@ def any_deck_context(**overrides) -> DeckContext:
     """Create any valid deck context with optional overrides."""
     builder = DeckContextBuilder()
     for key, value in overrides.items():
-        if hasattr(builder, f'with_{key}'):
-            getattr(builder, f'with_{key}')(value)
+        if hasattr(builder, f"with_{key}"):
+            getattr(builder, f"with_{key}")(value)
     return builder.build()
 
 

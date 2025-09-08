@@ -1,6 +1,6 @@
+import asyncio
 import json
 from datetime import datetime
-import asyncio
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -50,7 +50,9 @@ class SQLiteRepository(Repository):
 
             except Exception as e:
                 logger.error(
-                    "SQLite 데이터베이스 초기화 실패", error=str(e), db_path=self.db_path
+                    "SQLite 데이터베이스 초기화 실패",
+                    error=str(e),
+                    db_path=self.db_path,
                 )
                 raise
 

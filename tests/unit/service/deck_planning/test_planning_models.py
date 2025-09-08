@@ -31,15 +31,15 @@ class TestSlidePlan:
             slide_id=1,
             slide_title="Test Title",
             message="Test message content",
-            layout_type=LayoutType.TITLE_SLIDE
+            layout_type=LayoutType.TITLE_SLIDE,
         )
         assert plan.slide_id == 1
 
         plan = SlidePlan(
             slide_id=200,
             slide_title="Test Title",
-            message="Test message content", 
-            layout_type=LayoutType.TITLE_SLIDE
+            message="Test message content",
+            layout_type=LayoutType.TITLE_SLIDE,
         )
         assert plan.slide_id == 200
 
@@ -49,15 +49,15 @@ class TestSlidePlan:
                 slide_id=0,  # Too low
                 slide_title="Test Title",
                 message="Test message content",
-                layout_type=LayoutType.TITLE_SLIDE
+                layout_type=LayoutType.TITLE_SLIDE,
             )
 
         with pytest.raises(ValidationError):
             SlidePlan(
                 slide_id=201,  # Too high
-                slide_title="Test Title", 
+                slide_title="Test Title",
                 message="Test message content",
-                layout_type=LayoutType.TITLE_SLIDE
+                layout_type=LayoutType.TITLE_SLIDE,
             )
 
     def test_slide_plan_title_length_validation(self):
@@ -68,7 +68,7 @@ class TestSlidePlan:
                 slide_id=1,
                 slide_title="AB",  # Too short (< 3 chars)
                 message="Test message content",
-                layout_type=LayoutType.TITLE_SLIDE
+                layout_type=LayoutType.TITLE_SLIDE,
             )
 
         # Too long
@@ -77,7 +77,7 @@ class TestSlidePlan:
                 slide_id=1,
                 slide_title="A" * 101,  # Too long (> 100 chars)
                 message="Test message content",
-                layout_type=LayoutType.TITLE_SLIDE
+                layout_type=LayoutType.TITLE_SLIDE,
             )
 
     def test_slide_plan_message_length_validation(self):
@@ -87,7 +87,7 @@ class TestSlidePlan:
                 slide_id=1,
                 slide_title="Test Title",
                 message="Short",  # Too short (< 10 chars)
-                layout_type=LayoutType.TITLE_SLIDE
+                layout_type=LayoutType.TITLE_SLIDE,
             )
 
     def test_slide_plan_enum_validation(self):
@@ -97,7 +97,7 @@ class TestSlidePlan:
             slide_id=1,
             slide_title="Test Title",
             message="Test message content",
-            layout_type=LayoutType.DATA_VISUAL
+            layout_type=LayoutType.DATA_VISUAL,
         )
         assert plan.layout_type == LayoutType.DATA_VISUAL
 
@@ -107,7 +107,7 @@ class TestSlidePlan:
                 slide_id=1,
                 slide_title="Test Title",
                 message="Test message content",
-                layout_type="invalid_layout"  # Not a valid enum
+                layout_type="invalid_layout",  # Not a valid enum
             )
 
     def test_slide_plan_optional_fields_defaults(self):
@@ -116,9 +116,9 @@ class TestSlidePlan:
             slide_id=1,
             slide_title="Test Title",
             message="Test message content",
-            layout_type=LayoutType.TITLE_SLIDE
+            layout_type=LayoutType.TITLE_SLIDE,
         )
-        
+
         assert plan.key_points == []
         assert plan.data_points == []
         assert plan.expert_insights == []
@@ -147,18 +147,18 @@ class TestDeckPlan:
                 core_message="Test core message",
                 goal=PresentationGoal.INFORM,
                 color_theme=ColorTheme.PROFESSIONAL_BLUE,
-                slides=[]
+                slides=[],
             )
 
-        # Too long  
+        # Too long
         with pytest.raises(ValidationError):
             DeckPlan(
                 deck_title="A" * 121,  # Too long (> 120 chars)
-                audience="Test audience", 
+                audience="Test audience",
                 core_message="Test core message",
                 goal=PresentationGoal.INFORM,
                 color_theme=ColorTheme.PROFESSIONAL_BLUE,
-                slides=[]
+                slides=[],
             )
 
     def test_deck_plan_audience_validation(self):
@@ -170,7 +170,7 @@ class TestDeckPlan:
                 core_message="Test core message",
                 goal=PresentationGoal.INFORM,
                 color_theme=ColorTheme.PROFESSIONAL_BLUE,
-                slides=[]
+                slides=[],
             )
 
     def test_deck_plan_core_message_validation(self):
@@ -182,7 +182,7 @@ class TestDeckPlan:
                 core_message="Short",  # Too short (< 10 chars)
                 goal=PresentationGoal.INFORM,
                 color_theme=ColorTheme.PROFESSIONAL_BLUE,
-                slides=[]
+                slides=[],
             )
 
     def test_deck_plan_enum_validation(self):
@@ -194,7 +194,7 @@ class TestDeckPlan:
             core_message="Test core message",
             goal=PresentationGoal.PERSUADE,
             color_theme=ColorTheme.TECH_DARK,
-            slides=[]
+            slides=[],
         )
         assert plan.goal == PresentationGoal.PERSUADE
         assert plan.color_theme == ColorTheme.TECH_DARK

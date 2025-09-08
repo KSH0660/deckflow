@@ -64,7 +64,9 @@ def _extract_body_inner_html(html: str) -> str:
     cleaned = re.sub(r"<!DOCTYPE[^>]*>", "", html, flags=re.IGNORECASE)
     cleaned = re.sub(r"<html[^>]*>", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"</html>", "", cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r"<head[^>]*>.*?</head>", "", cleaned, flags=re.IGNORECASE | re.DOTALL)
+    cleaned = re.sub(
+        r"<head[^>]*>.*?</head>", "", cleaned, flags=re.IGNORECASE | re.DOTALL
+    )
     cleaned = re.sub(r"<body[^>]*>", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"</body>", "", cleaned, flags=re.IGNORECASE)
     return cleaned
@@ -89,12 +91,10 @@ def render_deck_to_html(
         if embed == "iframe":
             # Keep full document per slide inside its own browsing context
             srcdoc = htmlmod.escape(html, quote=True)
-            section = (
-                f"<section class=\"slide\"><iframe class=\"slide-frame\" srcdoc=\"{srcdoc}\" loading=\"lazy\"></iframe></section>"
-            )
+            section = f'<section class="slide"><iframe class="slide-frame" srcdoc="{srcdoc}" loading="lazy"></iframe></section>'
         else:
             inner = _extract_body_inner_html(html)
-            section = f"<section class=\"slide\">{inner}</section>"
+            section = f'<section class="slide">{inner}</section>'
         slide_sections.append(section)
 
     created_at = deck.get("created_at")
@@ -169,7 +169,10 @@ def _render_pdf_with_wkhtmltopdf(html: str) -> bytes | None:
     if not wk:
         return None
     try:
-        with tempfile.NamedTemporaryFile(suffix=".html", delete=True) as f_html, tempfile.NamedTemporaryFile(suffix=".pdf", delete=True) as f_pdf:
+        with (
+            tempfile.NamedTemporaryFile(suffix=".html", delete=True) as f_html,
+            tempfile.NamedTemporaryFile(suffix=".pdf", delete=True) as f_pdf,
+        ):
             f_html.write(html.encode("utf-8"))
             f_html.flush()
             subprocess.run([wk, f_html.name, f_pdf.name], check=True)

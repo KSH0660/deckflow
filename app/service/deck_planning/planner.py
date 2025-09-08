@@ -1,4 +1,5 @@
 from app.logging import get_logger
+
 from .models import DeckPlan
 
 logger = get_logger(__name__)

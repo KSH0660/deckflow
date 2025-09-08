@@ -1,7 +1,7 @@
 """Global pytest configuration and fixtures."""
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -13,16 +13,12 @@ from app.service.deck_planning.models import (
     PresentationGoal,
     SlidePlan,
 )
-from app.service.content_creation.models import SlideContent
-from app.service.orchestration.models import DeckContext, GeneratedDeck, Slide
+from app.service.orchestration.models import GeneratedDeck, Slide
 from tests.builders import (
+    any_deck_context,
     any_deck_plan,
     any_slide_content,
     any_slide_plan,
-    any_deck_context,
-    SlidePlanBuilder,
-    SlideContentBuilder,
-    DeckPlanBuilder,
 )
 
 
@@ -65,7 +61,7 @@ def sample_deck_plan():
     return any_deck_plan(
         title="Test Presentation",
         audience="Software developers and tech leads",
-        message="Testing is essential for reliable software"
+        message="Testing is essential for reliable software",
     )
 
 
@@ -80,44 +76,37 @@ def sample_slide():
     """Sample composed slide for testing - uses builders for flexibility."""
     slide_content = any_slide_content()
     slide_plan = any_slide_plan()
-    return Slide(
-        order=1,
-        content=slide_content,
-        plan=slide_plan.model_dump()
-    )
+    return Slide(order=1, content=slide_content, plan=slide_plan.model_dump())
 
 
 @pytest.fixture
 def sample_deck_context():
     """Sample deck context for testing - uses builder for flexibility."""
-    return any_deck_context(
-        title="Test Presentation",
-        audience="Software developers"
-    )
+    return any_deck_context(title="Test Presentation", audience="Software developers")
 
 
 @pytest.fixture
 def sample_generated_deck(sample_slide):
     """Sample generated deck for testing."""
     from datetime import datetime
-    
+
     return GeneratedDeck(
         deck_id=str(uuid4()),
         title="Test Presentation",
         status="completed",
         slides=[sample_slide],
         created_at=datetime.now(),
-        completed_at=datetime.now()
+        completed_at=datetime.now(),
     )
 
 
 # Test utilities
 def assert_valid_html(html_content: str):
     """Assert that HTML content has basic required elements."""
-    assert '<!DOCTYPE html>' in html_content
-    assert '<html>' in html_content
-    assert '</html>' in html_content
-    assert 'tailwindcss.com' in html_content
+    assert "<!DOCTYPE html>" in html_content
+    assert "<html>" in html_content
+    assert "</html>" in html_content
+    assert "tailwindcss.com" in html_content
 
 
 def assert_slide_plan_quality(slide_plan: SlidePlan):

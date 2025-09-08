@@ -2,7 +2,7 @@ from .models import DeckContext, GeneratedDeck, Slide
 
 __all__ = [
     "DeckContext",
-    "GeneratedDeck", 
+    "GeneratedDeck",
     "Slide",
     "generate_deck",
 ]

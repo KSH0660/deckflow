@@ -48,7 +48,9 @@ async def readyz():
 
     pdf_any = any([weasyprint_available, wkhtmltopdf_available, playwright_available])
 
-    status = "ok" if (repo_ready and llm_ready) else ("degraded" if repo_ready else "error")
+    status = (
+        "ok" if (repo_ready and llm_ready) else ("degraded" if repo_ready else "error")
+    )
     http_code = 200 if status == "ok" else 503
 
     payload = {

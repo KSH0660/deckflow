@@ -1,11 +1,9 @@
 """Tests for orchestration models."""
 
-import pytest
 from datetime import datetime
-from pydantic import ValidationError
 
-from app.service.orchestration.models import DeckContext, GeneratedDeck, Slide
 from app.service.content_creation.models import SlideContent
+from app.service.orchestration.models import DeckContext, GeneratedDeck, Slide
 
 
 class TestSlide:
@@ -25,15 +23,11 @@ class TestSlide:
             "slide_title": "Advanced Testing",
             "message": "Deep dive into testing strategies",
             "layout_type": "data_visual",
-            "key_points": ["Unit tests", "Integration tests", "E2E tests"]
+            "key_points": ["Unit tests", "Integration tests", "E2E tests"],
         }
-        
-        slide = Slide(
-            order=2,
-            content=sample_slide_content,
-            plan=plan_data
-        )
-        
+
+        slide = Slide(order=2, content=sample_slide_content, plan=plan_data)
+
         assert slide.order == 2
         assert slide.plan["slide_title"] == "Advanced Testing"
         assert len(slide.plan["key_points"]) == 3
@@ -43,19 +37,19 @@ class TestSlide:
         # Valid orders
         slide1 = Slide(order=1, content=sample_slide_content, plan={})
         slide2 = Slide(order=100, content=sample_slide_content, plan={})
-        
+
         assert slide1.order == 1
         assert slide2.order == 100
 
     def test_slide_serialization(self, sample_slide):
         """Test slide model serialization."""
         data = sample_slide.model_dump()
-        
-        assert 'order' in data
-        assert 'content' in data
-        assert 'plan' in data
-        assert data['order'] == 1
-        
+
+        assert "order" in data
+        assert "content" in data
+        assert "plan" in data
+        assert data["order"] == 1
+
         # Test deserialization
         new_slide = Slide(**data)
         assert new_slide.order == sample_slide.order
@@ -79,22 +73,18 @@ class TestGeneratedDeck:
         slides = []
         for i in range(3):
             plan_data = {"slide_id": i + 1, "slide_title": f"Slide {i + 1}"}
-            slide = Slide(
-                order=i + 1,
-                content=sample_slide_content,
-                plan=plan_data
-            )
+            slide = Slide(order=i + 1, content=sample_slide_content, plan=plan_data)
             slides.append(slide)
-        
+
         deck = GeneratedDeck(
             deck_id="test-deck-123",
             title="Multi-Slide Presentation",
             status="completed",
             slides=slides,
             created_at=datetime.now(),
-            completed_at=datetime.now()
+            completed_at=datetime.now(),
         )
-        
+
         assert len(deck.slides) == 3
         assert deck.slides[0].order == 1
         assert deck.slides[2].order == 3
@@ -102,15 +92,15 @@ class TestGeneratedDeck:
     def test_generated_deck_status_values(self, sample_slide):
         """Test different status values for generated deck."""
         statuses = ["generating", "completed", "failed", "cancelled"]
-        
+
         for status in statuses:
             deck = GeneratedDeck(
                 deck_id="test-deck",
-                title="Test Deck", 
+                title="Test Deck",
                 status=status,
                 slides=[sample_slide],
                 created_at=datetime.now(),
-                completed_at=datetime.now()
+                completed_at=datetime.now(),
             )
             assert deck.status == status
 
@@ -122,23 +112,30 @@ class TestGeneratedDeck:
             status="generating",
             slides=[],  # Empty slides list
             created_at=datetime.now(),
-            completed_at=datetime.now()
+            completed_at=datetime.now(),
         )
-        
+
         assert len(deck.slides) == 0
         assert deck.status == "generating"
 
     def test_generated_deck_serialization(self, sample_generated_deck):
         """Test generated deck serialization."""
         data = sample_generated_deck.model_dump()
-        
-        required_fields = {'deck_id', 'title', 'status', 'slides', 'created_at', 'completed_at'}
+
+        required_fields = {
+            "deck_id",
+            "title",
+            "status",
+            "slides",
+            "created_at",
+            "completed_at",
+        }
         assert set(data.keys()) == required_fields
-        
+
         # Test slides are properly serialized
-        assert isinstance(data['slides'], list)
-        assert len(data['slides']) == 1
-        
+        assert isinstance(data["slides"], list)
+        assert len(data["slides"]) == 1
+
         # Test deserialization
         new_deck = GeneratedDeck(**data)
         assert new_deck.deck_id == sample_generated_deck.deck_id
@@ -165,9 +162,9 @@ class TestDeckContext:
             audience="Users",
             core_message="Message",
             goal="inform",
-            color_theme="gray"
+            color_theme="gray",
         )
-        
+
         assert context.deck_title == "Basic"
         assert context.goal == "inform"
 
@@ -178,9 +175,9 @@ class TestDeckContext:
             audience="C-level executives, technical directors, and ML engineering teams in Fortune 500 companies",
             core_message="Strategic implementation of ML systems requires balancing business value, technical feasibility, and organizational change management",
             goal="persuade",
-            color_theme="professional_blue"
+            color_theme="professional_blue",
         )
-        
+
         assert len(context.deck_title) > 50
         assert "Fortune 500" in context.audience
         assert context.goal == "persuade"
@@ -188,10 +185,16 @@ class TestDeckContext:
     def test_deck_context_serialization(self, sample_deck_context):
         """Test deck context serialization."""
         data = sample_deck_context.model_dump()
-        
-        required_fields = {'deck_title', 'audience', 'core_message', 'goal', 'color_theme'}
+
+        required_fields = {
+            "deck_title",
+            "audience",
+            "core_message",
+            "goal",
+            "color_theme",
+        }
         assert set(data.keys()) == required_fields
-        
+
         # Test deserialization
         new_context = DeckContext(**data)
         assert new_context.deck_title == sample_deck_context.deck_title
@@ -200,11 +203,11 @@ class TestDeckContext:
     def test_deck_context_as_dict_conversion(self, sample_deck_context):
         """Test deck context can be converted to dict for service calls."""
         context_dict = sample_deck_context.model_dump()
-        
+
         # Should be compatible with existing service calls
         assert context_dict["deck_title"] == "Test Presentation"
         assert context_dict["color_theme"] == "professional_blue"
-        
+
         # All values should be strings (as expected by existing code)
         for value in context_dict.values():
             assert isinstance(value, str)
@@ -223,40 +226,40 @@ class TestModelInteroperability:
         slides = []
         for i in range(5):
             slide = Slide(
-                order=i + 1,
-                content=sample_slide_content,
-                plan={"slide_id": i + 1}
+                order=i + 1, content=sample_slide_content, plan={"slide_id": i + 1}
             )
             slides.append(slide)
-        
+
         deck = GeneratedDeck(
             deck_id="ordered-deck",
             title="Ordered Deck",
             status="completed",
             slides=slides,
             created_at=datetime.now(),
-            completed_at=datetime.now()
+            completed_at=datetime.now(),
         )
-        
+
         # Verify ordering
         for i, slide in enumerate(deck.slides):
             assert slide.order == i + 1
             assert slide.plan["slide_id"] == i + 1
 
-    def test_context_to_generation_flow(self, sample_deck_context, sample_slide_content):
+    def test_context_to_generation_flow(
+        self, sample_deck_context, sample_slide_content
+    ):
         """Test context flows properly through generation pipeline."""
         # Context represents what would be passed between services
         context_dict = sample_deck_context.model_dump()
-        
+
         # This dict should be usable in content generation
         assert "deck_title" in context_dict
         assert "color_theme" in context_dict
-        
+
         # And result in proper slide creation
         slide = Slide(
             order=1,
             content=sample_slide_content,
-            plan={"context_used": context_dict["deck_title"]}
+            plan={"context_used": context_dict["deck_title"]},
         )
-        
+
         assert slide.plan["context_used"] == "Test Presentation"

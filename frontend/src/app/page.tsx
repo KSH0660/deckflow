@@ -24,7 +24,7 @@ export default function Home() {
         },
         body: JSON.stringify({ prompt, files }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // Navigate to decks page to show creation started
@@ -59,7 +59,7 @@ export default function Home() {
               className="w-full h-32 p-6 text-lg resize-none border-0 rounded-2xl focus:outline-none focus:ring-0 placeholder-gray-400"
               disabled={isLoading}
             />
-            
+
             {/* Toolbar */}
             <div className="flex items-center justify-between p-4 border-t border-gray-100">
               <div className="flex items-center gap-2">
@@ -67,8 +67,8 @@ export default function Home() {
                   type="button"
                   onClick={() => setShowFileUpload(!showFileUpload)}
                   className={`relative p-2 rounded-lg transition-colors ${
-                    showFileUpload || files.length > 0 
-                      ? 'bg-orange-100 text-orange-600' 
+                    showFileUpload || files.length > 0
+                      ? 'bg-orange-100 text-orange-600'
                       : 'hover:bg-gray-100 text-gray-500'
                   }`}
                   title="파일 첨부"
@@ -120,7 +120,7 @@ export default function Home() {
         {/* File Upload Section */}
         {showFileUpload && (
           <div className="mt-4">
-            <FileUpload 
+            <FileUpload
               onFilesChange={setFiles}
               disabled={isLoading}
             />

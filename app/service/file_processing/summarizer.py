@@ -5,6 +5,7 @@ import asyncio
 from app.adapter.llm.langchain_client import LangchainLLM
 from app.core.config import settings
 from app.logging import get_logger
+
 from .models import ChunkSummary
 
 logger = get_logger(__name__)
@@ -30,7 +31,7 @@ class FileSummarizer:
             model=settings.summarization_model,
             min_length_for_summary=self.MIN_TEXT_LENGTH_FOR_SUMMARY,
             chunk_size=self.CHUNK_SIZE,
-            chunk_overlap=self.CHUNK_OVERLAP
+            chunk_overlap=self.CHUNK_OVERLAP,
         )
 
     def split_into_chunks(self, text: str) -> list[str]:
@@ -55,10 +56,10 @@ class FileSummarizer:
 
             # 마지막 문장 끝 찾기 (마침표, 느낌표, 물음표)
             last_sentence_end = max(
-                chunk_text.rfind('.'),
-                chunk_text.rfind('!'),
-                chunk_text.rfind('?'),
-                chunk_text.rfind('\n')
+                chunk_text.rfind("."),
+                chunk_text.rfind("!"),
+                chunk_text.rfind("?"),
+                chunk_text.rfind("\n"),
             )
 
             # 적절한 문장 끝을 찾았다면 거기서 자르기
@@ -75,7 +76,7 @@ class FileSummarizer:
             "📄 [FILE_SUMMARIZER] 텍스트 청킹 완료",
             total_length=len(text),
             chunk_count=len(chunks),
-            avg_chunk_size=sum(len(chunk) for chunk in chunks) // len(chunks)
+            avg_chunk_size=sum(len(chunk) for chunk in chunks) // len(chunks),
         )
 
         return chunks
@@ -93,8 +94,7 @@ Content:
 
         try:
             result: ChunkSummary = await self.llm.generate_structured(
-                prompt,
-                schema=ChunkSummary
+                prompt, schema=ChunkSummary
             )
 
             logger.debug(
@@ -102,7 +102,7 @@ Content:
                 filename=filename,
                 chunk_index=chunk_index,
                 original_length=len(chunk),
-                summary_length=len(result.summary)
+                summary_length=len(result.summary),
             )
 
             return result.summary.strip()
@@ -112,7 +112,7 @@ Content:
                 "⚠️ [FILE_SUMMARIZER] 청크 요약 실패 - 원본 일부 반환",
                 filename=filename,
                 chunk_index=chunk_index,
-                error=str(e)
+                error=str(e),
             )
             # 요약 실패시 원본의 일부만 반환
             return chunk[:500] + "..." if len(chunk) > 500 else chunk
@@ -128,7 +128,7 @@ Content:
             "🔗 [FILE_SUMMARIZER] 청크 요약 병합 완료",
             filename=filename,
             chunk_count=len(summaries),
-            merged_length=len(merged)
+            merged_length=len(merged),
         )
 
         return merged
@@ -144,14 +144,14 @@ Content:
             logger.info(
                 "📄 [FILE_SUMMARIZER] 요약 불필요 - 원본 텍스트 반환",
                 filename=filename,
-                text_length=len(text)
+                text_length=len(text),
             )
             return text
 
         logger.info(
             "📄 [FILE_SUMMARIZER] 청킹 기반 파일 요약 시작",
             filename=filename,
-            original_length=len(text)
+            original_length=len(text),
         )
 
         try:
@@ -162,13 +162,15 @@ Content:
             logger.info(
                 "🔄 [FILE_SUMMARIZER] 청크 병렬 요약 시작",
                 filename=filename,
-                chunk_count=len(chunks)
+                chunk_count=len(chunks),
             )
 
-            chunk_summaries = await asyncio.gather(*[
-                self.summarize_chunk(chunk, i, filename)
-                for i, chunk in enumerate(chunks)
-            ])
+            chunk_summaries = await asyncio.gather(
+                *[
+                    self.summarize_chunk(chunk, i, filename)
+                    for i, chunk in enumerate(chunks)
+                ]
+            )
 
             # 3. 병합
             final_summary = self.merge_summaries(chunk_summaries, filename)
@@ -179,7 +181,7 @@ Content:
                 original_length=len(text),
                 final_summary_length=len(final_summary),
                 chunk_count=len(chunks),
-                compression_ratio=round(len(final_summary) / len(text), 2)
+                compression_ratio=round(len(final_summary) / len(text), 2),
             )
 
             return final_summary
@@ -188,11 +190,13 @@ Content:
             logger.error(
                 "❌ [FILE_SUMMARIZER] 청킹 요약 실패 - 텍스트 절단으로 폴백",
                 filename=filename,
-                error=str(e)
+                error=str(e),
             )
             # 요약 실패시 원본 텍스트의 앞부분만 사용
             fallback_length = 6000
-            return text[:fallback_length] + "..." if len(text) > fallback_length else text
+            return (
+                text[:fallback_length] + "..." if len(text) > fallback_length else text
+            )
 
 
 # 전역 인스턴스
