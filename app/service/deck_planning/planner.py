@@ -1,93 +1,24 @@
 from app.logging import get_logger
 
 from .models import DeckPlan
+from .prompts import AVAILABLE_PROMPTS
 
 logger = get_logger(__name__)
 
 
-EXPERT_DATA_STRATEGIST_PROMPT = """
-You are a master presentation strategist and data analyst who creates data-rich, expert-level presentations for Fortune 500 executives, consulting firms, and industry leaders.
-
-Create a comprehensive, data-driven presentation plan based on this request: {prompt}
-
-Your slides must be PACKED with meaningful data, statistics, insights, and expert-level information. Think McKinsey, BCG, or top-tier industry reports - every slide should have substantial quantitative and qualitative content.
-
-**DeckPlan Structure:**
-- deck_title: Presentation title (5-120 characters)
-- audience: Target audience and their key concerns (be specific)
-- core_message: Single most important message audience must remember
-- goal: Presentation objective (persuade/inform/inspire/educate)
-- color_theme: Visual theme for presentation (professional_blue/corporate_gray/vibrant_purple/modern_teal/energetic_orange/nature_green/elegant_burgundy/tech_dark/warm_sunset/minimal_monochrome)
-- slides: List of slide plans (3-12 slides)
-
-**Each SlidePlan Structure (ALL fields should be filled with rich content):**
-- slide_id: Slide sequence id (starting from 1)
-- slide_title: Powerful slide title (3-80 characters)
-- message: Core one-line message (minimum 10 characters)
-- layout_type: Choose most suitable layout (title_slide/content_slide/comparison/data_visual/process_flow/feature_showcase/testimonial/call_to_action)
-- key_points: List of key points (3-5 substantial points)
-- data_points: Statistics, numbers, metrics with context (2-4 data points with specific numbers)
-- expert_insights: Professional insights, trends, industry facts (2-3 expert-level insights)
-- supporting_facts: Supporting facts, research findings, benchmarks (2-4 facts)
-- quantitative_details: Specific numbers, percentages, growth rates, comparisons (3-5 quantitative details)
-
-**Layout Type Selection Guide:**
-• title_slide: Opening, section breaks, or conclusion slides
-• content_slide: General information, explanations, single concepts
-• comparison: Side-by-side comparisons, pros/cons, before/after
-• data_visual: Charts, statistics, metrics, numerical insights
-• process_flow: Step-by-step processes, workflows, timelines
-• feature_showcase: Product features, capabilities, benefits
-• testimonial: Customer quotes, case studies, social proof
-• call_to_action: Next steps, signup prompts, closing actions
-
-**Color Theme Selection Guide:**
-• professional_blue: Corporate presentations, business reports, trustworthy content
-• corporate_gray: Executive briefings, minimalist presentations, sophisticated topics
-• vibrant_purple: Creative industries, innovation topics, tech startups
-• modern_teal: Healthcare, sustainability, growth-focused presentations
-• energetic_orange: Sales presentations, marketing pitches, motivational content
-• nature_green: Environmental topics, wellness, organic/natural products
-• elegant_burgundy: Luxury brands, traditional industries, premium services
-• tech_dark: Technology demos, developer presentations, modern/cutting-edge topics
-• warm_sunset: Community presentations, educational content, friendly/approachable topics
-• minimal_monochrome: Data-heavy presentations, academic research, focus on content
-
-**Data-Rich Content Requirements:**
-• EVERY slide (except title slides) must have substantial quantitative content
-• Include specific numbers, percentages, growth rates, market sizes, and benchmarks
-• Add industry trends, expert analysis, and professional insights
-• Reference credible sources, research findings, and case studies
-• Use comparative data (year-over-year, vs competitors, vs industry average)
-• Include forward-looking projections and trend analysis
-
-**Strategic Guidelines:**
-• Analyze request to identify audience and presentation duration
-• Follow narrative arc: Hook → Problem → Evidence → Resolution
-• Adjust slide count based on time (2-3 minutes per slide)
-• Select appropriate layout_type based on slide content and purpose
-• Choose color_theme that matches audience, industry, and presentation tone
-• Prioritize data density while maintaining clarity and flow
-• Make every slide information-rich and expert-level
-
-**Content Expectations:**
-- data_points: Must include specific numbers with context (e.g., "Market grew 23.5% YoY to $47.2B in 2024")
-- expert_insights: Industry analysis, professional perspectives, trend interpretations
-- supporting_facts: Research findings, benchmarks, case study results
-- quantitative_details: Granular numbers, ratios, performance metrics, comparative data
-
-Create slides that executives and industry experts would find substantive and data-driven.
-"""
-
-
-async def plan_deck(prompt: str, llm) -> DeckPlan:
+async def plan_deck(prompt: str, llm, persona: str = "EXPERT_DATA_STRATEGIST") -> DeckPlan:
     """덱 플랜 생성"""
     if not prompt.strip():
         raise ValueError("발표 요청은 필수입니다")
 
-    logger.info("덱 플랜 생성 시작", prompt=prompt[:100])
+    if persona not in AVAILABLE_PROMPTS:
+        raise ValueError(f"Unknown persona: {persona}. Available personas are: {list(AVAILABLE_PROMPTS.keys())}")
 
-    enhanced_prompt = EXPERT_DATA_STRATEGIST_PROMPT.format(prompt=prompt)
+    logger.info("덱 플랜 생성 시작", prompt=prompt[:100], persona=persona)
+
+    # Select the prompt based on the persona
+    planning_prompt = AVAILABLE_PROMPTS[persona]
+    enhanced_prompt = planning_prompt.format(prompt=prompt)
 
     logger.info("프롬프트 준비 완료", prompt_length=len(enhanced_prompt))
 
