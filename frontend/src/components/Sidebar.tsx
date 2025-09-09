@@ -32,7 +32,7 @@ export default function Sidebar() {
 
   const fetchRecentDecks = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/decks?limit=3');
+      const response = await fetch('http://localhost:8000/api/decks?limit=3');
       if (response.ok) {
         const decks = await response.json();
         setRecentDecks(decks);

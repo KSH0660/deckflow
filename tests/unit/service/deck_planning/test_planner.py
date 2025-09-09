@@ -2,14 +2,14 @@
 
 import pytest
 
-from app.service.deck_planning.models import (
+from app.services.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
-from app.service.deck_planning.planner import (
+from app.services.deck_planning.planner import (
     _calculate_plan_score,
     _get_grade,
     _validate_plan_quality,

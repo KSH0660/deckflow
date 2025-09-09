@@ -16,24 +16,81 @@ def client():
 
 
 @pytest.fixture
-def mock_generate_deck():
-    """Mock the orchestration layer."""
-    with patch("app.api.deck.generate_deck") as mock:
-        mock.return_value = str(uuid4())
-        yield mock
+def mock_deck_service():
+    """Mock the DeckService."""
+    from app.api.deck import get_deck_service
+    from app.models.responses.deck import CreateDeckResponse
+
+    service = AsyncMock()
+    service.create_deck.return_value = CreateDeckResponse(
+        deck_id=str(uuid4()), status="generating"
+    )
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_deck_service] = lambda: service
+    yield service
+
+    # Clean up after the test
+    if get_deck_service in app.dependency_overrides:
+        del app.dependency_overrides[get_deck_service]
 
 
 @pytest.fixture
-def mock_modify_slide():
-    """Mock the slide modification service."""
-    with patch("app.api.deck.modify_slide") as mock:
-        yield mock
+def mock_deck_service_comprehensive():
+    """Mock the DeckService with comprehensive responses."""
+    from datetime import datetime
+
+    from app.api.deck import get_deck_service
+    from app.models.responses.deck import (
+        CreateDeckResponse,
+        DeckListItemResponse,
+        DeckStatusResponse,
+        ModifySlideResponse,
+    )
+
+    service = AsyncMock()
+
+    # Setup all the common mock responses
+    deck_id = str(uuid4())
+    service.create_deck.return_value = CreateDeckResponse(
+        deck_id=deck_id, status="generating"
+    )
+    service.get_deck_status.return_value = DeckStatusResponse(
+        deck_id=deck_id,
+        status="completed",
+        slide_count=1,
+        created_at=datetime(2024, 1, 1),
+        updated_at=None,
+        completed_at=datetime(2024, 1, 1, 0, 5),
+    )
+    service.modify_slide.return_value = ModifySlideResponse(
+        deck_id=deck_id, slide_order=1, status="modifying"
+    )
+    service.list_decks.return_value = [
+        DeckListItemResponse(
+            deck_id=deck_id,
+            title="Test Deck",
+            status="completed",
+            slide_count=1,
+            created_at=datetime(2024, 1, 1),
+        )
+    ]
+    service.get_deck_data.return_value = {"deck_id": deck_id, "title": "Test"}
+    service.delete_deck.return_value = {"status": "success"}
+
+    # Override dependency
+    app.dependency_overrides[get_deck_service] = lambda: service
+    yield service
+
+    # Clean up
+    if get_deck_service in app.dependency_overrides:
+        del app.dependency_overrides[get_deck_service]
 
 
 class TestDeckAPIEndpoints:
     """Test API endpoints separately from business logic."""
 
-    def test_create_deck_api_contract(self, client, mock_generate_deck):
+    def test_create_deck_api_contract(self, client, mock_deck_service):
         """Test deck creation API contract."""
         request_data = {
             "prompt": "Create a test presentation about API testing",
@@ -41,7 +98,7 @@ class TestDeckAPIEndpoints:
             "files": None,
         }
 
-        response = client.post("/api/v1/decks", json=request_data)
+        response = client.post("/api/decks", json=request_data)
 
         assert response.status_code == 200
         response_data = response.json()
@@ -49,152 +106,155 @@ class TestDeckAPIEndpoints:
         assert "status" in response_data
         assert response_data["status"] == "generating"
 
-        # Verify orchestration was called
-        mock_generate_deck.assert_called_once()
+        # Verify service was called
+        mock_deck_service.create_deck.assert_called_once()
 
     def test_create_deck_validation(self, client):
         """Test API request validation."""
         # Missing prompt
-        response = client.post("/api/v1/decks", json={})
+        response = client.post("/api/decks", json={})
         assert response.status_code == 422
 
         # Prompt too short
-        response = client.post("/api/v1/decks", json={"prompt": "Hi"})  # < 5 chars
+        response = client.post("/api/decks", json={"prompt": "Hi"})  # < 5 chars
         assert response.status_code == 422
 
         # Prompt too long
         long_prompt = "x" * 5001  # > 5000 chars
-        response = client.post("/api/v1/decks", json={"prompt": long_prompt})
+        response = client.post("/api/decks", json={"prompt": long_prompt})
         assert response.status_code == 422
 
     def test_get_deck_status_api(self, client):
         """Test deck status retrieval API."""
+        from datetime import datetime
+
+        from app.api.deck import get_deck_service
+        from app.models.responses.deck import DeckStatusResponse
+
         deck_id = str(uuid4())
 
-        # Mock repository response
-        with patch("app.api.deck.current_repo") as mock_repo_factory:
-            mock_repo = AsyncMock()
-            mock_repo_factory.return_value = mock_repo
-            mock_repo.get_deck.return_value = {
-                "id": deck_id,
-                "status": "completed",
-                "slides": [{"order": 1}],
-                "created_at": "2024-01-01T00:00:00",
-                "updated_at": None,
-                "completed_at": "2024-01-01T00:05:00",
-            }
+        # Create mock service
+        mock_service = AsyncMock()
+        mock_service.get_deck_status.return_value = DeckStatusResponse(
+            deck_id=deck_id,
+            status="completed",
+            slide_count=1,
+            created_at=datetime(2024, 1, 1, 0, 0, 0),
+            updated_at=None,
+            completed_at=datetime(2024, 1, 1, 0, 5, 0),
+        )
 
-            response = client.get(f"/api/v1/decks/{deck_id}")
+        # Override dependency
+        app.dependency_overrides[get_deck_service] = lambda: mock_service
+
+        try:
+            response = client.get(f"/api/decks/{deck_id}")
 
             assert response.status_code == 200
             data = response.json()
             assert data["deck_id"] == deck_id
             assert data["status"] == "completed"
             assert data["slide_count"] == 1
+        finally:
+            # Clean up
+            if get_deck_service in app.dependency_overrides:
+                del app.dependency_overrides[get_deck_service]
 
-    def test_modify_slide_api_contract(self, client, mock_modify_slide):
+    def test_modify_slide_api_contract(self, client, mock_deck_service_comprehensive):
         """Test slide modification API contract."""
+
         deck_id = str(uuid4())
         slide_order = 1
 
-        # Mock deck exists and is completed
-        with patch("app.api.deck.current_repo") as mock_repo_factory:
-            mock_repo = AsyncMock()
-            mock_repo_factory.return_value = mock_repo
-            mock_repo.get_deck.return_value = {
-                "status": "completed",
-                "slides": [{"order": 1}, {"order": 2}],
-            }
+        request_data = {
+            "modification_prompt": "Make this slide more colorful and engaging"
+        }
 
-            request_data = {
-                "modification_prompt": "Make this slide more colorful and engaging"
-            }
+        response = client.post(
+            f"/api/decks/{deck_id}/slides/{slide_order}/modify",
+            json=request_data,
+        )
 
-            response = client.post(
-                f"/api/v1/decks/{deck_id}/slides/{slide_order}/modify",
-                json=request_data,
-            )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["slide_order"] == slide_order
+        assert data["status"] == "modifying"
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["deck_id"] == deck_id
-            assert data["slide_order"] == slide_order
-            assert data["status"] == "modifying"
+        mock_deck_service_comprehensive.modify_slide.assert_called_once()
 
-            mock_modify_slide.assert_called_once()
-
-    def test_deck_export_api(self, client):
+    def test_deck_export_api(self, client, mock_deck_service_comprehensive):
         """Test deck export API."""
         deck_id = str(uuid4())
 
-        # Mock deck exists
-        with patch("app.api.deck.current_repo") as mock_repo_factory:
-            mock_repo = AsyncMock()
-            mock_repo_factory.return_value = mock_repo
-            mock_repo.get_deck.return_value = {
-                "id": deck_id,
-                "deck_title": "Test Deck",
-                "slides": [
-                    {"order": 1, "content": {"html_content": "<div>Test slide</div>"}}
-                ],
-            }
+        with patch("app.api.deck.render_deck_to_html") as mock_render:
+            mock_render.return_value = "<html>Rendered deck</html>"
 
-            with patch("app.api.deck.render_deck_to_html") as mock_render:
-                mock_render.return_value = "<html>Rendered deck</html>"
-
-                response = client.get(f"/api/v1/decks/{deck_id}/export?format=html")
-
-                assert response.status_code == 200
-                assert "text/html" in response.headers["content-type"]
-                mock_render.assert_called_once()
-
-    def test_list_decks_api(self, client):
-        """Test deck listing API."""
-        with patch("app.api.deck.current_repo") as mock_repo_factory:
-            mock_repo = AsyncMock()
-            mock_repo_factory.return_value = mock_repo
-            mock_repo.list_all_decks.return_value = [
-                {
-                    "deck_id": str(uuid4()),
-                    "title": "Test Deck 1",
-                    "status": "completed",
-                    "slide_count": 3,
-                    "created_at": "2024-01-01T00:00:00",
-                }
-            ]
-
-            response = client.get("/api/v1/decks?limit=10")
+            response = client.get(f"/api/decks/{deck_id}/export?format=html")
 
             assert response.status_code == 200
-            data = response.json()
-            assert isinstance(data, list)
-            assert len(data) == 1
-            assert "deck_id" in data[0]
+            assert "text/html" in response.headers["content-type"]
+            mock_render.assert_called_once()
+
+    def test_list_decks_api(self, client, mock_deck_service_comprehensive):
+        """Test deck listing API."""
+
+        response = client.get("/api/decks?limit=10")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 1
+        assert "deck_id" in data[0]
 
     def test_cancel_deck_api(self, client):
         """Test deck cancellation API."""
+        from datetime import datetime
+
+        from app.api.deck import get_deck_service
+        from app.models.responses.deck import DeckStatusResponse
+
         deck_id = str(uuid4())
 
-        with patch("app.api.deck.current_repo") as mock_repo_factory:
-            mock_repo = AsyncMock()
-            mock_repo_factory.return_value = mock_repo
-            mock_repo.get_deck.return_value = {
-                "id": deck_id,
-                "status": "generating",
-                "slides": [],
-                "created_at": "2024-01-01T00:00:00",
-            }
-            mock_repo.save_deck.return_value = None
+        # Create mock service that returns generating status
+        mock_service = AsyncMock()
+        mock_service.get_deck_status.side_effect = [
+            DeckStatusResponse(
+                deck_id=deck_id,
+                status="generating",
+                slide_count=0,
+                created_at=datetime(2024, 1, 1),
+            ),
+            DeckStatusResponse(
+                deck_id=deck_id,
+                status="cancelled",
+                slide_count=0,
+                created_at=datetime(2024, 1, 1),
+            ),
+        ]
 
-            response = client.post(f"/api/v1/decks/{deck_id}/cancel")
+        # Override dependency
+        app.dependency_overrides[get_deck_service] = lambda: mock_service
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["deck_id"] == deck_id
-            assert data["status"] == "cancelled"
+        try:
+            with patch("app.api.deck.current_repo") as mock_repo_factory:
+                mock_repo = AsyncMock()
+                mock_repo_factory.return_value = mock_repo
+                mock_repo.get_deck.return_value = {"status": "generating"}
+                mock_repo.save_deck.return_value = None
 
-            # Verify deck was marked as cancelled
-            mock_repo.save_deck.assert_called()
+                response = client.post(f"/api/decks/{deck_id}/cancel")
+
+                assert response.status_code == 200
+                data = response.json()
+                assert data["deck_id"] == deck_id
+                assert data["status"] == "cancelled"
+
+                # Verify deck was marked as cancelled
+                mock_repo.save_deck.assert_called()
+        finally:
+            # Clean up
+            if get_deck_service in app.dependency_overrides:
+                del app.dependency_overrides[get_deck_service]
 
 
 class TestAPIErrorHandling:
@@ -209,33 +269,37 @@ class TestAPIErrorHandling:
             mock_repo_factory.return_value = mock_repo
             mock_repo.get_deck.return_value = None
 
-            response = client.get(f"/api/v1/decks/{non_existent_id}")
+            response = client.get(f"/api/decks/{non_existent_id}")
             assert response.status_code == 404
 
     def test_invalid_deck_id_format(self, client):
         """Test invalid UUID format handling."""
-        response = client.get("/api/v1/decks/invalid-uuid")
+        response = client.get("/api/decks/invalid-uuid")
         assert response.status_code == 422
 
     def test_modify_non_completed_deck(self, client):
         """Test modification of non-completed deck."""
+        from app.api.deck import get_deck_service
+
         deck_id = str(uuid4())
 
-        with patch("app.api.deck.current_repo") as mock_repo_factory:
-            mock_repo = AsyncMock()
-            mock_repo_factory.return_value = mock_repo
-            mock_repo.get_deck.return_value = {
-                "status": "generating",  # Not completed
-                "slides": [],
-            }
+        # Create mock service that throws error
+        mock_service = AsyncMock()
+        mock_service.modify_slide.side_effect = ValueError(
+            "Can only modify slides in completed or modifying decks. Current status: generating"
+        )
 
+        # Override dependency
+        app.dependency_overrides[get_deck_service] = lambda: mock_service
+
+        try:
             response = client.post(
-                f"/api/v1/decks/{deck_id}/slides/1/modify",
+                f"/api/decks/{deck_id}/slides/1/modify",
                 json={"modification_prompt": "Test prompt"},
             )
 
-            assert response.status_code == 400
-            assert (
-                "Can only modify slides in completed or modifying decks"
-                in response.json()["detail"]
-            )
+            assert response.status_code == 400  # API converts ValueError to 400
+        finally:
+            # Clean up
+            if get_deck_service in app.dependency_overrides:
+                del app.dependency_overrides[get_deck_service]

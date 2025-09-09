@@ -24,7 +24,7 @@ export default function DecksPage() {
 
   const fetchDecks = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/decks?limit=20');
+      const response = await fetch('http://localhost:8000/api/decks?limit=20');
       if (response.ok) {
         const deckList = await response.json();
 
@@ -33,7 +33,7 @@ export default function DecksPage() {
           deckList.map(async (deck: any) => {
             if (deck.status === 'generating' || deck.status === 'modifying') {
               try {
-                const statusResponse = await fetch(`http://localhost:8000/api/v1/decks/${deck.deck_id}`);
+                const statusResponse = await fetch(`http://localhost:8000/api/decks/${deck.deck_id}`);
                 if (statusResponse.ok) {
                   const statusData = await statusResponse.json();
                   return {
@@ -153,7 +153,7 @@ export default function DecksPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/cancel`, {
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}/cancel`, {
         method: 'POST',
       });
       if (response.ok) {
@@ -171,7 +171,7 @@ export default function DecksPage() {
 
     setDeletingDecks(prev => new Set([...prev, deckId]));
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}`, {
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}`, {
         method: 'DELETE',
       });
 

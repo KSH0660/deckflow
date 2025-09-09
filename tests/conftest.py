@@ -6,14 +6,14 @@ from uuid import uuid4
 
 import pytest
 
-from app.service.deck_planning.models import (
+from app.services.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
-from app.service.orchestration.models import GeneratedDeck, Slide
+from app.services.models import GeneratedDeck, Slide
 from tests.builders import (
     any_deck_context,
     any_deck_plan,

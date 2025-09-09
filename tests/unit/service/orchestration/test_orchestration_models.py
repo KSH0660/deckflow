@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from app.service.content_creation.models import SlideContent
-from app.service.orchestration.models import DeckContext, GeneratedDeck, Slide
+from app.services.content_creation.models import SlideContent
+from app.services.models import DeckContext, GeneratedDeck, Slide
 
 
 class TestSlide:

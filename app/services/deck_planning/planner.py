@@ -6,13 +6,17 @@ from .prompts import AVAILABLE_PROMPTS
 logger = get_logger(__name__)
 
 
-async def plan_deck(prompt: str, llm, persona: str = "EXPERT_DATA_STRATEGIST") -> DeckPlan:
+async def plan_deck(
+    prompt: str, llm, persona: str = "EXPERT_DATA_STRATEGIST"
+) -> DeckPlan:
     """덱 플랜 생성"""
     if not prompt.strip():
         raise ValueError("발표 요청은 필수입니다")
 
     if persona not in AVAILABLE_PROMPTS:
-        raise ValueError(f"Unknown persona: {persona}. Available personas are: {list(AVAILABLE_PROMPTS.keys())}")
+        raise ValueError(
+            f"Unknown persona: {persona}. Available personas are: {list(AVAILABLE_PROMPTS.keys())}"
+        )
 
     logger.info("덱 플랜 생성 시작", prompt=prompt[:100], persona=persona)
 

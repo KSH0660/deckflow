@@ -2,8 +2,8 @@
 
 import pytest
 
-from app.service.content_creation.models import SlideContent
-from app.service.content_creation.writer import (
+from app.services.content_creation.models import SlideContent
+from app.services.content_creation.writer import (
     RENDER_PROMPT,
     _validate_slide_content,
     write_content,

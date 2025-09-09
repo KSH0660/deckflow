@@ -1,6 +1,6 @@
 """Tests for content creation models."""
 
-from app.service.content_creation.models import (
+from app.services.content_creation.models import (
     COLOR_THEME_MAPPING,
     LAYOUT_TYPE_ASSET_MAPPING,
     SlideContent,

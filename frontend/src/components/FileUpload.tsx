@@ -38,7 +38,7 @@ export default function FileUpload({ onFilesChange, disabled = false }: FileUplo
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('http://localhost:8000/api/v1/files/upload', {
+    const response = await fetch('http://localhost:8000/api/files/upload', {
       method: 'POST',
       body: formData,
     });

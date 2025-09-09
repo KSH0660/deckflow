@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.schema import FileUploadResponse
 from app.logging import get_logger
-from app.service.file_processor import FileProcessor, FileStorage
+from app.services.file_processing.file_processor import FileProcessor, FileStorage
 
 router = APIRouter(tags=["files"])
 

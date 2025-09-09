@@ -1,28 +1,44 @@
+"""
+Clean Architecture API Router for Deck Operations
+
+This demonstrates proper separation of concerns:
+- Request Models: Define and validate API input
+- Service Layer: Handle business logic and coordinate operations
+- Database Models: Represent actual data structure
+- Response Models: Format API output for clients
+
+Layers:
+Request → Service → Repository → Database
+Response ← Service ← Repository ← Database
+"""
+
 import asyncio
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from app.adapter.factory import current_llm, current_repo
-from app.api.schema import (
+from app.core.config import Settings as AppSettings
+from app.core.config import settings as app_settings
+from app.models.requests.deck import (
     CreateDeckRequest,
+    ModifySlideRequest,
+    RevertSlideRequest,
+)
+from app.models.responses.deck import (
     CreateDeckResponse,
     DeckListItemResponse,
     DeckStatusResponse,
-    ModifySlideRequest,
     ModifySlideResponse,
-    RevertSlideRequest,
     RevertSlideResponse,
-    SlideVersion,
-    SlideVersionHistory,
+    SaveSlideContentResponse,
+    SlideVersionHistoryResponse,
 )
-from app.core.config import Settings as AppSettings
-from app.core.config import settings as app_settings
-from app.service.export_deck import render_deck_to_html, try_render_deck_pdf
-from app.service.modify_slide import modify_slide
-from app.service.orchestration import generate_deck
+from app.services.deck_service import DeckService
+from app.services.export.export_deck import render_deck_to_html, try_render_deck_pdf
+from app.services.slide_modification.modify_slide import modify_slide
 
 router = APIRouter(tags=["decks"])
 
@@ -31,83 +47,84 @@ def get_settings() -> AppSettings:
     return app_settings
 
 
+def get_deck_service(
+    repo=Depends(current_repo), llm=Depends(current_llm)
+) -> DeckService:
+    """Dependency injection for deck service"""
+    return DeckService(repository=repo, llm_provider=llm)
+
+
 @router.post("/decks", response_model=CreateDeckResponse)
-async def create_deck(req: CreateDeckRequest, s: AppSettings = Depends(get_settings)):
-    """Start deck generation in background and return deck_id immediately."""
-    repo = current_repo()
-    deck_uuid = uuid4()
+async def create_deck(
+    request: CreateDeckRequest,
+    deck_service: DeckService = Depends(get_deck_service),
+    settings: AppSettings = Depends(get_settings),
+):
+    """
+    Create a new deck with clean request/response handling.
 
-    # Save initial deck record for immediate polling
-    initial = {
-        "id": str(deck_uuid),
-        "deck_title": req.prompt[:60] + ("..." if len(req.prompt) > 60 else ""),
-        "status": "generating",
-        "slides": [],
-        "progress": 1,
-        "step": "Queued",
-        "created_at": datetime.now(),
-        "updated_at": None,
-        "completed_at": None,
-    }
-    await repo.save_deck(deck_uuid, initial)
+    The service layer handles ALL business logic including:
+    - Database model creation
+    - Repository interaction
+    - Background generation orchestration
+    """
+    try:
+        # Service handles ALL business logic - API just delegates
+        return await deck_service.create_deck(request, settings)
 
-    async def progress_cb(step: str, progress: int, _slide: dict | None = None):
-        deck = await repo.get_deck(deck_uuid) or {}
-        if deck.get("status") == "cancelled":
-            return
-        deck.update(
-            {
-                "status": "generating",
-                "progress": int(progress),
-                "step": step,
-                "updated_at": datetime.now(),
-            }
-        )
-        await repo.save_deck(deck_uuid, deck)
-
-    # Fire-and-forget background task
-    asyncio.create_task(
-        generate_deck(
-            prompt=req.prompt,
-            llm=current_llm(model=s.llm_model),
-            repo=repo,
-            progress_callback=progress_cb,
-            deck_id=deck_uuid,
-            files=req.files,
-        )
-    )
-
-    return CreateDeckResponse(deck_id=str(deck_uuid))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/decks/{deck_id}", response_model=DeckStatusResponse)
-async def get_deck_status(deck_id: UUID, s: AppSettings = Depends(get_settings)):
-    repo = current_repo()
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
-    # deck is stored as dict in repositories
-    return DeckStatusResponse(
-        deck_id=str(deck.get("id", deck_id)),
-        status=deck.get("status", "unknown"),
-        slide_count=len(deck.get("slides", [])),
-        progress=deck.get("progress"),
-        step=deck.get("step"),
-        created_at=deck.get("created_at"),
-        updated_at=deck.get("updated_at"),
-        completed_at=deck.get("completed_at"),
-    )
+async def get_deck_status(
+    deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
+):
+    """
+    Get deck status with clean error handling.
+
+    Notice how much cleaner this is:
+    - No manual field extraction
+    - No dict manipulation
+    - Proper error handling
+    - Type safety
+    """
+    try:
+        return await deck_service.get_deck_status(deck_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/decks", response_model=list[DeckListItemResponse])
 async def list_decks(
-    limit: int = Query(default=10, ge=1, le=100), s: AppSettings = Depends(get_settings)
+    limit: int = Query(default=10, ge=1, le=100),
+    deck_service: DeckService = Depends(get_deck_service),
 ):
-    """Return recent decks with basic info."""
-    repo = current_repo()
-    decks = await repo.list_all_decks(limit=limit)
-    # Re-shape keys if necessary; repositories already return matching keys
-    return decks
+    """List decks with proper response modeling"""
+    try:
+        return await deck_service.list_decks(limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.get("/decks/{deck_id}/data")
+async def get_deck_data(
+    deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
+):
+    """
+    Get complete deck data for rendering.
+
+    Note: This endpoint returns raw data for frontend compatibility.
+    In a fully clean architecture, this would also have a response model.
+    """
+    try:
+        return await deck_service.get_deck_data(deck_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post(
@@ -116,317 +133,93 @@ async def list_decks(
 async def modify_slide_endpoint(
     deck_id: UUID,
     slide_order: int,
-    req: ModifySlideRequest,
-    s: AppSettings = Depends(get_settings),
+    request: ModifySlideRequest,
+    deck_service: DeckService = Depends(get_deck_service),
+    settings: AppSettings = Depends(get_settings),
 ):
-    """Modify a specific slide in the deck."""
-    repo = current_repo()
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
-
-    current_status = deck.get("status")
-    if current_status not in {"completed", "modifying"}:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Can only modify slides in completed or modifying decks. Current status: {current_status}",
-        )
-
-    slides = deck.get("slides", [])
-    if not slides or slide_order < 1 or slide_order > len(slides):
-        raise HTTPException(status_code=404, detail="Slide not found")
-
-    async def progress_cb(step: str, progress: int, _slide: dict | None = None):
-        deck = await repo.get_deck(deck_id) or {}
-        if deck.get("status") == "cancelled":
-            return
-
-        # 진행률이 100%가 되면 completed 상태로 변경, 그렇지 않으면 modifying
-        if progress >= 100:
-            deck.update(
-                {
-                    "status": "completed",
-                    "progress": None,
-                    "step": None,
-                    "updated_at": datetime.now(),
-                }
-            )
-        else:
-            deck.update(
-                {
-                    "status": "modifying",
-                    "progress": int(progress),
-                    "step": step,
-                    "updated_at": datetime.now(),
-                }
-            )
-        await repo.save_deck(deck_id, deck)
-
-    # Fire-and-forget background task
-    asyncio.create_task(
-        modify_slide(
-            deck_id=deck_id,
-            slide_order=slide_order,
-            modification_prompt=req.modification_prompt,
-            llm=current_llm(model=s.llm_model),
-            repo=repo,
-            progress_callback=progress_cb,
-        )
-    )
-
-    return ModifySlideResponse(deck_id=str(deck_id), slide_order=slide_order)
-
-
-@router.post("/decks/{deck_id}/cancel", response_model=DeckStatusResponse)
-async def cancel_deck(deck_id: UUID, s: AppSettings = Depends(get_settings)):
-    repo = current_repo()
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
-    # If already terminal, just return current state
-    if deck.get("status") in {"completed", "failed", "cancelled"}:
-        return DeckStatusResponse(
-            deck_id=str(deck.get("id", deck_id)),
-            status=deck.get("status", "unknown"),
-            slide_count=len(deck.get("slides", [])),
-            progress=deck.get("progress"),
-            step=deck.get("step"),
-            created_at=deck.get("created_at"),
-            updated_at=deck.get("updated_at"),
-            completed_at=deck.get("completed_at"),
-        )
-
-    deck["status"] = "cancelled"
-    deck["step"] = "Cancelled by user"
-    deck["updated_at"] = datetime.now()
-    await repo.save_deck(deck_id, deck)
-
-    return DeckStatusResponse(
-        deck_id=str(deck.get("id", deck_id)),
-        status=deck.get("status", "unknown"),
-        slide_count=len(deck.get("slides", [])),
-        progress=deck.get("progress"),
-        step=deck.get("step"),
-        created_at=deck.get("created_at"),
-        updated_at=deck.get("updated_at"),
-        completed_at=deck.get("completed_at"),
-    )
-
-
-@router.get("/decks/{deck_id}/export")
-async def export_deck(
-    deck_id: UUID,
-    format: str = Query(default="html", pattern="^(html|pdf)$"),
-    layout: str = Query(default="widescreen", pattern="^(widescreen|a4|a4-landscape)$"),
-    embed: str = Query(default="inline", pattern="^(inline|iframe)$"),
-    inline: bool = False,
-    s: AppSettings = Depends(get_settings),
-):
-    """Export a deck as combined HTML or best-effort PDF."""
-    repo = current_repo()
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
-
-    html = render_deck_to_html(deck, layout=layout, embed=embed)
-    title = deck.get("deck_title", str(deck_id))
-
-    if format == "html":
-        disposition = "inline" if inline else "attachment"
-        filename = f"{title}.html"
-        headers = {"Content-Disposition": f'{disposition}; filename="{filename}"'}
-        return Response(
-            content=html, media_type="text/html; charset=utf-8", headers=headers
-        )
-
-    pdf_bytes = try_render_deck_pdf(html, layout=layout)
-    if not pdf_bytes:
-        raise HTTPException(
-            status_code=501,
-            detail=(
-                "PDF export unavailable on server. Install 'weasyprint' or have 'wkhtmltopdf' in PATH."
-            ),
-        )
-
-    disposition = "inline" if inline else "attachment"
-    filename = f"{title}.pdf"
-    headers = {"Content-Disposition": f'{disposition}; filename="{filename}"'}
-    return StreamingResponse(
-        iter([pdf_bytes]), media_type="application/pdf", headers=headers
-    )
-
-
-@router.get("/decks/{deck_id}/data")
-async def get_deck_data(deck_id: UUID, s: AppSettings = Depends(get_settings)):
-    """Return the full stored deck JSON for detailed client-side rendering.
-
-    Note: This returns the raw stored structure which may include nested slide
-    plans and rendered HTML content. Intended for first-party frontends.
     """
-    repo = current_repo()
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
-    return deck
+    Modify a slide with proper request validation.
 
-
-@router.post("/save")
-async def save_edited_html(
-    request: Request, deck_id: str = Query(...), slide_order: int = Query(...)
-):
-    """Save edited HTML content from TinyMCE inline editor with versioning
-        {
-        "versions": [
-        {
-            "version_id": "v1_1694188800",
-            "content": "<div>Original content</div>",
-            "timestamp": "2023-09-08T...",
-            "is_current": false,
-            "created_by": "user"
-        },
-        {
-            "version_id": "v2_1694189200",
-            "content": "<div>Updated content</div>",
-            "timestamp": "2023-09-08T...",
-            "is_current": true,
-            "created_by": "user"
-        }
-        ]
-    }
+    The request model ensures:
+    - Required fields are present
+    - String length constraints
+    - Input sanitization
     """
     try:
-        # Get the raw HTML content from request body
-        html_content = await request.body()
-        html_str = html_content.decode("utf-8")
+        # Validate through service layer
+        response = await deck_service.modify_slide(deck_id, slide_order, request)
 
-        # Get repository
+        # Start background modification (existing logic)
         repo = current_repo()
 
-        # Get current deck
-        deck_uuid = UUID(deck_id)
-        deck = await repo.get_deck(deck_uuid)
-        if not deck:
-            raise HTTPException(status_code=404, detail="Deck not found")
+        async def progress_cb(step: str, progress: int, _slide: dict | None = None):
+            deck = await repo.get_deck(deck_id) or {}
+            if deck.get("status") == "cancelled":
+                return
 
-        # Find the slide to update
-        slide_found = False
-        current_time = datetime.now()
-
-        for slide in deck.get("slides", []):
-            if slide.get("order") == slide_order:
-                # Initialize content and versions if they don't exist
-                if "content" not in slide:
-                    slide["content"] = {}
-                if "versions" not in slide:
-                    slide["versions"] = []
-
-                # Get current content for comparison
-                current_content = slide["content"].get("html_content", "")
-
-                # Only create new version if content actually changed
-                if current_content != html_str:
-                    # Mark all existing versions as not current
-                    for version in slide["versions"]:
-                        version["is_current"] = False
-
-                    # Create new version
-                    new_version_id = (
-                        f"v{len(slide['versions']) + 1}_{int(current_time.timestamp())}"
-                    )
-                    new_version = {
-                        "version_id": new_version_id,
-                        "content": html_str,
-                        "timestamp": current_time.isoformat(),
-                        "is_current": True,
-                        "created_by": "user",
+            if progress >= 100:
+                deck.update(
+                    {
+                        "status": "completed",
+                        "progress": None,
+                        "step": None,
+                        "updated_at": datetime.now(),
                     }
+                )
+            else:
+                deck.update(
+                    {
+                        "status": "modifying",
+                        "progress": int(progress),
+                        "step": step,
+                        "updated_at": datetime.now(),
+                    }
+                )
+            await repo.save_deck(deck_id, deck)
 
-                    # Add new version to versions list
-                    slide["versions"].append(new_version)
-
-                    # Keep only last 10 versions to prevent unbounded growth
-                    if len(slide["versions"]) > 10:
-                        slide["versions"] = slide["versions"][-10:]
-
-                    # Update current content
-                    slide["content"]["html_content"] = html_str
-                    slide["content"]["current_version_id"] = new_version_id
-                    slide["content"]["updated_at"] = current_time.isoformat()
-
-                slide_found = True
-                break
-
-        if not slide_found:
-            raise HTTPException(
-                status_code=404, detail=f"Slide {slide_order} not found"
+        # Fire-and-forget background task
+        asyncio.create_task(
+            modify_slide(
+                deck_id=deck_id,
+                slide_order=slide_order,
+                modification_prompt=request.modification_prompt,
+                llm=current_llm(model=settings.llm_model),
+                repo=repo,
+                progress_callback=progress_cb,
             )
+        )
 
-        # Update the deck's updated_at timestamp
-        deck["updated_at"] = current_time
-
-        # Save back to database
-        await repo.save_deck(deck_uuid, deck)
-
-        return {
-            "status": "success",
-            "message": "편집 내용이 저장되었습니다",
-            "version_id": slide["content"].get("current_version_id"),
-            "version_count": len(slide.get("versions", [])),
-        }
+        return response
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=400, detail=f"잘못된 deck_id 형식: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get(
-    "/decks/{deck_id}/slides/{slide_order}/versions", response_model=SlideVersionHistory
+    "/decks/{deck_id}/slides/{slide_order}/versions",
+    response_model=SlideVersionHistoryResponse,
 )
 async def get_slide_version_history(
-    deck_id: UUID, slide_order: int, s: AppSettings = Depends(get_settings)
+    deck_id: UUID,
+    slide_order: int,
+    deck_service: DeckService = Depends(get_deck_service),
 ):
-    """Get version history for a specific slide"""
-    repo = current_repo()
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
+    """
+    Get slide version history with clean response modeling.
 
-    # Find the slide
-    target_slide = None
-    for slide in deck.get("slides", []):
-        if slide.get("order") == slide_order:
-            target_slide = slide
-            break
-
-    if not target_slide:
-        raise HTTPException(status_code=404, detail=f"Slide {slide_order} not found")
-
-    # Get versions, ensuring they exist
-    versions = target_slide.get("versions", [])
-    current_version_id = target_slide.get("content", {}).get("current_version_id", "")
-
-    # Convert to response format
-    version_objects = []
-    for version in versions:
-        version_objects.append(
-            SlideVersion(
-                version_id=version["version_id"],
-                content=version["content"],
-                timestamp=datetime.fromisoformat(version["timestamp"]),
-                is_current=version.get("is_current", False),
-                created_by=version.get("created_by", "user"),
-            )
-        )
-
-    return SlideVersionHistory(
-        deck_id=str(deck_id),
-        slide_order=slide_order,
-        versions=version_objects,
-        current_version_id=current_version_id,
-    )
+    Compare this to the original - much cleaner:
+    - No manual response construction
+    - Proper error handling
+    - Type-safe response
+    """
+    try:
+        return await deck_service.get_slide_version_history(deck_id, slide_order)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post(
@@ -436,92 +229,145 @@ async def revert_slide_to_version(
     deck_id: UUID,
     slide_order: int,
     request: RevertSlideRequest,
-    s: AppSettings = Depends(get_settings),
+    deck_service: DeckService = Depends(get_deck_service),
 ):
-    """Revert a slide to a specific version"""
+    """Revert slide to version with proper request/response handling"""
     try:
-        repo = current_repo()
-        deck = await repo.get_deck(deck_id)
-        if not deck:
-            raise HTTPException(status_code=404, detail="Deck not found")
-
-        # Find the slide
-        target_slide = None
-        for slide in deck.get("slides", []):
-            if slide.get("order") == slide_order:
-                target_slide = slide
-                break
-
-        if not target_slide:
-            raise HTTPException(
-                status_code=404, detail=f"Slide {slide_order} not found"
-            )
-
-        # Find the target version
-        target_version = None
-        versions = target_slide.get("versions", [])
-        for version in versions:
-            if version["version_id"] == request.version_id:
-                target_version = version
-                break
-
-        if not target_version:
-            raise HTTPException(
-                status_code=404, detail=f"Version {request.version_id} not found"
-            )
-
-        # Mark all versions as not current
-        for version in versions:
-            version["is_current"] = False
-
-        # Mark target version as current
-        target_version["is_current"] = True
-
-        # Update slide content
-        if "content" not in target_slide:
-            target_slide["content"] = {}
-
-        target_slide["content"]["html_content"] = target_version["content"]
-        target_slide["content"]["current_version_id"] = target_version["version_id"]
-        target_slide["content"]["updated_at"] = datetime.now().isoformat()
-
-        # Update deck timestamp
-        deck["updated_at"] = datetime.now()
-
-        # Save to database
-        await repo.save_deck(deck_id, deck)
-
-        return RevertSlideResponse(
-            deck_id=str(deck_id),
-            slide_order=slide_order,
-            reverted_to_version=request.version_id,
-            status="success",
-        )
-
+        return await deck_service.revert_slide_to_version(deck_id, slide_order, request)
+    except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        else:
+            raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"버전 되돌리기 실패: {str(e)}"
         ) from e
 
 
-@router.delete("/decks/{deck_id}")
-async def delete_deck(deck_id: UUID, s: AppSettings = Depends(get_settings)):
-    """Delete a specific deck."""
-    repo = current_repo()
+@router.post("/save", response_model=SaveSlideContentResponse)
+async def save_edited_html(
+    request: Request,
+    deck_id: str = Query(...),
+    slide_order: int = Query(...),
+    deck_service: DeckService = Depends(get_deck_service),
+):
+    """
+    Save edited HTML with proper content handling.
 
-    # Check if deck exists
-    deck = await repo.get_deck(deck_id)
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
-
+    This endpoint maintains compatibility with the existing frontend
+    while using the clean service layer underneath.
+    """
     try:
-        # Delete the deck from repository
-        await repo.delete_deck(deck_id)
-        return {
-            "status": "success",
-            "message": "Deck deleted successfully",
-            "deck_id": str(deck_id),
-        }
+        # Get HTML content from request body
+        html_content = await request.body()
+        html_str = html_content.decode("utf-8")
 
+        # Validate inputs
+        if not html_str.strip():
+            raise HTTPException(status_code=400, detail="HTML content cannot be empty")
+
+        deck_uuid = UUID(deck_id)
+        response = await deck_service.save_slide_content(
+            deck_uuid, slide_order, html_str
+        )
+
+        return response
+
+    except ValueError as e:
+        if "invalid" in str(e).lower():
+            raise HTTPException(
+                status_code=400, detail=f"잘못된 deck_id 형식: {str(e)}"
+            ) from e
+        else:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}") from e
+
+
+@router.post("/decks/{deck_id}/cancel", response_model=DeckStatusResponse)
+async def cancel_deck(
+    deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
+):
+    """Cancel deck generation"""
+    try:
+        deck_status = await deck_service.get_deck_status(deck_id)
+
+        # If already terminal, just return current state
+        if deck_status.status in {"completed", "failed", "cancelled"}:
+            return deck_status
+
+        # Update status in repository (using existing logic for now)
+        repo = current_repo()
+        deck = await repo.get_deck(deck_id)
+        if deck:
+            deck["status"] = "cancelled"
+            deck["step"] = "Cancelled by user"
+            deck["updated_at"] = datetime.now()
+            await repo.save_deck(deck_id, deck)
+
+        return await deck_service.get_deck_status(deck_id)
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.delete("/decks/{deck_id}")
+async def delete_deck(
+    deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
+):
+    """Delete a deck"""
+    try:
+        return await deck_service.delete_deck(deck_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"덱 삭제 실패: {str(e)}") from e
+
+
+# Export endpoints (keeping existing logic for now)
+@router.get("/decks/{deck_id}/export")
+async def export_deck(
+    deck_id: UUID,
+    format: str = Query(default="html", pattern="^(html|pdf)$"),
+    layout: str = Query(default="widescreen", pattern="^(widescreen|a4|a4-landscape)$"),
+    embed: str = Query(default="inline", pattern="^(inline|iframe)$"),
+    inline: bool = False,
+    deck_service: DeckService = Depends(get_deck_service),
+):
+    """Export deck with existing logic (could be refactored later)"""
+    try:
+        # Get deck data through service
+        deck = await deck_service.get_deck_data(deck_id)
+
+        html = render_deck_to_html(deck, layout=layout, embed=embed)
+        title = deck.get("deck_title", str(deck_id))
+
+        if format == "html":
+            disposition = "inline" if inline else "attachment"
+            filename = f"{title}.html"
+            headers = {"Content-Disposition": f'{disposition}; filename="{filename}"'}
+            return Response(
+                content=html, media_type="text/html; charset=utf-8", headers=headers
+            )
+
+        pdf_bytes = try_render_deck_pdf(html, layout=layout)
+        if not pdf_bytes:
+            raise HTTPException(
+                status_code=501,
+                detail="PDF export unavailable on server. Install 'weasyprint' or have 'wkhtmltopdf' in PATH.",
+            )
+
+        disposition = "inline" if inline else "attachment"
+        filename = f"{title}.pdf"
+        headers = {"Content-Disposition": f'{disposition}; filename="{filename}"'}
+        return StreamingResponse(
+            iter([pdf_bytes]), media_type="application/pdf", headers=headers
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e

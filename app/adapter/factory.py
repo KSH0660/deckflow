@@ -1,4 +1,5 @@
 import os
+from threading import Lock
 
 from app.adapter.db import InMemoryRepository, SQLiteRepository
 from app.adapter.llm.langchain_client import LangchainLLM
@@ -9,6 +10,8 @@ logger = get_logger(__name__)
 
 
 _repo_instance = None
+_llm_instances: dict[str, LangchainLLM] = {}
+_llm_lock = Lock()
 
 
 def current_llm(model: str | None = None):
@@ -18,7 +21,19 @@ def current_llm(model: str | None = None):
         model: override model name. If None, uses settings.llm_model.
     """
     name = model or settings.llm_model
-    return LangchainLLM(model=name)
+
+    # Return existing instance if available
+    inst = _llm_instances.get(name)
+    if inst is not None:
+        return inst
+
+    # Create lazily with locking to avoid duplicate inits under concurrency
+    with _llm_lock:
+        inst = _llm_instances.get(name)
+        if inst is None:
+            inst = LangchainLLM(model=name)
+            _llm_instances[name] = inst
+    return inst
 
 
 def current_repo():

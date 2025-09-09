@@ -7,7 +7,7 @@
 2. **No clear data models** - everything is `dict`
 3. **Manual field extraction** and validation
 4. **Mixed business logic** in API layer
-5. **No type safety** 
+5. **No type safety**
 6. **Hard to test** and maintain
 
 ### Example of old messy code:
@@ -74,7 +74,7 @@ class DeckDB(BaseModel):
     deck_title: str
     status: str
     slides: List[SlideDB] = Field(default_factory=list)
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "DeckDB":
         # Smart conversion with validation
@@ -90,7 +90,7 @@ class DeckDB(BaseModel):
 class DeckStatusResponse(BaseModel):
     deck_id: str = Field(..., description="Unique identifier")
     status: str = Field(..., description="Current status")
-    
+
     @classmethod
     def from_db_model(cls, deck: DeckDB) -> "DeckStatusResponse":
         return cls(
@@ -112,7 +112,7 @@ class DeckService:
         deck_data = await self.repo.get_deck(deck_id)
         if not deck_data:
             raise ValueError("Deck not found")
-        
+
         deck = DeckDB.from_dict(deck_data)
         return DeckStatusResponse.from_db_model(deck)
 ```

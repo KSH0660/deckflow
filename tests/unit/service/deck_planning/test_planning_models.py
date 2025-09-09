@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.service.deck_planning.models import (
+from app.services.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,

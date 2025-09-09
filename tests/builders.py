@@ -1,14 +1,14 @@
 """Test data builders for flexible POC testing."""
 
-from app.service.content_creation.models import SlideContent
-from app.service.deck_planning.models import (
+from app.services.content_creation.models import SlideContent
+from app.services.deck_planning.models import (
     ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
-from app.service.orchestration.models import DeckContext
+from app.services.models import DeckContext
 
 
 class SlidePlanBuilder:

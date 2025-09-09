@@ -104,7 +104,7 @@ export default function DeckPreview() {
 
   const fetchDeckStatus = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}`);
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}`);
       if (response.ok) {
         const status = await response.json();
         return status;
@@ -120,7 +120,7 @@ export default function DeckPreview() {
       // 상태도 함께 확인
       const status = await fetchDeckStatus();
 
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/data`);
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}/data`);
       if (response.ok) {
         const data = await response.json();
         setDeckData(data);
@@ -177,7 +177,7 @@ export default function DeckPreview() {
     setIsModifying(true);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${slideNumber}/modify`, {
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}/slides/${slideNumber}/modify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ export default function DeckPreview() {
   const fetchSlideVersions = async (slideOrder: number) => {
     setLoadingVersions(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${slideOrder}/versions`);
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}/slides/${slideOrder}/versions`);
       if (response.ok) {
         const data = await response.json();
         setSlideVersions(data.versions || []);
@@ -222,7 +222,7 @@ export default function DeckPreview() {
 
   const revertToVersion = async (versionId: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${currentSlide + 1}/revert`, {
+      const response = await fetch(`http://localhost:8000/api/decks/${deckId}/slides/${currentSlide + 1}/revert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ export default function DeckPreview() {
       }
 
       // Save to backend
-      const response = await fetch(`http://localhost:8000/api/v1/save?deck_id=${deckId}&slide_order=${currentSlide + 1}`, {
+      const response = await fetch(`http://localhost:8000/api/save?deck_id=${deckId}&slide_order=${currentSlide + 1}`, {
         method: 'POST',
         headers: {'Content-Type': 'text/html;charset=utf-8'},
         body: htmlContent

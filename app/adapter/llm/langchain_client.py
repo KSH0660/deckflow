@@ -75,7 +75,8 @@ class LangchainLLM(LLMProvider):
         self.llm = ChatOpenAI(**chat_kwargs)
         self._prompt = ChatPromptTemplate.from_messages([("user", "{input}")])
 
-        logger.info("LangChain LLM 초기화 완료", model=model, provider="OpenAI")
+        # Lowered to debug to avoid noisy logs when multiple instances are constructed
+        logger.debug("LangChain LLM 초기화 완료", model=model, provider="OpenAI")
 
     async def generate(self, prompt: str) -> str:
         """Return plain text response."""
