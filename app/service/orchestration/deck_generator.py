@@ -281,11 +281,34 @@ Please create a more specific and detailed presentation based on the content of 
                 generated_slides=len(slides),
             )
 
-            # Update deck with completed slides
+            # Update deck with completed slides and initialize version history
             await update_progress("Finalizing presentation...", 95)
-            deck_data["slides"] = [slide.model_dump() for slide in slides]
+            current_time = datetime.now()
+            
+            # Convert slides to dict and initialize version history
+            slides_data = []
+            for slide in slides:
+                slide_dict = slide.model_dump()
+                
+                # Initialize version history with the first version
+                initial_version = {
+                    "version_id": f"v1_{int(current_time.timestamp())}",
+                    "content": slide_dict["content"]["html_content"],
+                    "timestamp": current_time.isoformat(),
+                    "is_current": True,
+                    "created_by": "system"
+                }
+                
+                # Add version tracking to slide content
+                slide_dict["content"]["current_version_id"] = initial_version["version_id"]
+                slide_dict["content"]["updated_at"] = current_time.isoformat()
+                slide_dict["versions"] = [initial_version]
+                
+                slides_data.append(slide_dict)
+            
+            deck_data["slides"] = slides_data
             deck_data["status"] = "completed"
-            deck_data["completed_at"] = datetime.now()
+            deck_data["completed_at"] = current_time
 
             await repo.save_deck(deck_id, deck_data)
 

@@ -91,11 +91,42 @@ async def modify_slide(
 
         await update_progress("Updating slide in deck...", 90)
 
-        # 슬라이드 업데이트
+        # 슬라이드 업데이트 (기존 버전 히스토리 보존)
+        current_time = datetime.now()
+        
+        # 기존 버전 히스토리 가져오기 (없으면 빈 리스트)
+        existing_versions = target_slide.get("versions", [])
+        
+        # 모든 기존 버전을 current가 아니도록 설정
+        for version in existing_versions:
+            version["is_current"] = False
+        
+        # 새로운 버전 생성
+        new_version = {
+            "version_id": f"v{len(existing_versions) + 1}_{int(current_time.timestamp())}",
+            "content": modified_content.html_content,
+            "timestamp": current_time.isoformat(),
+            "is_current": True,
+            "created_by": "user"
+        }
+        
+        # 새로운 버전을 히스토리에 추가
+        updated_versions = existing_versions + [new_version]
+        
+        # 최대 10개 버전만 유지
+        if len(updated_versions) > 10:
+            updated_versions = updated_versions[-10:]
+        
+        # 업데이트된 슬라이드 콘텐츠 준비
+        updated_content = modified_content.model_dump()
+        updated_content["current_version_id"] = new_version["version_id"]
+        updated_content["updated_at"] = current_time.isoformat()
+        
         updated_slide = {
             "order": slide_order,
-            "content": modified_content.model_dump(),
+            "content": updated_content,
             "plan": modified_slide_plan,
+            "versions": updated_versions,
         }
 
         # 덱의 슬라이드 리스트 업데이트
