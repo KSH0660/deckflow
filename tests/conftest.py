@@ -1,5 +1,12 @@
 """Global pytest configuration and fixtures."""
 
+# Ensure tests never write to the real SQLite DB
+# This must be set before any app.* imports so the app picks it up.
+import os
+
+os.environ.setdefault("DECKFLOW_REPO", "memory")
+os.environ.setdefault("DECKFLOW_SQLITE_PATH", "test-decks.db")
+
 import asyncio
 from unittest.mock import AsyncMock
 from uuid import uuid4
