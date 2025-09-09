@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
+interface SlideVersion {
+  version_id: string;
+  content: string;
+  timestamp: string;
+  is_current: boolean;
+  created_by: string;
+}
+
 interface Slide {
   order: number;
   plan: {
@@ -14,7 +22,9 @@ interface Slide {
   };
   content: {
     html_content: string;
+    current_version_id?: string;
   };
+  versions?: SlideVersion[];
 }
 
 interface DeckData {
@@ -48,12 +58,12 @@ export default function DeckPreview() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModifyModalOpen, setIsModifyModalOpen] = useState(false);
   const [modificationPrompt, setModificationPrompt] = useState('');
-  const [isModifying, setIsModifying] = useState(false);
-  const [deckStatus, setDeckStatus] = useState<DeckStatus | null>(null);
   const [modifyingSlides, setModifyingSlides] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [slideVersions, setSlideVersions] = useState<SlideVersion[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
 
   useEffect(() => {
     if (deckId) {
@@ -96,7 +106,6 @@ export default function DeckPreview() {
       const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}`);
       if (response.ok) {
         const status = await response.json();
-        setDeckStatus(status);
         return status;
       }
     } catch (error) {
@@ -140,13 +149,21 @@ export default function DeckPreview() {
 
   const nextSlide = () => {
     if (deckData && currentSlide < deckData.slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
+      const newSlide = currentSlide + 1;
+      setCurrentSlide(newSlide);
+      if (showVersionHistory) {
+        fetchSlideVersions(newSlide + 1);
+      }
     }
   };
 
   const prevSlide = () => {
     if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
+      const newSlide = currentSlide - 1;
+      setCurrentSlide(newSlide);
+      if (showVersionHistory) {
+        fetchSlideVersions(newSlide + 1);
+      }
     }
   };
 
@@ -184,6 +201,51 @@ export default function DeckPreview() {
     setIsModifying(false);
   };
 
+  const fetchSlideVersions = async (slideOrder: number) => {
+    setLoadingVersions(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${slideOrder}/versions`);
+      if (response.ok) {
+        const data = await response.json();
+        setSlideVersions(data.versions || []);
+      } else {
+        console.error('Failed to fetch slide versions');
+        setSlideVersions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching slide versions:', error);
+      setSlideVersions([]);
+    }
+    setLoadingVersions(false);
+  };
+
+  const revertToVersion = async (versionId: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/decks/${deckId}/slides/${currentSlide + 1}/revert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          version_id: versionId,
+        }),
+      });
+
+      if (response.ok) {
+        alert('버전이 복원되었습니다!');
+        // Refresh deck data to show the reverted content
+        await fetchDeckData();
+        // Refresh version history
+        await fetchSlideVersions(currentSlide + 1);
+      } else {
+        alert('버전 복원에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error reverting to version:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    }
+  };
+
   const handleSaveSlide = async () => {
     setIsSaving(true);
     try {
@@ -193,8 +255,8 @@ export default function DeckPreview() {
 
       if (iframe && iframe.contentDocument) {
         // Apply any TinyMCE changes first
-        if ((iframe.contentWindow as any)?.tinymce?.editors) {
-          const editors = (iframe.contentWindow as any).tinymce.editors;
+        if ((iframe.contentWindow as typeof window & { tinymce?: { editors: Array<{ undoManager?: { add: () => void } }> } })?.tinymce?.editors) {
+          const editors = (iframe.contentWindow as typeof window & { tinymce: { editors: Array<{ undoManager?: { add: () => void } }> } }).tinymce.editors;
           for (let i = 0; i < editors.length; i++) {
             const ed = editors[i];
             if (ed && ed.undoManager && ed.undoManager.add) {
@@ -218,6 +280,10 @@ export default function DeckPreview() {
 
       if (response.ok) {
         alert('슬라이드가 저장되었습니다!');
+        // Refresh version history after saving
+        if (showVersionHistory) {
+          await fetchSlideVersions(currentSlide + 1);
+        }
       } else {
         throw new Error('서버 저장 실패');
       }
@@ -302,6 +368,17 @@ export default function DeckPreview() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowVersionHistory(!showVersionHistory);
+                if (!showVersionHistory) {
+                  fetchSlideVersions(currentSlide + 1);
+                }
+              }}
+              className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              버전 기록
+            </button>
             <button
               onClick={handleSaveSlide}
               disabled={isSaving}
@@ -402,29 +479,93 @@ export default function DeckPreview() {
             </button>
           </div>
 
-          {/* Slide Thumbnails */}
+          {/* Version History or Slide Thumbnails */}
           <div className="mt-6">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">슬라이드 목록</h4>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {deckData.slides.map((slide, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-full p-3 text-left rounded-lg border transition-colors ${
-                    index === currentSlide
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="text-sm font-medium text-gray-900 truncate">
-                    {slide.plan?.slide_title || `슬라이드 ${index + 1}`}
+            {showVersionHistory ? (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-gray-700">버전 기록</h4>
+                  <button
+                    onClick={() => setShowVersionHistory(false)}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    닫기
+                  </button>
+                </div>
+                {loadingVersions ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto"></div>
+                    <p className="text-sm text-gray-500 mt-2">버전 기록을 불러오는 중...</p>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    슬라이드 {index + 1}
+                ) : slideVersions.length > 0 ? (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {slideVersions.map((version, index) => (
+                      <div
+                        key={version.version_id}
+                        className={`p-3 rounded-lg border ${
+                          version.is_current
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-xs font-medium text-gray-900">
+                            {version.is_current ? '현재 버전' : `버전 ${slideVersions.length - index}`}
+                          </div>
+                          {!version.is_current && (
+                            <button
+                              onClick={() => revertToVersion(version.version_id)}
+                              className="text-xs px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                            >
+                              복원
+                            </button>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">
+                          {new Date(version.timestamp).toLocaleString('ko-KR')}
+                        </div>
+                        <div className="text-xs text-gray-600 max-h-16 overflow-hidden">
+                          {version.content.slice(0, 100)}...
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </button>
-              ))}
-            </div>
+                ) : (
+                  <div className="text-center py-4 text-sm text-gray-500">
+                    아직 저장된 버전이 없습니다.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">슬라이드 목록</h4>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {deckData.slides.map((slide, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCurrentSlide(index);
+                        if (showVersionHistory) {
+                          fetchSlideVersions(index + 1);
+                        }
+                      }}
+                      className={`w-full p-3 text-left rounded-lg border transition-colors ${
+                        index === currentSlide
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {slide.plan?.slide_title || `슬라이드 ${index + 1}`}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        슬라이드 {index + 1}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
