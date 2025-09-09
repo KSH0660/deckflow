@@ -231,6 +231,7 @@ class TestRenderPrompt:
             "color_preference": "professional_blue",
             "slide_json": '{"title": "Test"}',
             "modification_context": "",
+            "editing_context": "",
         }
 
         formatted = RENDER_PROMPT.format(**test_vars)
