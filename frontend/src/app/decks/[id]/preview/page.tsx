@@ -59,6 +59,7 @@ export default function DeckPreview() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modificationPrompt, setModificationPrompt] = useState('');
+  const [isModifying, setIsModifying] = useState(false);
   const [modifyingSlides, setModifyingSlides] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
