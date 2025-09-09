@@ -511,7 +511,7 @@ export default function DeckPreview() {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-xs font-medium text-gray-900">
-                            {version.is_current ? '현재 버전' : `버전 ${slideVersions.length - index}`}
+                            {version.is_current ? '현재 버전' : `버전 ${index + 1}`}
                           </div>
                           {!version.is_current && (
                             <button
