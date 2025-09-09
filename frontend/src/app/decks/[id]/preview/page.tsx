@@ -380,16 +380,22 @@ export default function DeckPreview() {
             >
               버전 기록
             </button>
-            <button
-              onClick={handleSaveSlide}
-              disabled={isSaving}
-              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition-colors flex items-center gap-2"
-            >
-              {isSaving && (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              )}
-              {isSaving ? '저장 중...' : '저장'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveSlide}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition-colors flex items-center gap-2"
+                title="현재 편집 내용을 새 버전으로 저장 (영구 저장)"
+              >
+                {isSaving && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+                {isSaving ? '저장 중...' : '저장'}
+              </button>
+              <div className="text-xs text-gray-500 hidden lg:block">
+                편집: Ctrl+Z (실행취소) | Ctrl+Shift+Z (다시실행)
+              </div>
+            </div>
             <button className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
               내보내기
             </button>
@@ -485,7 +491,10 @@ export default function DeckPreview() {
             {showVersionHistory ? (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-gray-700">버전 기록</h4>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700">버전 기록</h4>
+                    <p className="text-xs text-gray-500 mt-1">저장 버튼으로 생성된 영구 버전</p>
+                  </div>
                   <button
                     onClick={() => setShowVersionHistory(false)}
                     className="text-sm text-gray-500 hover:text-gray-700"
@@ -536,6 +545,13 @@ export default function DeckPreview() {
                     아직 저장된 버전이 없습니다.
                   </div>
                 )}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <h5 className="text-xs font-medium text-blue-900 mb-2">💡 버전 관리 안내</h5>
+                  <div className="text-xs text-blue-700 space-y-1">
+                    <div><strong>실시간 편집:</strong> Ctrl+Z/Ctrl+Shift+Z로 실행취소/다시실행</div>
+                    <div><strong>영구 저장:</strong> 저장 버튼으로 새 버전 생성</div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div>

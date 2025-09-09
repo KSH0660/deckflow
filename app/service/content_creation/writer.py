@@ -40,9 +40,54 @@ def _inject_tinymce_script(html: str) -> str:
       inline: true,
       menubar: false,
       plugins: 'lists link quickbars',
-      toolbar: 'bold italic underline | fontsize | forecolor | alignleft aligncenter alignright | bullist numlist | link removeformat',
+      toolbar: 'undo redo | bold italic underline | fontsize | forecolor | alignleft aligncenter alignright | bullist numlist | link removeformat',
       quickbars_selection_toolbar: 'bold italic underline | h2 h3 | forecolor',
       forced_root_block: false,
+      
+      // Enhanced undo/redo configuration
+      custom_undo_redo_levels: 50,  // Keep 50 undo levels (micro versions)
+      
+      // Keyboard shortcuts (TinyMCE handles these automatically)
+      // Ctrl+Z = undo, Ctrl+Y or Ctrl+Shift+Z = redo
+      
+      // Auto-save undo levels more frequently for better granularity
+      setup: function(editor) {
+        let saveTimer;
+        
+        // Add undo level after each significant change
+        editor.on('input', function() {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(function() {
+            if (editor.undoManager && editor.undoManager.add) {
+              editor.undoManager.add();
+            }
+          }, 1000); // Save undo level every 1 second of inactivity
+        });
+        
+        // Add undo level when focus is lost (switching between elements)
+        editor.on('blur', function() {
+          if (editor.undoManager && editor.undoManager.add) {
+            editor.undoManager.add();
+          }
+        });
+        
+        // Global keyboard shortcuts for undo/redo even outside editor focus
+        document.addEventListener('keydown', function(e) {
+          // Only handle if we're in the slide editing context
+          if (document.querySelector('[data-editable]')) {
+            if (e.ctrlKey || e.metaKey) { // Ctrl on Windows/Linux, Cmd on Mac
+              if (e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                editor.undoManager.undo();
+              } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+                e.preventDefault();
+                editor.undoManager.redo();
+              }
+            }
+          }
+        });
+      },
+      
       // Tailwind/기존 클래스/속성 보존
       valid_elements: '*[*]',
       valid_styles: { '*': 'color,font-size,text-decoration' }
