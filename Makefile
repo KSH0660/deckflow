@@ -27,25 +27,25 @@ test:
 
 # curl helpers
 deck-list:
-	curl -sS "$(BASE)/api/v1/decks?limit=$(LIMIT)" | python -m json.tool
+	curl -sS "$(BASE)/api/v1/decks?limit=$(LIMIT)" | uv run python -m json.tool
 
 # create a new deck (background job)
 deck-create:
 	curl -sS -X POST "$(BASE)/api/v1/decks" \
 	  -H 'Content-Type: application/json' \
-	  -d '{"prompt": "$(PROMPT)"}' | python -m json.tool
+	  -d '{"prompt": "$(PROMPT)"}' | uv run python -m json.tool
 
 # create a new deck and print only deck_id
 deck-create-id:
 	@curl -sS -X POST "$(BASE)/api/v1/decks" \
 	  -H 'Content-Type: application/json' \
 	  -d '{"prompt": "$(PROMPT)"}' \
-	  | python -c 'import sys,json; print(json.load(sys.stdin)["deck_id"])'
+	  | uv run python -c 'import sys,json; print(json.load(sys.stdin)["deck_id"])'
 
 # get deck status (requires DECK=<deck_id>)
 deck-status:
 	@[ -n "$(DECK)" ] || (echo "Usage: make deck-status DECK=<deck_id> [PORT=$(PORT)]"; exit 1)
-	curl -sS "$(BASE)/api/v1/decks/$(DECK)" | python -m json.tool
+	curl -sS "$(BASE)/api/v1/decks/$(DECK)" | uv run python -m json.tool
 
 # watch deck status until completion
 deck-status-watch:
@@ -53,8 +53,8 @@ deck-status-watch:
 	@echo "Watching deck $(DECK) on $(BASE)..."
 	@while true; do \
 	  RESP=$$(curl -sS "$(BASE)/api/v1/decks/$(DECK)"); \
-	  echo $$RESP | python -m json.tool; \
-	  STATUS=$$(echo $$RESP | python -c 'import sys,json; print(json.load(sys.stdin).get("status",""))'); \
+	  echo $$RESP | uv run python -m json.tool; \
+	  STATUS=$$(echo $$RESP | uv run python -c 'import sys,json; print(json.load(sys.stdin).get("status",""))'); \
 	  [ "$$STATUS" = "completed" ] && break; \
 	  sleep 2; \
 	done
@@ -62,4 +62,4 @@ deck-status-watch:
 # cancel deck (requires DECK=<deck_id>)
 deck-cancel:
 	@[ -n "$(DECK)" ] || (echo "Usage: make deck-cancel DECK=<deck_id> [PORT=$(PORT)]"; exit 1)
-	curl -sS -X POST "$(BASE)/api/v1/decks/$(DECK)/cancel" | python -m json.tool
+	curl -sS -X POST "$(BASE)/api/v1/decks/$(DECK)/cancel" | uv run python -m json.tool
