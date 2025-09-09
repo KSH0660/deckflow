@@ -6,23 +6,43 @@ from .prompts import AVAILABLE_PROMPTS
 logger = get_logger(__name__)
 
 
-async def plan_deck(
-    prompt: str, llm, persona: str = "EXPERT_DATA_STRATEGIST"
-) -> DeckPlan:
+async def plan_deck(prompt: str, llm, config=None) -> DeckPlan:
     """덱 플랜 생성"""
     if not prompt.strip():
         raise ValueError("발표 요청은 필수입니다")
+
+    # Import here to avoid circular imports
+    from app.models.config import DeckGenerationConfig
+
+    # Use provided config or create default
+    if config is None:
+        config = DeckGenerationConfig()
+
+    persona = config.persona
 
     if persona not in AVAILABLE_PROMPTS:
         raise ValueError(
             f"Unknown persona: {persona}. Available personas are: {list(AVAILABLE_PROMPTS.keys())}"
         )
 
-    logger.info("덱 플랜 생성 시작", prompt=prompt[:100], persona=persona)
+    logger.info(
+        "덱 플랜 생성 시작",
+        prompt=prompt[:100],
+        persona=persona,
+        max_slides=config.max_slides,
+    )
 
-    # Select the prompt based on the persona
-    planning_prompt = AVAILABLE_PROMPTS[persona]
-    enhanced_prompt = planning_prompt.format(prompt=prompt)
+    # Generate prompt using the new template system with full config
+    from .prompts import generate_persona_prompt
+
+    try:
+        enhanced_prompt = generate_persona_prompt(persona, config, prompt)
+        logger.debug("Generated prompt", length=len(enhanced_prompt))
+    except Exception as e:
+        logger.error("Failed to generate prompt", error=str(e), persona=persona)
+        # Fallback to old method
+        planning_prompt = AVAILABLE_PROMPTS[persona]
+        enhanced_prompt = planning_prompt.format(prompt=prompt)
 
     logger.info("프롬프트 준비 완료", prompt_length=len(enhanced_prompt))
 

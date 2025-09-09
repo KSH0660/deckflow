@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import FileUpload, { FileInfo } from '@/components/FileUpload';
+import { PERSONAS, DEFAULT_PERSONA, getPersonaList } from '@/constants/personas';
 
 export default function Home() {
   const router = useRouter();
@@ -10,6 +11,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState(DEFAULT_PERSONA);
+  const [showPersonaSelector, setShowPersonaSelector] = useState(false);
 
   const submitPrompt = async () => {
     if (!prompt.trim()) return;
@@ -18,7 +21,11 @@ export default function Home() {
       const response = await fetch('http://localhost:8000/api/decks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, files }),
+        body: JSON.stringify({
+          prompt,
+          files,
+          style: { persona: selectedPersona }
+        }),
       });
       if (response.ok) {
         await response.json();
@@ -94,15 +101,51 @@ export default function Home() {
                     </span>
                   )}
                 </button>
-                <button
-                  type="button"
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="검색"
-                >
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowPersonaSelector(!showPersonaSelector)}
+                    className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
+                      showPersonaSelector
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'hover:bg-gray-100 text-gray-500'
+                    }`}
+                    title="페르소나 선택"
+                  >
+                    <span className="text-sm">{PERSONAS[selectedPersona].icon}</span>
+                    <span className="text-xs font-medium">{PERSONAS[selectedPersona].name}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showPersonaSelector && (
+                    <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      <div className="p-3 border-b border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-700">페르소나 선택</h3>
+                      </div>
+                      {getPersonaList().map((persona) => (
+                        <button
+                          key={persona.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPersona(persona.id);
+                            setShowPersonaSelector(false);
+                          }}
+                          className={`w-full flex items-start gap-3 p-3 text-left hover:bg-gray-50 transition-colors ${
+                            selectedPersona === persona.id ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <span className="text-lg">{persona.icon}</span>
+                          <div>
+                            <div className="text-sm font-medium text-gray-800">{persona.name}</div>
+                            <div className="text-xs text-gray-500">{persona.description}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-3">

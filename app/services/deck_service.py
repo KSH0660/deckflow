@@ -8,6 +8,7 @@ It transforms between request/response models and database models.
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from app.models.config import DeckGenerationConfig
 from app.models.database.deck import DeckDB
 from app.models.requests.deck import (
     CreateDeckRequest,
@@ -39,6 +40,9 @@ class DeckService:
         import asyncio
 
         deck_id = uuid4()
+
+        # Create generation config from request
+        generation_config = DeckGenerationConfig.from_request_style(request.style)
 
         # Create initial deck record
         initial_deck = DeckDB(
@@ -82,6 +86,7 @@ class DeckService:
                     progress_callback=progress_cb,
                     deck_id=deck_id,
                     files=request.files,
+                    config=generation_config,
                 )
             )
 
@@ -303,7 +308,14 @@ class DeckService:
         }
 
     async def _generate_deck(
-        self, prompt: str, llm, repo, progress_callback=None, deck_id=None, files=None
+        self,
+        prompt: str,
+        llm,
+        repo,
+        progress_callback=None,
+        deck_id=None,
+        files=None,
+        config: DeckGenerationConfig = None,
     ) -> str:
         """Private method: Main orchestrator for deck generation"""
         import asyncio
@@ -320,6 +332,10 @@ class DeckService:
         from app.services.deck_planning import plan_deck
 
         logger = get_logger(__name__)
+
+        # Use provided config or create default
+        if config is None:
+            config = DeckGenerationConfig()
 
         # Initialize concurrency control
         deck_semaphore = asyncio.Semaphore(max(1, settings.max_decks))
@@ -352,7 +368,7 @@ class DeckService:
 
                 # Step 1: Plan deck
                 await update_progress("Planning presentation structure...", 30)
-                deck_plan = await plan_deck(enhanced_prompt, llm)
+                deck_plan = await plan_deck(enhanced_prompt, llm, config)
 
                 # Step 2: Initialize deck data
                 await update_progress("Initializing deck data...", 40)
