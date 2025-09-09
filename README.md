@@ -33,7 +33,7 @@
 ## 덱 생성 요청 및 폴링
 
 1) 덱 생성 시작 (백그라운드)
-- 엔드포인트: `POST /api/v1/decks`
+- 엔드포인트: `POST /api/decks`
 - 바디 예시: `{ "prompt": "AI 제품 로드맵 제안 발표" }`
 
 예시 (curl)
@@ -41,7 +41,7 @@
 curl -sS -X POST \
   -H 'Content-Type: application/json' \
   -d '{"prompt": "AI 제품 로드맵 제안 발표"}' \
-  http://localhost:8000/api/v1/decks
+  http://localhost:8000/api/decks
 ```
 응답 예시
 ```
@@ -49,21 +49,21 @@ curl -sS -X POST \
 ```
 
 2) 진행 상태 폴링
-- 엔드포인트: `GET /api/v1/decks/{deck_id}`
+- 엔드포인트: `GET /api/decks/{deck_id}`
 - 응답: `status`, `progress(%)`, `step`, `slide_count`, `created_at` 등
 
 3) 목록 조회
-- 엔드포인트: `GET /api/v1/decks?limit=10`
+- 엔드포인트: `GET /api/decks?limit=10`
 
 4) 덱 전체 데이터 조회 (프론트 직접 렌더/편집용)
-- 엔드포인트: `GET /api/v1/decks/{deck_id}/data`
+- 엔드포인트: `GET /api/decks/{deck_id}/data`
 - 설명: 저장된 덱의 전체 JSON을 반환합니다. 각 슬라이드의 계획(`plan`)과 렌더된 HTML(`content.html_content`)을 포함합니다.
 
 5) 생성 취소
-- 엔드포인트: `POST /api/v1/decks/{deck_id}/cancel`
+- 엔드포인트: `POST /api/decks/{deck_id}/cancel`
 
 6) 결과 내보내기
-- 엔드포인트: `GET /api/v1/decks/{deck_id}/export?format=html|pdf&layout=widescreen|a4|a4-landscape&embed=inline|iframe&inline=bool`
+- 엔드포인트: `GET /api/decks/{deck_id}/export?format=html|pdf&layout=widescreen|a4|a4-landscape&embed=inline|iframe&inline=bool`
 
 ## Make 명령어
 
