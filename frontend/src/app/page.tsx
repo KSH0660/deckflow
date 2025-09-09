@@ -11,29 +11,28 @@ export default function Home() {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitPrompt = async () => {
     if (!prompt.trim()) return;
-
     setIsLoading(true);
     try {
       const response = await fetch('http://localhost:8000/api/decks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, files }),
       });
-
       if (response.ok) {
-        const data = await response.json();
-        // Navigate to decks page to show creation started
+        await response.json();
         router.push('/decks');
       }
     } catch (error) {
       console.error('Error creating deck:', error);
     }
     setIsLoading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitPrompt();
   };
 
   return (
@@ -55,10 +54,23 @@ export default function Home() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!isLoading && prompt.trim()) {
+                    void submitPrompt();
+                  }
+                }
+              }}
               placeholder="오늘 어떤 프롬프트 드릴까요?"
               className="w-full h-32 p-6 text-lg resize-none border-0 rounded-2xl focus:outline-none focus:ring-0 placeholder-gray-400"
               disabled={isLoading}
             />
+
+            {/* Hint */}
+            <div className="px-6 pt-2 pb-1 text-xs text-gray-400">
+              Enter 제출 · Shift+Enter 줄바꿈
+            </div>
 
             {/* Toolbar */}
             <div className="flex items-center justify-between p-4 border-t border-gray-100">

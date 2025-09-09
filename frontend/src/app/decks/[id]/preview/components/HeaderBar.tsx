@@ -9,6 +9,8 @@ interface HeaderBarProps {
   isCurrentSlideModifying: boolean;
   showVersionHistory: boolean;
   onToggleVersionHistory: () => void;
+  showHtml: boolean;
+  onToggleHtml: () => void;
   onSave: () => void;
   isSaving: boolean;
   onBack: () => void;
@@ -21,6 +23,8 @@ export default function HeaderBar({
   isCurrentSlideModifying,
   showVersionHistory,
   onToggleVersionHistory,
+  showHtml,
+  onToggleHtml,
   onSave,
   isSaving,
   onBack,
@@ -48,6 +52,15 @@ export default function HeaderBar({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={onToggleHtml}
+            className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+              showHtml ? 'bg-gray-800 text-white hover:bg-black' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+            }`}
+            title="슬라이드 HTML 코드 보기 토글"
+          >
+            {showHtml ? 'HTML 숨기기' : 'HTML 보기'}
+          </button>
           <button
             onClick={onToggleVersionHistory}
             className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"

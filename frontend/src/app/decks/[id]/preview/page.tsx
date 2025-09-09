@@ -1,16 +1,19 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import HeaderBar from './components/HeaderBar';
 import SlideViewer from './components/SlideViewer';
 import SidePanel from './components/SidePanel';
 import BottomModifyBar from './components/BottomModifyBar';
+import ThumbnailStrip from './components/ThumbnailStrip';
 import { useDeckPreview } from './hooks/useDeckPreview';
 
 export default function DeckPreview() {
   const params = useParams();
   const router = useRouter();
   const deckId = params.id as string;
+  const [showHtml, setShowHtml] = useState(false);
 
   const {
     deckData,
@@ -91,13 +94,22 @@ export default function DeckPreview() {
           setShowVersionHistory(!showVersionHistory);
           if (!showVersionHistory) fetchSlideVersions(currentSlide + 1);
         }}
+        showHtml={showHtml}
+        onToggleHtml={() => setShowHtml((v) => !v)}
         onSave={handleSaveSlide}
         isSaving={isSaving}
         onBack={() => router.back()}
       />
 
+      {/* Top thumbnails (gallery style) */}
+      <ThumbnailStrip deckData={deckData} currentSlide={currentSlide} setCurrentSlide={setCurrentSlide} />
+
       <div className="flex-1 flex">
-        <SlideViewer html={currentSlideData.content?.html_content} title={`슬라이드 ${currentSlide + 1}`} />
+        <SlideViewer
+          html={currentSlideData.content?.html_content}
+          title={`슬라이드 ${currentSlide + 1}`}
+          showCode={showHtml}
+        />
 
         <SidePanel
           deckData={deckData}
