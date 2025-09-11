@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import FileUpload, { FileInfo } from '@/components/FileUpload';
-import { PERSONAS, DEFAULT_PERSONA, getPersonaList } from '@/constants/personas';
+import { 
+  LAYOUTS, COLORS, PERSONAS,
+  DEFAULT_LAYOUT, DEFAULT_COLOR, DEFAULT_PERSONA,
+  getLayoutList, getColorList, getPersonaList
+} from '@/constants/preferences';
 
 export default function Home() {
   const router = useRouter();
@@ -11,7 +15,15 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  
+  // Preferences state
+  const [selectedLayout, setSelectedLayout] = useState(DEFAULT_LAYOUT);
+  const [selectedColor, setSelectedColor] = useState(DEFAULT_COLOR);
   const [selectedPersona, setSelectedPersona] = useState(DEFAULT_PERSONA);
+  
+  // UI state for selectors
+  const [showLayoutSelector, setShowLayoutSelector] = useState(false);
+  const [showColorSelector, setShowColorSelector] = useState(false);
   const [showPersonaSelector, setShowPersonaSelector] = useState(false);
 
   const submitPrompt = async () => {
@@ -24,7 +36,11 @@ export default function Home() {
         body: JSON.stringify({
           prompt,
           files,
-          style: { persona: selectedPersona }
+          style: { 
+            layout_preference: selectedLayout,
+            color_preference: selectedColor,
+            persona_preference: selectedPersona
+          }
         }),
       });
       if (response.ok) {
@@ -82,6 +98,7 @@ export default function Home() {
             {/* Toolbar */}
             <div className="flex items-center justify-between p-4 border-t border-gray-100">
               <div className="flex items-center gap-2">
+                {/* File Upload Button */}
                 <button
                   type="button"
                   onClick={() => setShowFileUpload(!showFileUpload)}
@@ -101,6 +118,108 @@ export default function Home() {
                     </span>
                   )}
                 </button>
+
+                {/* Layout Selector */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowLayoutSelector(!showLayoutSelector)}
+                    className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
+                      showLayoutSelector
+                        ? 'bg-purple-100 text-purple-600'
+                        : 'hover:bg-gray-100 text-gray-500'
+                    }`}
+                    title="레이아웃 선택"
+                  >
+                    <span className="text-sm">{LAYOUTS[selectedLayout].icon}</span>
+                    <span className="text-xs font-medium">{LAYOUTS[selectedLayout].name}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showLayoutSelector && (
+                    <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      <div className="p-3 border-b border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-700">레이아웃 선택</h3>
+                      </div>
+                      {getLayoutList().map((layout) => (
+                        <button
+                          key={layout.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedLayout(layout.id);
+                            setShowLayoutSelector(false);
+                          }}
+                          className={`w-full flex items-start gap-3 p-3 text-left hover:bg-gray-50 transition-colors ${
+                            selectedLayout === layout.id ? 'bg-purple-50' : ''
+                          }`}
+                        >
+                          <span className="text-lg">{layout.icon}</span>
+                          <div>
+                            <div className="text-sm font-medium text-gray-800">{layout.name}</div>
+                            <div className="text-xs text-gray-500">{layout.description}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Color Selector */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowColorSelector(!showColorSelector)}
+                    className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
+                      showColorSelector
+                        ? 'bg-green-100 text-green-600'
+                        : 'hover:bg-gray-100 text-gray-500'
+                    }`}
+                    title="색상 조합 선택"
+                  >
+                    <div 
+                      className="w-4 h-4 rounded-full border border-gray-300"
+                      style={{ backgroundColor: COLORS[selectedColor].preview }}
+                    />
+                    <span className="text-xs font-medium">{COLORS[selectedColor].name}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showColorSelector && (
+                    <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      <div className="p-3 border-b border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-700">색상 조합 선택</h3>
+                      </div>
+                      {getColorList().map((color) => (
+                        <button
+                          key={color.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedColor(color.id);
+                            setShowColorSelector(false);
+                          }}
+                          className={`w-full flex items-start gap-3 p-3 text-left hover:bg-gray-50 transition-colors ${
+                            selectedColor === color.id ? 'bg-green-50' : ''
+                          }`}
+                        >
+                          <div 
+                            className="w-6 h-6 rounded-full border border-gray-300 mt-0.5"
+                            style={{ backgroundColor: color.preview }}
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-800">{color.name}</div>
+                            <div className="text-xs text-gray-500">{color.description}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Persona Selector */}
                 <div className="relative">
                   <button
                     type="button"
@@ -110,7 +229,7 @@ export default function Home() {
                         ? 'bg-blue-100 text-blue-600'
                         : 'hover:bg-gray-100 text-gray-500'
                     }`}
-                    title="페르소나 선택"
+                    title="스페이싱 스타일 선택"
                   >
                     <span className="text-sm">{PERSONAS[selectedPersona].icon}</span>
                     <span className="text-xs font-medium">{PERSONAS[selectedPersona].name}</span>
@@ -122,7 +241,7 @@ export default function Home() {
                   {showPersonaSelector && (
                     <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                       <div className="p-3 border-b border-gray-100">
-                        <h3 className="text-sm font-semibold text-gray-700">페르소나 선택</h3>
+                        <h3 className="text-sm font-semibold text-gray-700">스페이싱 스타일 선택</h3>
                       </div>
                       {getPersonaList().map((persona) => (
                         <button

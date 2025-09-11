@@ -1,10 +1,87 @@
 import json
+import os
+from pathlib import Path
 
 from app.logging import get_logger
 
 from .models import SlideContent
 
 logger = get_logger(__name__)
+
+
+def _load_css_file(file_path: str) -> str:
+    """Load CSS content from file"""
+    try:
+        css_path = Path(__file__).parent.parent.parent / "assets" / "css" / file_path
+        if css_path.exists():
+            return css_path.read_text(encoding='utf-8')
+        else:
+            logger.warning(f"CSS file not found: {css_path}")
+            return ""
+    except Exception as e:
+        logger.error(f"Error loading CSS file {file_path}: {e}")
+        return ""
+
+
+def _get_persona_prefix(persona: str) -> str:
+    """Get CSS prefix for persona"""
+    persona_mapping = {
+        "compact": "compact",
+        "spacious": "spacious", 
+        "balanced": "balanced"
+    }
+    return persona_mapping.get(persona, "balanced")
+
+
+def _build_html_head(layout_preference: str, color_preference: str, persona_preference: str) -> str:
+    """Build HTML head section with predefined CSS files"""
+    # Load CSS files
+    layout_css = _load_css_file(f"layouts/{layout_preference}.css")
+    color_css = _load_css_file(f"colors/{color_preference}.css")
+    persona_css = _load_css_file(f"personas/{persona_preference}.css")
+    
+    head_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
+        .slide-container {{ width: 100vw; height: 100vh; aspect-ratio: 16/9; }}
+        
+        /* Layout CSS */
+        {layout_css}
+        
+        /* Color CSS */
+        {color_css}
+        
+        /* Persona CSS */
+        {persona_css}
+    </style>
+</head>"""
+    
+    return head_content
+
+
+def _combine_html_parts(head_content: str, body_content: str) -> str:
+    """Combine head and body content into complete HTML"""
+    # Extract body content (remove <body> and </body> tags if present)
+    if body_content.strip().startswith('<body'):
+        body_start = body_content.find('>') + 1
+        body_end = body_content.rfind('</body>')
+        if body_end == -1:
+            body_end = len(body_content)
+        body_inner = body_content[body_start:body_end].strip()
+    else:
+        body_inner = body_content.strip()
+    
+    return f"""{head_content}
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    {body_inner}
+</body>
+</html>"""
 
 
 def _inject_tinymce_script(html: str) -> str:
@@ -160,49 +237,231 @@ def _inject_tinymce_script(html: str) -> str:
         return html + tinymce_script
 
 
-RENDER_PROMPT = """CRITICAL: STATIC PRINT SLIDE - CONTENT MUST FIT ON ONE SCREEN
+BODY_RENDER_PROMPT = """CRITICAL: CREATE HIGH-QUALITY PRESENTATION SLIDE USING PREDEFINED CSS CLASSES
 
-You are an HTML layout assistant. Create a single HTML slide using Tailwind CSS for {slide_json}.
+You are a professional presentation designer. Create ONLY the body content for a single slide using predefined CSS classes to achieve modern, professional slide design.
 
-MANDATORY RULES - NEVER BREAK THESE:
-1. CONTENT LENGTH: Maximum 4 bullet points OR 3 short paragraphs - IF MORE CONTENT EXISTS, SUMMARIZE OR CUT IT
-2. NO VERTICAL OVERFLOW: Content must fit in 100vh - use h-screen, max-h-screen, overflow-hidden
-3. NO LARGE SPACING: Only p-1 to p-6, m-1 to m-6, gap-1 to gap-6 - NEVER p-8+ or m-8+
-4. NO FIXED HEIGHTS: Never use h-16, h-20, h-24+ etc - only h-screen, h-full, max-h-screen
-5. TEXT SIZE LIMIT: Maximum text-2xl - NEVER text-3xl or larger
-6. NO JAVASCRIPT: Only Tailwind CDN script allowed - NO onclick, addEventListener, custom scripts (TinyMCE editor scripts are allowed when editing mode is enabled)
-7. NO ANIMATIONS: NO @keyframes, animation:, transition:, transform: - completely static
-8. 16:9 ASPECT RATIO: Use aspect-ratio: 16/9 in CSS
-9. IF CONTENT TOO LONG: Cut content, don't try to fit everything - slide must be readable
+MANDATORY RULES:
+1. OUTPUT ONLY BODY CONTENT: Start with <body> and end with </body> - NO <!DOCTYPE>, <html>, or <head>
+2. USE PREDEFINED CSS CLASSES: Focus on the enhanced block classes and layout-specific classes
+3. CREATE PROFESSIONAL DESIGN: Use proper hierarchy, spacing, and visual elements
+4. CONTENT OPTIMIZATION: Maximum 4 key points OR 3 paragraphs, concise and impactful
+5. LAYOUT VARIETY: Choose from multiple layout patterns based on content type
 
-Topic: {topic} | Audience: {audience} | Theme: {theme} | Colors: {color_preference}
+ENHANCED CSS CLASSES AVAILABLE:
+
+Core Structure:
+- block-header, block-title, block-subtitle, block-content
+- block-text, block-text-lg, block-text-emphasis
+- block-list, block-list-item, block-list-bullet
+- block-section, block-divider, block-card
+- block-heading-xl, block-heading-lg, block-heading-md
+
+Visual Enhancement:
+- block-highlight, block-callout, block-accent
+- block-stats, block-stats-number, block-stats-label
+- {layout_preference}-hero, {layout_preference}-two-column
+- {layout_preference}-icon-list, {layout_preference}-feature-grid
+
+Layout Patterns:
+- {layout_preference}-spacing, {layout_preference}-text
+- {persona_prefix}-padding, {persona_prefix}-section
+- {persona_prefix}-title, {persona_prefix}-body
+- block-grid, block-grid-2, block-grid-3
+
+Color & Theme:
+- text-primary, text-secondary, bg-primary
+- color-primary, color-secondary
+
+SLIDE CONTENT CONTEXT:
+Topic: {topic}
+Audience: {audience} 
+Theme: {theme}
+Layout: {layout_preference}
+Persona: {persona_preference}
 
 {modification_context}
 
 {editing_context}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
-        .slide-container {{ width: 100vw; height: 100vh; aspect-ratio: 16/9; }}
-    </style>
-</head>
-<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+LAYOUT PATTERN EXAMPLES:
+
+1. HERO SLIDE (for introductions/key messages):
+<body class="w-full h-screen flex items-center justify-center overflow-hidden">
     <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
-        <!-- Your slide content here -->
+        <div class="block-content {persona_prefix}-padding">
+            <div class="{layout_preference}-hero">
+                <h1 class="block-heading-xl {persona_prefix}-title">Main Title</h1>
+                <p class="block-text-lg text-secondary">Compelling subtitle or key message</p>
+            </div>
+        </div>
     </div>
 </body>
-</html>
 
-FINAL CHECK: Does content fit in one screen? If not, remove content until it does.
-You may add custom color theme preferences inside the <style> section.
-Avoid using monotonous layouts—each slide should feel distinctive and engaging.
+2. CONTENT SLIDE (for detailed information):
+<body class="w-full h-screen flex items-center justify-center overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content {persona_prefix}-padding">
+            <div class="block-header">
+                <h1 class="block-title {persona_prefix}-title text-primary">Section Title</h1>
+                <p class="block-subtitle text-secondary">Supporting subtitle</p>
+            </div>
+            <div class="block-section {persona_prefix}-section">
+                <div class="block-callout">
+                    <p class="block-text-emphasis">Key insight or important point</p>
+                </div>
+                <ul class="block-list">
+                    <li class="block-list-item {persona_prefix}-body">
+                        <div class="block-list-bullet"></div>
+                        <span>First important point</span>
+                    </li>
+                    <li class="block-list-item {persona_prefix}-body">
+                        <div class="block-list-bullet"></div>
+                        <span>Second key insight</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+3. TWO-COLUMN SLIDE (for comparisons/balanced content):
+<body class="w-full h-screen flex items-center justify-center overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content {persona_prefix}-padding">
+            <div class="block-header">
+                <h1 class="block-title {persona_prefix}-title text-primary">Comparison Title</h1>
+            </div>
+            <div class="{layout_preference}-two-column">
+                <div class="block-card">
+                    <h3 class="block-heading-md">Left Side</h3>
+                    <p class="block-text">Content for left column</p>
+                </div>
+                <div class="block-card">
+                    <h3 class="block-heading-md">Right Side</h3>
+                    <p class="block-text">Content for right column</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+4. STATS/METRICS SLIDE (for data presentation):
+<body class="w-full h-screen flex items-center justify-center overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content {persona_prefix}-padding">
+            <div class="block-header">
+                <h1 class="block-title {persona_prefix}-title text-primary">Key Metrics</h1>
+            </div>
+            <div class="block-grid block-grid-3">
+                <div class="block-stats">
+                    <div class="block-stats-number">95%</div>
+                    <div class="block-stats-label">Success Rate</div>
+                </div>
+                <div class="block-stats">
+                    <div class="block-stats-number">2.5x</div>
+                    <div class="block-stats-label">Growth</div>
+                </div>
+                <div class="block-stats">
+                    <div class="block-stats-number">500+</div>
+                    <div class="block-stats-label">Customers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+INSTRUCTIONS:
+1. Analyze the slide content and choose the most appropriate layout pattern
+2. Use the enhanced CSS classes to create visually appealing, professional slides
+3. Ensure content is concise, impactful, and well-structured
+4. Apply proper typography hierarchy and spacing
+5. Include visual elements like callouts, highlights, or stats when relevant
+
+Create a slide that looks professional and modern, not basic or naive.
 """
+
+
+def _extract_body_content(html_content: str, slide_title: str) -> str:
+    """Extract and clean body content from LLM-generated HTML"""
+    if not html_content or not html_content.strip():
+        raise ValueError("Generated HTML content is empty.")
+    
+    content = html_content.strip()
+    
+    # If LLM generated complete HTML, extract just the body inner content
+    if '<!doctype' in content.lower() or '<html' in content.lower():
+        logger.info("Complete HTML detected, extracting body content", slide_title=slide_title)
+        
+        # Find body content
+        body_start_tag = '<body'
+        body_end_tag = '</body>'
+        
+        body_start_index = content.lower().find(body_start_tag)
+        body_end_index = content.lower().find(body_end_tag)
+        
+        if body_start_index != -1 and body_end_index != -1:
+            # Find the end of the opening body tag
+            body_content_start = content.find('>', body_start_index) + 1
+            
+            # Extract just the inner body content
+            body_inner_content = content[body_content_start:body_end_index].strip()
+            
+            logger.info("Successfully extracted body inner content", 
+                       slide_title=slide_title, 
+                       original_length=len(content),
+                       extracted_length=len(body_inner_content))
+            
+            return body_inner_content
+        else:
+            logger.warning("Could not find body tags in complete HTML", slide_title=slide_title)
+    
+    # If content already looks like body content, clean it up
+    if content.startswith('<body'):
+        # Extract inner content from body tags
+        body_start = content.find('>') + 1
+        body_end = content.rfind('</body>')
+        if body_end == -1:
+            body_end = len(content)
+        return content[body_start:body_end].strip()
+    
+    # If it's just inner content, return as-is
+    return content
+
+
+def _validate_body_content(body_content: str, slide_title: str) -> str:
+    """Validate and sanitize body content to ensure it's only body HTML"""
+    if not body_content or not body_content.strip():
+        raise ValueError("Generated body content is empty.")
+    
+    # First extract the actual body content
+    inner_content = _extract_body_content(body_content, slide_title)
+    
+    # Remove any remaining forbidden elements
+    forbidden_elements = [
+        '<!doctype',
+        '<html',
+        '<head',
+        '</head>',
+        '</html>',
+        '<meta',
+        '<title',
+        '<script src="https://cdn.tailwindcss.com"'
+    ]
+    
+    cleaned_content = inner_content
+    for forbidden in forbidden_elements:
+        if forbidden in cleaned_content.lower():
+            logger.warning(
+                f"Removing forbidden element: {forbidden}",
+                slide_title=slide_title
+            )
+            # More aggressive removal
+            import re
+            pattern = re.escape(forbidden) + r'[^>]*>'
+            cleaned_content = re.sub(pattern, '', cleaned_content, flags=re.IGNORECASE)
+    
+    return cleaned_content.strip()
 
 
 def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
@@ -431,6 +690,12 @@ async def write_content(
     )
 
     try:
+        # Get preferences from deck context
+        layout_preference = deck_context.get("layout_preference", "professional")
+        color_preference = deck_context.get("color_preference", "professional_blue")
+        persona_preference = deck_context.get("persona_preference", "balanced")
+        persona_prefix = _get_persona_prefix(persona_preference)
+
         # 수정 컨텍스트 준비
         modification_context = ""
         if is_modification and modification_prompt:
@@ -456,25 +721,40 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             "topic": deck_context.get("deck_title", ""),
             "audience": deck_context.get("audience", ""),
             "theme": deck_context.get("core_message", ""),
-            "color_preference": deck_context.get("color_theme", "professional_blue"),
+            "layout_preference": layout_preference,
+            "color_preference": color_preference,
+            "persona_preference": persona_preference,
+            "persona_prefix": persona_prefix,
             "slide_json": json.dumps(slide_info, indent=2, ensure_ascii=False),
             "modification_context": modification_context,
             "editing_context": editing_context,
         }
-        formatted_prompt = RENDER_PROMPT.format(**prompt_vars)
+        formatted_prompt = BODY_RENDER_PROMPT.format(**prompt_vars)
 
         logger.debug(
             f"{mode_text} 프롬프트 준비 완료", prompt_length=len(formatted_prompt)
         )
 
         logger.info(
-            "🤖 [WRITE_CONTENT] LLM 호출 시작",
+            "🤖 [WRITE_CONTENT] LLM 호출 시작 (Body-only generation)",
             slide_title=slide_title,
             step="content_generation",
             prompt_length=len(formatted_prompt),
             is_modification=is_modification,
         )
-        content = await llm.generate_structured(formatted_prompt, schema=SlideContent)
+        
+        # Generate body content only
+        body_content_result = await llm.generate_structured(formatted_prompt, schema=SlideContent)
+        
+        # Validate and sanitize body content
+        body_content = _validate_body_content(body_content_result.html_content, slide_title)
+        
+        # Build complete HTML with predefined CSS
+        head_content = _build_html_head(layout_preference, color_preference, persona_preference)
+        complete_html = _combine_html_parts(head_content, body_content)
+        
+        # Create final content object
+        content = SlideContent(html_content=complete_html)
 
         # Inject TinyMCE script if editing is enabled
         if enable_editing:
@@ -489,6 +769,7 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             html_length=len(content.html_content),
             step="content_generation_complete",
             is_modification=is_modification,
+            preferences=f"layout:{layout_preference}, color:{color_preference}, persona:{persona_preference}"
         )
 
         return content

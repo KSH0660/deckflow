@@ -1,0 +1,74 @@
+/* Compact Persona - Dense information presentation */
+
+.persona-compact {
+  /* Spacing variables */
+  --spacing-section: 1rem;
+  --spacing-element: 0.5rem;
+  --spacing-text: 0.25rem;
+  
+  /* Typography */
+  --font-size-title: 1.25rem;
+  --font-size-subtitle: 1rem;
+  --font-size-body: 0.875rem;
+  --line-height-tight: 1.3;
+  --line-height-normal: 1.4;
+}
+
+/* Spacing classes */
+.compact-section {
+  @apply mb-4;
+}
+
+.compact-element {
+  @apply mb-2;
+}
+
+.compact-text {
+  @apply mb-1;
+}
+
+.compact-padding {
+  @apply p-2;
+}
+
+.compact-margin {
+  @apply m-1;
+}
+
+/* Typography */
+.compact-title {
+  font-size: var(--font-size-title);
+  line-height: var(--line-height-tight);
+  @apply font-semibold mb-2;
+}
+
+.compact-subtitle {
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-tight);
+  @apply font-medium mb-1;
+}
+
+.compact-body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+  @apply mb-2;
+}
+
+/* List styles */
+.compact-list {
+  @apply space-y-1;
+}
+
+.compact-list-item {
+  @apply py-1 text-sm;
+}
+
+/* Grid adjustments */
+.compact-grid {
+  @apply gap-2;
+}
+
+/* Card spacing */
+.compact-card {
+  @apply p-3;
+}

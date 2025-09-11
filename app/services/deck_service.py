@@ -387,7 +387,7 @@ class DeckService:
 
                 # Step 3: Generate slides
                 slides = await self._generate_all_slides(
-                    deck_plan, llm, update_progress, repo, deck_id
+                    deck_plan, llm, update_progress, repo, deck_id, config
                 )
 
                 # Step 4: Finalize deck
@@ -450,7 +450,7 @@ Please generate a presentation based on the content of the following uploaded fi
 Please create a detailed presentation based on these files."""
 
     async def _generate_all_slides(
-        self, deck_plan, llm, update_progress, repo, deck_id
+        self, deck_plan, llm, update_progress, repo, deck_id, config
     ):
         """Generate content for all slides in parallel"""
         import asyncio
@@ -459,12 +459,18 @@ Please create a detailed presentation based on these files."""
         from app.services.content_creation import write_content
         from app.services.models import Slide
 
+        # Get preferences from config.style_preferences with defaults
+        style_prefs = config.style_preferences if config else {}
+        
         deck_context = {
             "deck_title": deck_plan.deck_title,
             "audience": deck_plan.audience,
             "core_message": deck_plan.core_message,
             "goal": deck_plan.goal.value,
             "color_theme": deck_plan.color_theme.value,
+            "layout_preference": style_prefs.get("layout_preference", "professional"),
+            "color_preference": style_prefs.get("color_preference", "professional_blue"),
+            "persona_preference": style_prefs.get("persona_preference", "balanced"),
         }
 
         total_slides = len(deck_plan.slides)

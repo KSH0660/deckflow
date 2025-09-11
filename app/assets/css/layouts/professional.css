@@ -1,0 +1,148 @@
+/* Professional Layout - Enhanced corporate and structured design */
+
+.layout-professional {
+  /* Container styles */
+  --container-padding: 3rem;
+  --content-max-width: 1200px;
+}
+
+/* Block Components */
+.block-header {
+  @apply mb-12 border-b-2 border-gray-200 pb-6 relative;
+}
+
+.block-header::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-16 h-1 bg-blue-600;
+}
+
+.block-title {
+  @apply text-4xl font-bold mb-4 tracking-tight text-gray-900 leading-tight;
+}
+
+.block-subtitle {
+  @apply text-xl text-gray-600 mb-6 font-medium leading-relaxed;
+}
+
+.block-content {
+  @apply max-w-5xl mx-auto px-8;
+}
+
+.block-text {
+  @apply text-lg leading-relaxed mb-6 text-gray-800;
+}
+
+.block-list {
+  @apply space-y-4 mb-8;
+}
+
+.block-list-item {
+  @apply flex items-start bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 shadow-sm;
+}
+
+.block-list-bullet {
+  @apply w-4 h-4 bg-blue-500 rounded-full mt-2 mr-4 flex-shrink-0;
+}
+
+.block-grid {
+  @apply grid gap-6;
+}
+
+.block-grid-2 {
+  @apply grid-cols-1 lg:grid-cols-2;
+}
+
+.block-grid-3 {
+  @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+}
+
+.block-card {
+  @apply bg-white rounded-xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300;
+}
+
+.block-section {
+  @apply mb-12;
+}
+
+.block-divider {
+  @apply border-t-2 border-gray-300 my-10 relative;
+}
+
+.block-divider::after {
+  content: '';
+  @apply absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-blue-500 rounded-full;
+}
+
+.block-highlight {
+  @apply bg-blue-50 border-l-4 border-blue-500 p-6 my-6 rounded-r-lg;
+}
+
+.block-quote {
+  @apply border-l-4 border-gray-400 pl-6 italic text-gray-700 text-lg;
+}
+
+.block-callout {
+  @apply bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 my-6;
+}
+
+.block-stats {
+  @apply text-center p-6 bg-white rounded-lg shadow-md;
+}
+
+.block-stats-number {
+  @apply text-4xl font-bold text-blue-600 mb-2;
+}
+
+.block-stats-label {
+  @apply text-sm text-gray-600 uppercase tracking-wide;
+}
+
+/* Enhanced Typography */
+.block-heading-xl {
+  @apply text-5xl font-bold mb-6 text-gray-900;
+}
+
+.block-heading-lg {
+  @apply text-3xl font-bold mb-4 text-gray-900;
+}
+
+.block-heading-md {
+  @apply text-2xl font-semibold mb-3 text-gray-800;
+}
+
+.block-text-lg {
+  @apply text-xl leading-relaxed text-gray-700;
+}
+
+.block-text-emphasis {
+  @apply font-semibold text-blue-600;
+}
+
+/* Layout-specific utility classes */
+.professional-spacing {
+  @apply space-y-6;
+}
+
+.professional-text {
+  @apply text-lg;
+}
+
+.professional-hero {
+  @apply text-center py-16 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg;
+}
+
+.professional-two-column {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-12 items-center;
+}
+
+.professional-icon-list {
+  @apply space-y-4;
+}
+
+.professional-icon-item {
+  @apply flex items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+.professional-icon {
+  @apply w-8 h-8 mr-4 text-blue-500 flex-shrink-0;
+}

@@ -1,0 +1,74 @@
+/* Balanced Persona - Moderate spacing for general purpose use */
+
+.persona-balanced {
+  /* Spacing variables */
+  --spacing-section: 2rem;
+  --spacing-element: 1rem;
+  --spacing-text: 0.5rem;
+  
+  /* Typography */
+  --font-size-title: 1.5rem;
+  --font-size-subtitle: 1.125rem;
+  --font-size-body: 0.9rem;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+}
+
+/* Spacing classes */
+.balanced-section {
+  @apply mb-8;
+}
+
+.balanced-element {
+  @apply mb-4;
+}
+
+.balanced-text {
+  @apply mb-2;
+}
+
+.balanced-padding {
+  @apply p-4;
+}
+
+.balanced-margin {
+  @apply m-2;
+}
+
+/* Typography */
+.balanced-title {
+  font-size: var(--font-size-title);
+  line-height: var(--line-height-normal);
+  @apply font-bold mb-4;
+}
+
+.balanced-subtitle {
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-normal);
+  @apply font-semibold mb-3;
+}
+
+.balanced-body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-relaxed);
+  @apply mb-3;
+}
+
+/* List styles */
+.balanced-list {
+  @apply space-y-2;
+}
+
+.balanced-list-item {
+  @apply py-2 text-sm;
+}
+
+/* Grid adjustments */
+.balanced-grid {
+  @apply gap-4;
+}
+
+/* Card spacing */
+.balanced-card {
+  @apply p-5;
+}

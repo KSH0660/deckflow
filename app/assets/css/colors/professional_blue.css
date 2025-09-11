@@ -1,0 +1,84 @@
+/* Professional Blue Color Scheme */
+
+:root {
+  /* Primary colors */
+  --color-primary: #1e40af;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1e3a8a;
+  --color-primary-text: #ffffff;
+  
+  /* Secondary colors */
+  --color-secondary: #64748b;
+  --color-secondary-light: #94a3b8;
+  --color-secondary-dark: #475569;
+  --color-secondary-text: #ffffff;
+  
+  /* Accent colors */
+  --color-accent: #0ea5e9;
+  --color-accent-light: #38bdf8;
+  --color-accent-dark: #0284c7;
+  
+  /* Background colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #e2e8f0;
+  
+  /* Text colors */
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  
+  /* Border colors */
+  --color-border: #e2e8f0;
+  --color-border-focus: #3b82f6;
+  
+  /* Status colors */
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+}
+
+/* Apply color scheme */
+.color-professional-blue {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.color-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-text);
+}
+
+.color-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-text);
+}
+
+.color-accent {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}

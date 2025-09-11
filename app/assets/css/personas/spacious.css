@@ -1,0 +1,74 @@
+/* Spacious Persona - Generous spacing for comfortable reading */
+
+.persona-spacious {
+  /* Spacing variables */
+  --spacing-section: 3rem;
+  --spacing-element: 1.5rem;
+  --spacing-text: 1rem;
+  
+  /* Typography */
+  --font-size-title: 1.75rem;
+  --font-size-subtitle: 1.25rem;
+  --font-size-body: 1rem;
+  --line-height-relaxed: 1.6;
+  --line-height-loose: 1.8;
+}
+
+/* Spacing classes */
+.spacious-section {
+  @apply mb-12;
+}
+
+.spacious-element {
+  @apply mb-6;
+}
+
+.spacious-text {
+  @apply mb-4;
+}
+
+.spacious-padding {
+  @apply p-6;
+}
+
+.spacious-margin {
+  @apply m-4;
+}
+
+/* Typography */
+.spacious-title {
+  font-size: var(--font-size-title);
+  line-height: var(--line-height-relaxed);
+  @apply font-bold mb-6;
+}
+
+.spacious-subtitle {
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-relaxed);
+  @apply font-semibold mb-4;
+}
+
+.spacious-body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-loose);
+  @apply mb-4;
+}
+
+/* List styles */
+.spacious-list {
+  @apply space-y-4;
+}
+
+.spacious-list-item {
+  @apply py-3 text-base;
+}
+
+/* Grid adjustments */
+.spacious-grid {
+  @apply gap-6;
+}
+
+/* Card spacing */
+.spacious-card {
+  @apply p-8;
+}

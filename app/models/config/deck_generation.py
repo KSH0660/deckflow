@@ -64,7 +64,7 @@ class DeckGenerationConfig(BaseModel):
 
         config_data = {}
 
-        # Extract persona from style
+        # Extract persona from style (backward compatibility)
         if "persona" in style:
             config_data["persona"] = style["persona"]
 
@@ -78,14 +78,40 @@ class DeckGenerationConfig(BaseModel):
         if "generation_mode" in style:
             config_data["generation_mode"] = style["generation_mode"]
 
-        # Store remaining style preferences
-        remaining_style = {
-            k: v
-            for k, v in style.items()
-            if k not in {"persona", "max_slides", "generation_mode"}
-        }
-        if remaining_style:
-            config_data["style_preferences"] = remaining_style
+        # Store all style preferences including new layout/color/persona preferences
+        style_preferences = {}
+        
+        # Copy all preferences to style_preferences
+        for key, value in style.items():
+            if key not in {"max_slides", "generation_mode"}:
+                style_preferences[key] = value
+        
+        # Set layout, color, and persona preferences with defaults if not provided
+        if "layout_preference" not in style_preferences:
+            style_preferences["layout_preference"] = "professional"
+        if "color_preference" not in style_preferences:
+            style_preferences["color_preference"] = "professional_blue"
+        if "persona_preference" not in style_preferences:
+            style_preferences["persona_preference"] = "balanced"
+            
+        # If old persona is provided but not persona_preference, map it
+        if "persona" in style and "persona_preference" not in style:
+            # Map old persona system to new persona_preference (spacing)
+            persona_mapping = {
+                "EXPERT_DATA_STRATEGIST": "balanced",
+                "SALES_PITCH_CLOSER": "compact",
+                "TECHNICAL_EDUCATOR": "spacious",
+                "STARTUP_PITCH_MASTER": "compact",
+                "ACADEMIC_RESEARCHER": "spacious",
+                "MARKETING_STRATEGIST": "balanced",
+                "EXECUTIVE_BOARDROOM": "compact",
+                "TRAINING_FACILITATOR": "spacious",
+                "PRODUCT_MANAGER": "balanced",
+                "CONSULTANT_ADVISOR": "balanced"
+            }
+            style_preferences["persona_preference"] = persona_mapping.get(style["persona"], "balanced")
+
+        config_data["style_preferences"] = style_preferences
 
         config = cls(**config_data)
         config.validate_persona()
