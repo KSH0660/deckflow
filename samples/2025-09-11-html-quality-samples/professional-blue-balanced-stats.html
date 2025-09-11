@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        .slide-container { width: 100vw; height: 100vh; aspect-ratio: 16/9; }
+        
+        /* Professional Layout CSS */
+        .block-header {
+          @apply mb-12 border-b-2 border-gray-200 pb-6 relative;
+        }
+
+        .block-header::after {
+          content: '';
+          @apply absolute bottom-0 left-0 w-16 h-1 bg-blue-600;
+        }
+
+        .block-title {
+          @apply text-4xl font-bold mb-4 tracking-tight text-gray-900 leading-tight;
+        }
+
+        .block-content {
+          @apply max-w-5xl mx-auto px-8;
+        }
+
+        .block-grid {
+          @apply grid gap-6;
+        }
+
+        .block-grid-3 {
+          @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+        }
+
+        .block-stats {
+          @apply text-center p-6 bg-white rounded-lg shadow-md;
+        }
+
+        .block-stats-number {
+          @apply text-4xl font-bold text-blue-600 mb-2;
+        }
+
+        .block-stats-label {
+          @apply text-sm text-gray-600 uppercase tracking-wide;
+        }
+
+        /* Colors */
+        :root {
+          --color-primary: #1e40af;
+          --color-secondary: #64748b;
+        }
+
+        .text-primary { color: var(--color-primary); }
+        .text-secondary { color: var(--color-secondary); }
+
+        /* Balanced Persona */
+        .balanced-padding { @apply p-4; }
+        .balanced-title { font-size: 1.5rem; @apply font-bold mb-4; }
+        
+        /* Enhanced stats styling */
+        .enhanced-stats {
+          @apply bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200 hover:shadow-xl transition-all duration-300;
+        }
+        
+        .stats-icon {
+          @apply w-12 h-12 mx-auto mb-3 text-blue-500;
+        }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content balanced-padding">
+            <div class="block-header">
+                <h1 class="block-title balanced-title text-primary">Performance Metrics Q3 2025</h1>
+            </div>
+            
+            <div class="block-grid block-grid-3">
+                <div class="block-stats enhanced-stats">
+                    <div class="stats-icon">
+                        📊
+                    </div>
+                    <div class="block-stats-number">94.2%</div>
+                    <div class="block-stats-label">Customer Satisfaction</div>
+                    <div class="text-xs text-gray-500 mt-2">↑ 12% vs Q2</div>
+                </div>
+                
+                <div class="block-stats enhanced-stats">
+                    <div class="stats-icon">
+                        🚀
+                    </div>
+                    <div class="block-stats-number">$2.8M</div>
+                    <div class="block-stats-label">Revenue Growth</div>
+                    <div class="text-xs text-gray-500 mt-2">↑ 23% vs Q2</div>
+                </div>
+                
+                <div class="block-stats enhanced-stats">
+                    <div class="stats-icon">
+                        ⚡
+                    </div>
+                    <div class="block-stats-number">156%</div>
+                    <div class="block-stats-label">Efficiency Gain</div>
+                    <div class="text-xs text-gray-500 mt-2">AI Implementation</div>
+                </div>
+                
+                <div class="block-stats enhanced-stats">
+                    <div class="stats-icon">
+                        👥
+                    </div>
+                    <div class="block-stats-number">47</div>
+                    <div class="block-stats-label">New Team Members</div>
+                    <div class="text-xs text-gray-500 mt-2">Global Expansion</div>
+                </div>
+                
+                <div class="block-stats enhanced-stats">
+                    <div class="stats-icon">
+                        🎯
+                    </div>
+                    <div class="block-stats-number">98.7%</div>
+                    <div class="block-stats-label">Project Success Rate</div>
+                    <div class="text-xs text-gray-500 mt-2">On-time Delivery</div>
+                </div>
+                
+                <div class="block-stats enhanced-stats">
+                    <div class="stats-icon">
+                        🌱
+                    </div>
+                    <div class="block-stats-number">-45%</div>
+                    <div class="block-stats-label">Carbon Footprint</div>
+                    <div class="text-xs text-gray-500 mt-2">Sustainability Initiative</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

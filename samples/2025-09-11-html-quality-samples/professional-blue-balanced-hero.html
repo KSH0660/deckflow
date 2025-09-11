@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        .slide-container { width: 100vw; height: 100vh; aspect-ratio: 16/9; }
+        
+        /* Professional Layout CSS */
+        .layout-professional {
+          --container-padding: 3rem;
+          --content-max-width: 1200px;
+        }
+
+        .block-header {
+          @apply mb-12 border-b-2 border-gray-200 pb-6 relative;
+        }
+
+        .block-header::after {
+          content: '';
+          @apply absolute bottom-0 left-0 w-16 h-1 bg-blue-600;
+        }
+
+        .block-title {
+          @apply text-4xl font-bold mb-4 tracking-tight text-gray-900 leading-tight;
+        }
+
+        .block-content {
+          @apply max-w-5xl mx-auto px-8;
+        }
+
+        .block-heading-xl {
+          @apply text-5xl font-bold mb-6 text-gray-900;
+        }
+
+        .block-text-lg {
+          @apply text-xl leading-relaxed text-gray-700;
+        }
+
+        .professional-hero {
+          @apply text-center py-16 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg;
+        }
+
+        /* Professional Blue Color Scheme */
+        :root {
+          --color-primary: #1e40af;
+          --color-secondary: #64748b;
+          --color-text-primary: #1e293b;
+          --color-text-secondary: #64748b;
+        }
+
+        .text-primary {
+          color: var(--color-primary);
+        }
+
+        .text-secondary {
+          color: var(--color-secondary);
+        }
+
+        /* Balanced Persona */
+        .balanced-padding {
+          @apply p-4;
+        }
+
+        .balanced-title {
+          font-size: 1.5rem;
+          line-height: 1.5;
+          @apply font-bold mb-4;
+        }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content balanced-padding">
+            <div class="professional-hero">
+                <h1 class="block-heading-xl balanced-title text-primary">AI-Powered Business Strategy</h1>
+                <p class="block-text-lg text-secondary">Transforming Organizations Through Intelligent Automation</p>
+                <div class="mt-8">
+                    <div class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg">
+                        <span class="text-lg font-semibold">2025 Strategic Initiative</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

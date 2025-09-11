@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        .slide-container { width: 100vw; height: 100vh; aspect-ratio: 16/9; }
+        
+        /* Creative Layout CSS */
+        .block-header {
+          @apply mb-12 relative;
+        }
+
+        .block-header::after {
+          content: '';
+          @apply absolute bottom-0 left-0 w-24 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-full;
+        }
+
+        .block-title {
+          @apply text-4xl font-bold mb-4 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent leading-tight;
+        }
+
+        .block-content {
+          @apply max-w-4xl mx-auto px-6;
+        }
+
+        .creative-two-column {
+          @apply grid grid-cols-1 lg:grid-cols-2 gap-12 items-center;
+        }
+
+        .block-card {
+          @apply bg-white rounded-2xl p-8 shadow-lg border border-gray-100 transform hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden;
+        }
+
+        .block-card::before {
+          content: '';
+          @apply absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500;
+        }
+
+        .block-heading-md {
+          @apply text-2xl font-semibold mb-3 text-gray-800;
+        }
+
+        .block-text {
+          @apply text-lg leading-relaxed mb-6 text-gray-700;
+        }
+
+        /* Warm Corporate Colors */
+        :root {
+          --color-primary: #ea580c;
+          --color-secondary: #64748b;
+          --color-accent: #f97316;
+        }
+
+        .text-primary { color: var(--color-primary); }
+        .text-secondary { color: var(--color-secondary); }
+
+        /* Balanced Persona */
+        .balanced-padding { @apply p-4; }
+        .balanced-title { font-size: 1.5rem; @apply font-bold mb-4; }
+        .balanced-body { font-size: 0.9rem; @apply mb-3; }
+        
+        /* Custom elements */
+        .feature-icon {
+          @apply w-16 h-16 mx-auto mb-4 p-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full text-white text-2xl flex items-center justify-center;
+        }
+        
+        .benefit-tag {
+          @apply inline-block px-3 py-1 bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 text-sm rounded-full mb-2;
+        }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content balanced-padding">
+            <div class="block-header">
+                <h1 class="block-title balanced-title text-primary">Before vs. After Implementation</h1>
+            </div>
+            
+            <div class="creative-two-column">
+                <div class="block-card">
+                    <div class="feature-icon">
+                        ⚠️
+                    </div>
+                    <h3 class="block-heading-md text-center">Current Challenges</h3>
+                    <p class="block-text balanced-body">
+                        Our existing processes suffer from manual inefficiencies and disconnected systems.
+                    </p>
+                    <div class="space-y-2">
+                        <div class="benefit-tag">❌ 40% time waste on manual tasks</div>
+                        <div class="benefit-tag">❌ Data silos across departments</div>
+                        <div class="benefit-tag">❌ Inconsistent reporting</div>
+                        <div class="benefit-tag">❌ Limited scalability</div>
+                    </div>
+                </div>
+                
+                <div class="block-card">
+                    <div class="feature-icon">
+                        ✨
+                    </div>
+                    <h3 class="block-heading-md text-center">Future State</h3>
+                    <p class="block-text balanced-body">
+                        Automated workflows and integrated systems will transform our operational efficiency.
+                    </p>
+                    <div class="space-y-2">
+                        <div class="benefit-tag">✅ 80% automation rate</div>
+                        <div class="benefit-tag">✅ Unified data platform</div>
+                        <div class="benefit-tag">✅ Real-time analytics</div>
+                        <div class="benefit-tag">✅ Infinite scalability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

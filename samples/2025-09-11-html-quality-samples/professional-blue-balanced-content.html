@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        .slide-container { width: 100vw; height: 100vh; aspect-ratio: 16/9; }
+        
+        /* Professional Layout CSS */
+        .block-header {
+          @apply mb-12 border-b-2 border-gray-200 pb-6 relative;
+        }
+
+        .block-header::after {
+          content: '';
+          @apply absolute bottom-0 left-0 w-16 h-1 bg-blue-600;
+        }
+
+        .block-title {
+          @apply text-4xl font-bold mb-4 tracking-tight text-gray-900 leading-tight;
+        }
+
+        .block-subtitle {
+          @apply text-xl text-gray-600 mb-6 font-medium leading-relaxed;
+        }
+
+        .block-content {
+          @apply max-w-5xl mx-auto px-8;
+        }
+
+        .block-section {
+          @apply mb-12;
+        }
+
+        .block-callout {
+          @apply bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 my-6;
+        }
+
+        .block-text-emphasis {
+          @apply font-semibold text-blue-600;
+        }
+
+        .block-list {
+          @apply space-y-4 mb-8;
+        }
+
+        .block-list-item {
+          @apply flex items-start bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 shadow-sm;
+        }
+
+        .block-list-bullet {
+          @apply w-4 h-4 bg-blue-500 rounded-full mt-2 mr-4 flex-shrink-0;
+        }
+
+        /* Colors */
+        :root {
+          --color-primary: #1e40af;
+          --color-secondary: #64748b;
+        }
+
+        .text-primary { color: var(--color-primary); }
+        .text-secondary { color: var(--color-secondary); }
+
+        /* Balanced Persona */
+        .balanced-padding { @apply p-4; }
+        .balanced-section { @apply mb-8; }
+        .balanced-title { font-size: 1.5rem; @apply font-bold mb-4; }
+        .balanced-body { font-size: 0.9rem; @apply mb-3; }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content balanced-padding">
+            <div class="block-header">
+                <h1 class="block-title balanced-title text-primary">Key Implementation Areas</h1>
+                <p class="block-subtitle text-secondary">Critical focus areas for successful AI adoption</p>
+            </div>
+            <div class="block-section balanced-section">
+                <div class="block-callout">
+                    <p class="block-text-emphasis">Strategic Priority: Ensure seamless integration with existing workflows</p>
+                </div>
+                <ul class="block-list">
+                    <li class="block-list-item balanced-body">
+                        <div class="block-list-bullet"></div>
+                        <span><strong>Data Infrastructure:</strong> Establish robust data pipelines and governance frameworks</span>
+                    </li>
+                    <li class="block-list-item balanced-body">
+                        <div class="block-list-bullet"></div>
+                        <span><strong>Team Training:</strong> Comprehensive upskilling programs for all stakeholders</span>
+                    </li>
+                    <li class="block-list-item balanced-body">
+                        <div class="block-list-bullet"></div>
+                        <span><strong>Process Optimization:</strong> Identify and automate high-impact business processes</span>
+                    </li>
+                    <li class="block-list-item balanced-body">
+                        <div class="block-list-bullet"></div>
+                        <span><strong>Performance Metrics:</strong> Define clear KPIs and measurement frameworks</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

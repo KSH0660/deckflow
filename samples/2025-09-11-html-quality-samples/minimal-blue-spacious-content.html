@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        .slide-container { width: 100vw; height: 100vh; aspect-ratio: 16/9; }
+        
+        /* Minimal Layout CSS */
+        .block-header {
+          @apply mb-16 text-center;
+        }
+
+        .block-title {
+          @apply text-4xl font-light mb-4 tracking-wide text-gray-900 leading-tight;
+        }
+
+        .block-subtitle {
+          @apply text-lg text-gray-500 mb-8 font-light leading-relaxed;
+        }
+
+        .block-content {
+          @apply max-w-4xl mx-auto px-8;
+        }
+
+        .block-text {
+          @apply text-lg leading-loose mb-8 text-gray-700 font-light;
+        }
+
+        .block-section {
+          @apply mb-16;
+        }
+
+        .block-list {
+          @apply space-y-6 mb-10;
+        }
+
+        .block-list-item {
+          @apply flex items-start py-4 border-b border-gray-100 last:border-b-0;
+        }
+
+        .block-list-bullet {
+          @apply w-2 h-2 bg-gray-400 rounded-full mt-3 mr-6 flex-shrink-0;
+        }
+
+        .block-quote {
+          @apply text-2xl font-light italic text-gray-600 text-center my-12 leading-relaxed;
+        }
+
+        /* Professional Blue Colors */
+        :root {
+          --color-primary: #1e40af;
+          --color-secondary: #64748b;
+        }
+
+        .text-primary { color: var(--color-primary); }
+        .text-secondary { color: var(--color-secondary); }
+
+        /* Spacious Persona */
+        .spacious-padding { @apply p-8; }
+        .spacious-section { @apply mb-12; }
+        .spacious-title { font-size: 1.875rem; @apply font-bold mb-6; }
+        .spacious-body { font-size: 1rem; @apply mb-4; }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
+        <div class="block-content spacious-padding">
+            <div class="block-header">
+                <h1 class="block-title spacious-title text-primary">Design Philosophy</h1>
+                <p class="block-subtitle text-secondary">Principles that guide our approach to user experience</p>
+            </div>
+            
+            <div class="block-section spacious-section">
+                <div class="block-quote">
+                    "Simplicity is the ultimate sophistication"
+                </div>
+                
+                <div class="block-text spacious-body text-center max-w-2xl mx-auto">
+                    We believe that great design emerges from the intersection of functionality and elegance. 
+                    Our minimalist approach prioritizes clarity, purpose, and the essential elements that truly matter.
+                </div>
+            </div>
+
+            <div class="block-section spacious-section">
+                <ul class="block-list">
+                    <li class="block-list-item spacious-body">
+                        <div class="block-list-bullet"></div>
+                        <div>
+                            <strong>Clarity First:</strong> Every element serves a clear purpose and communicates intent
+                        </div>
+                    </li>
+                    <li class="block-list-item spacious-body">
+                        <div class="block-list-bullet"></div>
+                        <div>
+                            <strong>Breathable Space:</strong> Generous whitespace creates focus and reduces cognitive load
+                        </div>
+                    </li>
+                    <li class="block-list-item spacious-body">
+                        <div class="block-list-bullet"></div>
+                        <div>
+                            <strong>Thoughtful Typography:</strong> Careful selection of fonts and hierarchy guides the eye
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
