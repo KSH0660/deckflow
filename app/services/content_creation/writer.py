@@ -35,31 +35,24 @@ def _get_persona_prefix(persona: str) -> str:
 
 
 def _build_html_head(layout_preference: str, color_preference: str, persona_preference: str) -> str:
-    """Build HTML head section with compiled CSS"""
-    # Load compiled CSS that includes all Tailwind styles and our custom classes
-    compiled_css = _load_compiled_css()
-    
-    # If compiled CSS is not available, fallback to CDN
-    css_content = ""
-    if compiled_css:
-        css_content = compiled_css
-    else:
-        logger.warning("Using Tailwind CDN fallback - @apply directives may not work")
-        css_content = ""
-    
+    """Build HTML head section with external CSS link"""
     head_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {"<script src='https://cdn.tailwindcss.com'></script>" if not compiled_css else ""}
+    <title>DeckFlow Slide</title>
+    
+    <!-- Dynamic CSS based on user preferences -->
+    <link rel="stylesheet" href="/api/styles/{layout_preference}-{color_preference}-{persona_preference}.css">
+    
+    <!-- TinyMCE Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
+    
     <style>
-        /* Base styles */
+        /* Base slide container styles */
         body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
         .slide-container {{ width: 100vw; height: 100vh; aspect-ratio: 16/9; }}
-        
-        /* Compiled Tailwind + Custom CSS */
-        {css_content}
     </style>
 </head>"""
     
@@ -86,151 +79,10 @@ def _combine_html_parts(head_content: str, body_content: str) -> str:
 
 
 def _inject_tinymce_script(html: str) -> str:
-    """Inject TinyMCE script before closing body tag"""
+    """Inject external TinyMCE editor script"""
     tinymce_script = """
-<!-- TinyMCE Editor Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
-<script>
-  // 1) 편집 대상으로 삼을 요소(화이트리스트)
-  const EDITABLE_SELECTOR = [
-    'h1','h2','h3','h4','h5','h6',
-    'p','li','blockquote','figcaption','small',
-    'td','th','caption',
-    // 필요 시 span에 .inline-edit 클래스로 opt-in
-    'span.inline-edit'
-  ].join(',');
-
-  // 2) 텍스트가 실제로 있는 노드만 data-editable 부여
-  function markEditable(root=document) {
-    root.querySelectorAll(EDITABLE_SELECTOR).forEach(el => {
-      const text = (el.textContent || '').trim();
-      if (!text) return;
-      if (el.closest('[data-noedit]')) return; // 상위에 noedit 달리면 제외
-      el.setAttribute('data-editable', 'true');
-      el.classList.add('editable'); // 스타일로 표시하고 싶으면 활용
-    });
-  }
-
-  // 3) TinyMCE 인라인 에디터 초기화
-  function initTiny() {
-    tinymce.init({
-      selector: '[data-editable]',
-      inline: true,
-      menubar: false,
-      plugins: 'lists link quickbars',
-      toolbar: 'undo redo | bold italic underline | fontsize | forecolor | alignleft aligncenter alignright | bullist numlist | link removeformat',
-      quickbars_selection_toolbar: 'bold italic underline | h2 h3 | forecolor',
-      forced_root_block: false,
-
-      // Enhanced undo/redo configuration
-      custom_undo_redo_levels: 50,  // Keep 50 undo levels (micro versions)
-
-      // Keyboard shortcuts (TinyMCE handles these automatically)
-      // Ctrl+Z = undo, Ctrl+Y or Ctrl+Shift+Z = redo
-
-      // Auto-save undo levels more frequently for better granularity
-      setup: function(editor) {
-        let saveTimer;
-
-        // Add undo level after each significant change
-        editor.on('input', function() {
-          clearTimeout(saveTimer);
-          saveTimer = setTimeout(function() {
-            if (editor.undoManager && editor.undoManager.add) {
-              editor.undoManager.add();
-            }
-          }, 1000); // Save undo level every 1 second of inactivity
-        });
-
-        // Add undo level when focus is lost (switching between elements)
-        editor.on('blur', function() {
-          if (editor.undoManager && editor.undoManager.add) {
-            editor.undoManager.add();
-          }
-        });
-
-        // Global keyboard shortcuts for undo/redo even outside editor focus
-        document.addEventListener('keydown', function(e) {
-          // Only handle if we're in the slide editing context
-          if (document.querySelector('[data-editable]')) {
-            if (e.ctrlKey || e.metaKey) { // Ctrl on Windows/Linux, Cmd on Mac
-              if (e.key === 'z' && !e.shiftKey) {
-                e.preventDefault();
-                editor.undoManager.undo();
-              } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
-                e.preventDefault();
-                editor.undoManager.redo();
-              }
-            }
-          }
-        });
-      },
-
-      // Tailwind/기존 클래스/속성 보존
-      valid_elements: '*[*]',
-      valid_styles: { '*': 'color,font-size,text-decoration' }
-    });
-  }
-
-  // 4) 실행
-  markEditable(document);
-  initTiny();
-
-  // 5) 저장 함수 (수동 호출용)
-  window.saveEditedHtml = async function() {
-    try {
-      console.log('Starting save process...');
-
-      // TinyMCE 편집 내용 적용 (안전한 방식)
-      if (window.tinymce && window.tinymce.editors) {
-        console.log('TinyMCE editors found:', window.tinymce.editors.length);
-        for (let i = 0; i < window.tinymce.editors.length; i++) {
-          const ed = window.tinymce.editors[i];
-          if (ed && ed.undoManager && ed.undoManager.add) {
-            ed.undoManager.add();
-          }
-        }
-      } else {
-        console.log('TinyMCE not available or no editors found');
-      }
-
-      // 페이지 전체 HTML 직렬화
-      let html;
-      try {
-        html = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
-      } catch (htmlError) {
-        console.error('HTML serialization failed:', htmlError);
-        html = document.body.innerHTML; // fallback
-      }
-
-      // Extract deck_id and slide_order from URL or passed parameters
-      const deckId = window.location.pathname.split('/')[2]; // Extract from /decks/{id}/preview
-      const slideOrder = window.__currentSlideOrder || 1; // Set by frontend
-
-      console.log('Saving with deckId:', deckId, 'slideOrder:', slideOrder);
-
-      const response = await fetch(`/api/save?deck_id=\\${deckId}&slide_order=\\${slideOrder}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'text/html;charset=utf-8'},
-        body: html
-      });
-
-      if (response.ok) {
-        console.log('Save successful');
-        return { success: true, message: '저장 완료!' };
-      } else {
-        console.error('Save failed with status:', response.status);
-        throw new Error('서버 저장 실패');
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-      throw error;
-    }
-  };
-
-  // 전역에서 호출할 수 있게 (호환성을 위한 alias)
-  window.__saveEditedHtml = window.saveEditedHtml;
-</script>"""
+<!-- TinyMCE Editor Script -->
+<script src="/static/js/tinymce-editor.js"></script>"""
 
     if "</body>" in html:
         return html.replace("</body>", f"{tinymce_script}\n</body>")
