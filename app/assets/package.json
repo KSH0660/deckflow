@@ -1,0 +1,12 @@
+{
+  "name": "deckflow-assets",
+  "version": "1.0.0",
+  "description": "CSS assets builder for DeckFlow",
+  "scripts": {
+    "build-css": "tailwindcss -i ./css/input.css -o ./css/compiled/output.css --watch",
+    "build-css-once": "tailwindcss -i ./css/input.css -o ./css/compiled/output.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

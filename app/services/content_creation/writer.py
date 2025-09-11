@@ -9,17 +9,18 @@ from .models import SlideContent
 logger = get_logger(__name__)
 
 
-def _load_css_file(file_path: str) -> str:
-    """Load CSS content from file"""
+def _load_compiled_css() -> str:
+    """Load compiled CSS file with all styles"""
     try:
-        css_path = Path(__file__).parent.parent.parent / "assets" / "css" / file_path
+        css_path = Path(__file__).parent.parent.parent / "assets" / "css" / "compiled" / "output.css"
         if css_path.exists():
             return css_path.read_text(encoding='utf-8')
         else:
-            logger.warning(f"CSS file not found: {css_path}")
+            logger.warning(f"Compiled CSS file not found: {css_path}")
+            # Fallback to CDN if compiled CSS is not available
             return ""
     except Exception as e:
-        logger.error(f"Error loading CSS file {file_path}: {e}")
+        logger.error(f"Error loading compiled CSS file: {e}")
         return ""
 
 
@@ -34,31 +35,31 @@ def _get_persona_prefix(persona: str) -> str:
 
 
 def _build_html_head(layout_preference: str, color_preference: str, persona_preference: str) -> str:
-    """Build HTML head section with predefined CSS files"""
-    # Load CSS files
-    layout_css = _load_css_file(f"layouts/{layout_preference}.css")
-    color_css = _load_css_file(f"colors/{color_preference}.css")
-    persona_css = _load_css_file(f"personas/{persona_preference}.css")
+    """Build HTML head section with compiled CSS"""
+    # Load compiled CSS that includes all Tailwind styles and our custom classes
+    compiled_css = _load_compiled_css()
+    
+    # If compiled CSS is not available, fallback to CDN
+    css_content = ""
+    if compiled_css:
+        css_content = compiled_css
+    else:
+        logger.warning("Using Tailwind CDN fallback - @apply directives may not work")
+        css_content = ""
     
     head_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
+    {"<script src='https://cdn.tailwindcss.com'></script>" if not compiled_css else ""}
     <style>
         /* Base styles */
         body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
         .slide-container {{ width: 100vw; height: 100vh; aspect-ratio: 16/9; }}
         
-        /* Layout CSS */
-        {layout_css}
-        
-        /* Color CSS */
-        {color_css}
-        
-        /* Persona CSS */
-        {persona_css}
+        /* Compiled Tailwind + Custom CSS */
+        {css_content}
     </style>
 </head>"""
     
