@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from app.services.content_creation.models import SlideContent
+from app.models.enums import ColorPreference
 from app.services.deck_planning.models import (
-    ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
@@ -28,7 +28,7 @@ class TestFullDeckWorkflow:
             audience="QA Engineers and Developers",
             core_message="Integration testing ensures system reliability",
             goal=PresentationGoal.EDUCATE,
-            color_theme=ColorTheme.TECH_DARK,
+            color_theme=ColorPreference.MODERN_GREEN,
             slides=[
                 SlidePlan(
                     slide_id=1,
@@ -184,7 +184,7 @@ class TestFullDeckWorkflow:
             audience="Development Team",
             core_message="Structured testing approach ensures quality",
             goal=PresentationGoal.INFORM,
-            color_theme=ColorTheme.PROFESSIONAL_BLUE,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=[
                 SlidePlan(
                     slide_id=1,
@@ -251,7 +251,7 @@ class TestFullDeckWorkflow:
                 audience="Test Audience",
                 core_message="Error recovery works",
                 goal=PresentationGoal.INFORM,
-                color_theme=ColorTheme.CORPORATE_GRAY,
+                color_theme=ColorPreference.WARM_CORPORATE,
                 slides=[
                     SlidePlan(
                         slide_id=1,

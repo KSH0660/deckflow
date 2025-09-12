@@ -191,8 +191,9 @@ def _validate_body_content(body_content: str, slide_title: str) -> str:
     return cleaned_content.strip()
 
 
-def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
-    """슬라이드 콘텐츠의 기본 품질을 검증합니다."""
+def _validate_slide_content(content: SlideContent, slide_title: str) -> list[str]:
+    """슬라이드 콘텐츠의 기본 품질을 검증하고 경고 목록을 반환합니다."""
+    warnings = []
     html = content.html_content
 
     if not html or not html.strip():
@@ -200,20 +201,13 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         raise ValueError("Generated HTML content is empty.")
 
     if 'bootstrap' not in html.lower():
-        logger.warning(
-            "Bootstrap CSS가 누락되었습니다.", slide_title=slide_title
-        )
+        warnings.append("Bootstrap CSS가 누락되었습니다.")
 
     if "</html>" not in html.lower():
-        logger.warning(
-            "완전한 HTML 문서가 아닙니다. `</html>` 태그가 없습니다.",
-            slide_title=slide_title,
-        )
+        warnings.append("완전한 HTML 문서가 아닙니다. `</html>` 태그가 없습니다.")
 
     if len(html) < 200:
-        logger.warning(
-            "생성된 HTML이 너무 짧습니다.", slide_title=slide_title, length=len(html)
-        )
+        warnings.append(f"생성된 HTML이 너무 짧습니다. length={len(html)}")
 
     # Check for content that might cause overflow
     content_body = (
@@ -243,11 +237,7 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         overflow_indicators.append(f"content too long (~{text_content} chars)")
 
     if overflow_indicators:
-        logger.warning(
-            "콘텐츠가 화면을 초과할 수 있습니다",
-            slide_title=slide_title,
-            indicators=overflow_indicators,
-        )
+        warnings.append(f"콘텐츠가 화면을 초과할 수 있습니다: {overflow_indicators}")
 
     # Check for key requirements from simplified prompt
     requirement_checks = [
@@ -386,13 +376,12 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
     failed_checks = [check for check, passed in all_checks if not passed]
 
     if failed_checks:
-        logger.warning(
-            "슬라이드 요구사항 체크 실패",
-            slide_title=slide_title,
-            failed_checks=failed_checks,
-        )
+        warnings.append(f"슬라이드 요구사항 체크 실패: {failed_checks}")
 
-    logger.debug("슬라이드 콘텐츠 기본 검증 통과.", slide_title=slide_title)
+    for warning in warnings:
+        logger.warning(warning, slide_title=slide_title)
+
+    return warnings
 
 
 async def write_content(
@@ -500,7 +489,9 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             content.html_content = _inject_tinymce_script(content.html_content)
             logger.info("TinyMCE 편집 스크립트 주입 완료", slide_title=slide_title)
 
-        _validate_slide_content(content, slide_title)
+        warnings = _validate_slide_content(content, slide_title)
+        if warnings:
+            logger.warning("Slide content validation warnings", warnings=warnings)
 
         logger.info(
             f"슬라이드 {mode_text.lower()} 완료",

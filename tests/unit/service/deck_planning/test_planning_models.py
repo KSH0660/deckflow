@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
+from app.models.enums import ColorPreference
 from app.services.deck_planning.models import (
-    ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
@@ -134,7 +134,7 @@ class TestDeckPlan:
         assert isinstance(sample_deck_plan.deck_title, str)
         assert len(sample_deck_plan.deck_title) >= 5
         assert sample_deck_plan.goal in PresentationGoal
-        assert sample_deck_plan.color_theme in ColorTheme
+        assert sample_deck_plan.color_theme in ColorPreference
         assert len(sample_deck_plan.slides) >= 1
 
     def test_deck_plan_title_validation(self):
@@ -146,7 +146,7 @@ class TestDeckPlan:
                 audience="Test audience",
                 core_message="Test core message",
                 goal=PresentationGoal.INFORM,
-                color_theme=ColorTheme.PROFESSIONAL_BLUE,
+                color_theme=ColorPreference.PROFESSIONAL_BLUE,
                 slides=[],
             )
 
@@ -157,7 +157,7 @@ class TestDeckPlan:
                 audience="Test audience",
                 core_message="Test core message",
                 goal=PresentationGoal.INFORM,
-                color_theme=ColorTheme.PROFESSIONAL_BLUE,
+                color_theme=ColorPreference.PROFESSIONAL_BLUE,
                 slides=[],
             )
 
@@ -169,7 +169,7 @@ class TestDeckPlan:
                 audience="Test",  # Too short (< 5 chars)
                 core_message="Test core message",
                 goal=PresentationGoal.INFORM,
-                color_theme=ColorTheme.PROFESSIONAL_BLUE,
+                color_theme=ColorPreference.PROFESSIONAL_BLUE,
                 slides=[],
             )
 
@@ -181,7 +181,7 @@ class TestDeckPlan:
                 audience="Test audience",
                 core_message="Short",  # Too short (< 10 chars)
                 goal=PresentationGoal.INFORM,
-                color_theme=ColorTheme.PROFESSIONAL_BLUE,
+                color_theme=ColorPreference.PROFESSIONAL_BLUE,
                 slides=[],
             )
 
@@ -193,11 +193,11 @@ class TestDeckPlan:
             audience="Test audience",
             core_message="Test core message",
             goal=PresentationGoal.PERSUADE,
-            color_theme=ColorTheme.TECH_DARK,
+            color_theme=ColorPreference.MODERN_GREEN,
             slides=[],
         )
         assert plan.goal == PresentationGoal.PERSUADE
-        assert plan.color_theme == ColorTheme.TECH_DARK
+        assert plan.color_theme == ColorPreference.MODERN_GREEN
 
 
 class TestEnums:
@@ -218,7 +218,7 @@ class TestEnums:
         assert LayoutType.DATA_VISUAL == "data_visual"
 
     def test_color_theme_values(self):
-        """Test ColorTheme enum values."""
-        assert ColorTheme.PROFESSIONAL_BLUE == "professional_blue"
-        assert ColorTheme.CORPORATE_GRAY == "corporate_gray"
-        assert ColorTheme.TECH_DARK == "tech_dark"
+        """Test ColorPreference enum values."""
+        assert ColorPreference.PROFESSIONAL_BLUE == "professional_blue"
+        assert ColorPreference.WARM_CORPORATE == "warm_corporate"
+        assert ColorPreference.MODERN_GREEN == "modern_green"

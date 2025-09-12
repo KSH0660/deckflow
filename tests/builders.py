@@ -2,12 +2,12 @@
 
 from app.services.content_creation.models import SlideContent
 from app.services.deck_planning.models import (
-    ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
+from app.models.enums import ColorPreference
 from app.services.models import DeckContext
 
 
@@ -96,7 +96,7 @@ class DeckPlanBuilder:
         self._audience = "Test Audience"
         self._core_message = "Test core message"
         self._goal = PresentationGoal.INFORM
-        self._color_theme = ColorTheme.PROFESSIONAL_BLUE
+        self._color_theme = ColorPreference.PROFESSIONAL_BLUE
         self._slides = [SlidePlanBuilder().build()]
         return self
 
@@ -116,7 +116,7 @@ class DeckPlanBuilder:
         self._goal = goal
         return self
 
-    def with_theme(self, theme: ColorTheme):
+    def with_theme(self, theme: ColorPreference):
         self._color_theme = theme
         return self
 
@@ -196,8 +196,8 @@ class SlideContentBuilder:
         self._html_content = """
         <!DOCTYPE html>
         <html>
-        <head><script src="https://cdn.tailwindcss.com"></script></head>
-        <body class="h-screen"><div>Minimal content</div></body>
+        <head><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+        <body class="vh-100"><div>Minimal content</div></body>
         </html>
         """
         return self
@@ -207,13 +207,13 @@ class SlideContentBuilder:
         <!DOCTYPE html>
         <html>
         <head>
-            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
-        <body class="w-full h-screen flex items-center justify-center bg-gray-100">
-            <div class="w-full max-w-4xl h-full max-h-screen mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-                <div class="flex-1 p-6 overflow-hidden flex flex-col justify-center">
-                    <h1 class="text-2xl font-bold text-blue-800 mb-4">Test Slide</h1>
-                    <p class="text-base text-gray-700">Test content</p>
+        <body class="w-100 vh-100 d-flex align-items-center justify-content-center bg-light">
+            <div class="w-100 h-100 mx-auto bg-white shadow-lg rounded-lg overflow-hidden" style="max-width: 80rem;">
+                <div class="flex-grow-1 p-5 overflow-hidden d-flex flex-column justify-content-center">
+                    <h1 class="display-4 fw-bold text-primary mb-4">Test Slide</h1>
+                    <p class="lead text-secondary">Test content</p>
                 </div>
             </div>
         </body>
@@ -225,13 +225,13 @@ class SlideContentBuilder:
         <!DOCTYPE html>
         <html>
         <head>
-            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
-        <body class="w-full h-screen flex items-center justify-center bg-gray-900">
-            <div class="w-full max-w-4xl h-full max-h-screen mx-auto bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-                <div class="flex-1 p-6 overflow-hidden flex flex-col justify-center">
-                    <h1 class="text-2xl font-bold text-cyan-400 mb-4">Tech Slide</h1>
-                    <p class="text-base text-gray-300">Dark theme content</p>
+        <body class="w-100 vh-100 d-flex align-items-center justify-content-center bg-dark">
+            <div class="w-100 h-100 mx-auto bg-secondary shadow-lg rounded-lg overflow-hidden" style="max-width: 80rem;">
+                <div class="flex-grow-1 p-5 overflow-hidden d-flex flex-column justify-content-center">
+                    <h1 class="display-4 fw-bold text-info mb-4">Tech Slide</h1>
+                    <p class="lead text-light">Dark theme content</p>
                 </div>
             </div>
         </body>
@@ -243,13 +243,13 @@ class SlideContentBuilder:
         <!DOCTYPE html>
         <html>
         <head>
-            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
-        <body class="w-full h-screen flex items-center justify-center bg-blue-50">
-            <div class="w-full max-w-4xl h-full max-h-screen mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-                <div class="flex-1 p-6 overflow-hidden flex flex-col justify-center">
-                    <h1 class="text-2xl font-bold text-blue-900 mb-4">Professional Slide</h1>
-                    <p class="text-base text-blue-700">Professional content</p>
+        <body class="w-100 vh-100 d-flex align-items-center justify-content-center bg-primary-subtle">
+            <div class="w-100 h-100 mx-auto bg-white shadow-lg rounded-lg overflow-hidden" style="max-width: 80rem;">
+                <div class="flex-grow-1 p-5 overflow-hidden d-flex flex-column justify-content-center">
+                    <h1 class="display-4 fw-bold text-primary-emphasis mb-4">Professional Slide</h1>
+                    <p class="lead text-primary">Professional content</p>
                 </div>
             </div>
         </body>

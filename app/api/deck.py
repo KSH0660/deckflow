@@ -20,6 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from app.adapter.factory import current_llm, current_repo
+from app.api.common import handle_service_errors, handle_validation_errors
 from app.core.config import Settings as AppSettings
 from app.core.config import settings as app_settings
 from app.models.requests.deck import (
@@ -55,6 +56,7 @@ def get_deck_service(
 
 
 @router.post("/decks", response_model=CreateDeckResponse)
+@handle_service_errors
 async def create_deck(
     request: CreateDeckRequest,
     deck_service: DeckService = Depends(get_deck_service),
@@ -68,15 +70,12 @@ async def create_deck(
     - Repository interaction
     - Background generation orchestration
     """
-    try:
-        # Service handles ALL business logic - API just delegates
-        return await deck_service.create_deck(request, settings)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    # Service handles ALL business logic - API just delegates
+    return await deck_service.create_deck(request, settings)
 
 
 @router.get("/decks/{deck_id}", response_model=DeckStatusResponse)
+@handle_service_errors
 async def get_deck_status(
     deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
 ):
@@ -86,27 +85,20 @@ async def get_deck_status(
     Notice how much cleaner this is:
     - No manual field extraction
     - No dict manipulation
-    - Proper error handling
+    - Proper error handling via decorator
     - Type safety
     """
-    try:
-        return await deck_service.get_deck_status(deck_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    return await deck_service.get_deck_status(deck_id)
 
 
 @router.get("/decks", response_model=list[DeckListItemResponse])
+@handle_service_errors
 async def list_decks(
     limit: int = Query(default=10, ge=1, le=100),
     deck_service: DeckService = Depends(get_deck_service),
 ):
     """List decks with proper response modeling"""
-    try:
-        return await deck_service.list_decks(limit=limit)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    return await deck_service.list_decks(limit=limit)
 
 
 @router.get("/decks/{deck_id}/data")

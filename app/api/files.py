@@ -1,7 +1,7 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
-from app.api.schema import FileUploadResponse
+from app.models.responses.deck import FileUploadResponse
 from app.logging import get_logger
 from app.services.file_processing.file_processor import FileProcessor, FileStorage
 

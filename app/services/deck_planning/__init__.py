@@ -1,5 +1,4 @@
 from .models import (
-    ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
@@ -8,7 +7,6 @@ from .models import (
 from .planner import plan_deck
 
 __all__ = [
-    "ColorTheme",
     "DeckPlan",
     "LayoutType",
     "PresentationGoal",

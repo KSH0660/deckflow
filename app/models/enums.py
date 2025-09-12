@@ -149,7 +149,7 @@ def validate_layout_type(value: str) -> LayoutType:
 
 
 # Export functions for frontend compatibility
-def get_layout_preferences():
+def get_layout_preferences() -> list[dict[str, str]]:
     """Get all layout preferences for frontend"""
     return [
         {
@@ -162,7 +162,7 @@ def get_layout_preferences():
     ]
 
 
-def get_color_preferences():
+def get_color_preferences() -> list[dict[str, str]]:
     """Get all color preferences for frontend"""
     return [
         {
@@ -175,7 +175,7 @@ def get_color_preferences():
     ]
 
 
-def get_persona_preferences():
+def get_persona_preferences() -> list[dict[str, str]]:
     """Get all persona preferences for frontend"""
     return [
         {

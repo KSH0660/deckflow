@@ -2,8 +2,8 @@
 
 import pytest
 
+from app.models.enums import ColorPreference
 from app.services.deck_planning.models import (
-    ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
@@ -97,7 +97,7 @@ class TestPlanScoring:
             audience="Software developers and technical leads working on complex systems",  # Good length
             core_message="This is a comprehensive core message for our testing scenario",
             goal=PresentationGoal.EDUCATE,
-            color_theme=ColorTheme.PROFESSIONAL_BLUE,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=slides,
         )
 
@@ -124,7 +124,7 @@ class TestPlanScoring:
             audience="Users",  # Minimal but valid length (>= 5)
             core_message="Basic message ok",  # Minimal but valid length (>= 10)
             goal=PresentationGoal.INFORM,
-            color_theme=ColorTheme.MINIMAL_MONOCHROME,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=[slide],
         )
 
@@ -165,7 +165,7 @@ class TestPlanValidation:
             audience="Test Audience",
             core_message="Test Message",
             goal=PresentationGoal.INFORM,
-            color_theme=ColorTheme.PROFESSIONAL_BLUE,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=sample_deck_plan.slides[:2],  # Only 2 slides
         )
 
@@ -184,7 +184,7 @@ class TestPlanValidation:
             audience="Test Audience",
             core_message="Test Message",
             goal=PresentationGoal.INFORM,
-            color_theme=ColorTheme.PROFESSIONAL_BLUE,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=many_slides,
         )
 
@@ -211,7 +211,7 @@ class TestPlanValidation:
             audience="Test Audience",
             core_message="Test Message",
             goal=PresentationGoal.INFORM,
-            color_theme=ColorTheme.PROFESSIONAL_BLUE,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=[slide1, slide2],
         )
 
@@ -233,7 +233,7 @@ class TestPlanValidation:
             audience="Test Audience",
             core_message="Test Message",
             goal=PresentationGoal.INFORM,
-            color_theme=ColorTheme.PROFESSIONAL_BLUE,
+            color_theme=ColorPreference.PROFESSIONAL_BLUE,
             slides=[empty_slide],
         )
 

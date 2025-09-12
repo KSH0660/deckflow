@@ -5,7 +5,7 @@ from typing import Any
 import structlog
 
 
-def compact_renderer(logger, name, event_dict):
+def compact_renderer(logger: Any, name: str, event_dict: dict[str, Any]) -> str:
     """Compact renderer for cleaner log output."""
     level = event_dict.get("level", "").upper()
     timestamp = event_dict.get("timestamp", "")
@@ -48,7 +48,7 @@ def compact_renderer(logger, name, event_dict):
     return " ".join(log_parts)
 
 
-def configure_logging(level: str = None, compact: bool = True) -> None:
+def configure_logging(level: str | None = None, compact: bool = True) -> None:
     """
     Configure structlog with sensible defaults for the application.
 
@@ -87,7 +87,7 @@ def configure_logging(level: str = None, compact: bool = True) -> None:
     )
 
 
-def get_logger(name: str = None) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
     """
     Get a configured structlog logger.
 

@@ -4,7 +4,6 @@ import pytest
 
 from app.services.content_creation.models import SlideContent
 from app.services.content_creation.writer import (
-    RENDER_PROMPT,
     _validate_slide_content,
     write_content,
 )
@@ -33,7 +32,9 @@ class TestWriteContent:
         result = await write_content(slide_info, deck_context.model_dump(), mock_llm)
 
         assert isinstance(result, SlideContent)
-        assert result.html_content == slide_content.html_content
+        # Check that the result is a full HTML document
+        assert result.html_content.startswith("<!DOCTYPE html>")
+        assert "bootstrap.min.css" in result.html_content
         mock_llm.generate_structured.assert_called_once()
 
     @pytest.mark.asyncio
@@ -79,13 +80,13 @@ class TestWriteContent:
     async def test_write_content_prompt_formatting(
         self, mock_llm, sample_slide_content
     ):
-        """Test that prompt is properly formatted with all variables."""
+        """Test that prompt is properly formatted with slide data."""
         mock_llm.generate_structured.return_value = sample_slide_content
 
         slide_info = {
             "slide_title": "AI Testing",
             "message": "Testing AI systems",
-            "layout_type": "data_visual",
+            "layout_type": "content_slide",
             "key_points": ["Unit tests", "Integration tests"],
         }
 
@@ -94,6 +95,8 @@ class TestWriteContent:
             "audience": "ML Engineers",
             "core_message": "Quality AI systems",
             "color_theme": "tech_dark",
+            "layout_preference": "professional",
+            "persona_preference": "balanced",
         }
 
         await write_content(slide_info, deck_context, mock_llm)
@@ -101,15 +104,10 @@ class TestWriteContent:
         call_args = mock_llm.generate_structured.call_args
         prompt = call_args[0][0]
 
-        # Check all context variables are in prompt
-        assert "AI Development" in prompt
-        assert "ML Engineers" in prompt
-        assert "Quality AI systems" in prompt
-        assert "tech_dark" in prompt
-
-        # Check slide info is JSON formatted in prompt
-        assert "AI Testing" in prompt
-        assert "Unit tests" in prompt
+        # Check that slide_data is in the prompt
+        assert "SLIDE DATA: " in prompt
+        assert "'slide_title': 'AI Testing'" in prompt
+        assert "'key_points': ['Unit tests', 'Integration tests']" in prompt
 
     @pytest.mark.asyncio
     async def test_write_content_llm_error(self, mock_llm):
@@ -143,10 +141,12 @@ class TestWriteContent:
 class TestValidateSlideContent:
     """Tests for slide content validation."""
 
-    def test_validate_slide_content_valid(self, sample_slide_content):
+    def test_validate_slide_content_valid(self):
         """Test validation of valid slide content."""
-        # Should not raise any exception
-        _validate_slide_content(sample_slide_content, "Test Slide")
+        from tests.builders import SlideContentBuilder
+        valid_content = SlideContentBuilder().minimal().build()
+        warnings = _validate_slide_content(valid_content, "Test Slide")
+        assert not warnings
 
     def test_validate_slide_content_empty(self):
         """Test validation of empty content."""
@@ -162,91 +162,52 @@ class TestValidateSlideContent:
         with pytest.raises(ValueError, match="Generated HTML content is empty"):
             _validate_slide_content(whitespace_content, "Test Slide")
 
-    def test_validate_slide_content_missing_tailwind(self, caplog):
-        """Test validation warns about missing Tailwind CSS."""
+    def test_validate_slide_content_missing_bootstrap(self):
+        """Test validation warns about missing bootstrap CSS."""
         content = SlideContent(
-            html_content="""
-        <!DOCTYPE html>
-        <html><body>No Tailwind CSS</body></html>
-        """
+            html_content='<!DOCTYPE html><html><body>No bootstrap CSS</body></html>'
         )
 
-        _validate_slide_content(content, "Test Slide")
-        # Should log warning but not raise exception
+        warnings = _validate_slide_content(content, "Test Slide")
+        assert "Bootstrap CSS가 누락되었습니다." in warnings
 
-    def test_validate_slide_content_incomplete_html(self, caplog):
+    def test_validate_slide_content_incomplete_html(self):
         """Test validation warns about incomplete HTML."""
         content = SlideContent(html_content="<div>Incomplete HTML")
 
-        _validate_slide_content(content, "Test Slide")
-        # Should log warning but not raise exception
+        warnings = _validate_slide_content(content, "Test Slide")
+        assert any("완전한 HTML 문서가 아닙니다." in w for w in warnings)
 
-    def test_validate_slide_content_too_short(self, caplog):
+    def test_validate_slide_content_too_short(self):
         """Test validation warns about very short content."""
         content = SlideContent(html_content="<html>Short</html>")
 
-        _validate_slide_content(content, "Test Slide")
-        # Should log warning but not raise exception
+        warnings = _validate_slide_content(content, "Test Slide")
+        assert any("생성된 HTML이 너무 짧습니다." in w for w in warnings)
 
-    def test_validate_slide_content_overflow_checks(self, caplog):
+    def test_validate_slide_content_overflow_checks(self):
         """Test overflow prevention checks."""
         # Content with potential overflow issues
         bad_content = SlideContent(
-            html_content="""
+            html_content='''
         <!DOCTYPE html>
         <html>
-        <head><script src="https://cdn.tailwindcss.com"></script></head>
+        <head><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"></head>
         <body>
-            <div class="p-12 text-4xl">
-                Bad styling that might cause overflow
-            </div>
+            <ul>
+                <li>Point 1</li>
+                <li>Point 2</li>
+                <li>Point 3</li>
+                <li>Point 4</li>
+                <li>Point 5</li>
+                <li>Point 6</li>
+                <li>Point 7</li>
+            </ul>
         </body>
         </html>
-        """
+        '''
         )
 
-        _validate_slide_content(bad_content, "Test Slide")
-        # Should log warnings about overflow prevention failures
+        warnings = _validate_slide_content(bad_content, "Test Slide")
+        assert any("콘텐츠가 화면을 초과할 수 있습니다" in w for w in warnings)
 
-
-class TestRenderPrompt:
-    """Tests for render prompt template."""
-
-    def test_render_prompt_structure(self):
-        """Test that render prompt has expected structure."""
-        assert "HTML layout assistant" in RENDER_PROMPT
-        assert "Tailwind CSS" in RENDER_PROMPT
-        assert "<!DOCTYPE html>" in RENDER_PROMPT
-        assert "tailwindcss.com" in RENDER_PROMPT
-        assert "{topic}" in RENDER_PROMPT
-        assert "{audience}" in RENDER_PROMPT
-        assert "{slide_json}" in RENDER_PROMPT
-
-    def test_render_prompt_formatting(self):
-        """Test render prompt can be formatted properly."""
-        test_vars = {
-            "topic": "Test Topic",
-            "audience": "Test Audience",
-            "theme": "Test Theme",
-            "color_preference": "professional_blue",
-            "slide_json": '{"title": "Test"}',
-            "modification_context": "",
-            "editing_context": "",
-        }
-
-        formatted = RENDER_PROMPT.format(**test_vars)
-
-        assert "Test Topic" in formatted
-        assert "Test Audience" in formatted
-        assert "professional_blue" in formatted
-        assert '{"title": "Test"}' in formatted
-
-    def test_render_prompt_overflow_prevention(self):
-        """Test that prompt includes overflow prevention guidelines."""
-        assert "overflow-hidden" in RENDER_PROMPT
-        assert "h-screen" in RENDER_PROMPT
-        assert "max-h-screen" in RENDER_PROMPT
-        assert "NO VERTICAL OVERFLOW" in RENDER_PROMPT
-        assert (
-            "text-3xl or larger" in RENDER_PROMPT or "text-2xl maximum" in RENDER_PROMPT
-        )

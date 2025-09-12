@@ -5,10 +5,22 @@ This layer handles business logic and coordinates between the API layer and data
 It transforms between request/response models and database models.
 """
 
+import asyncio
+import time
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from app.adapter.factory import current_llm
+from app.core.config import settings
+from app.logging import get_logger
+from app.metrics import (
+    active_deck_generations,
+    deck_generation_duration_seconds,
+    deck_generation_total,
+    slide_generation_total,
+)
 from app.models.config import DeckGenerationConfig
+from app.models.database.deck import SlideVersionDB
 from app.models.database.deck import DeckDB
 from app.models.requests.deck import (
     CreateDeckRequest,
@@ -24,6 +36,9 @@ from app.models.responses.deck import (
     SaveSlideContentResponse,
     SlideVersionHistoryResponse,
 )
+from app.services.content_creation import write_content
+from app.services.deck_planning import plan_deck
+from app.services.models import Slide
 
 
 class DeckService:
@@ -37,8 +52,6 @@ class DeckService:
         self, request: CreateDeckRequest, settings=None
     ) -> CreateDeckResponse:
         """Create a new deck and start generation process"""
-        import asyncio
-
         deck_id = uuid4()
 
         # Create generation config from request
@@ -76,7 +89,6 @@ class DeckService:
 
         # Fire-and-forget background task - service orchestrates business logic
         if settings:  # Only start generation if settings provided
-            from app.adapter.factory import current_llm
 
             asyncio.create_task(
                 self._generate_deck(
@@ -258,8 +270,6 @@ class DeckService:
                 version.is_current = False
 
             # Create new version
-            from app.models.database.deck import SlideVersionDB
-
             new_version = SlideVersionDB(
                 version_id=f"v{len(target_slide.versions) + 1}_{int(current_time.timestamp())}",
                 content=html_content,
@@ -318,19 +328,6 @@ class DeckService:
         config: DeckGenerationConfig = None,
     ) -> str:
         """Private method: Main orchestrator for deck generation"""
-        import asyncio
-        import time
-
-        from app.core.config import settings
-        from app.logging import get_logger
-        from app.metrics import (
-            active_deck_generations,
-            deck_generation_duration_seconds,
-            deck_generation_total,
-            slide_generation_total,
-        )
-        from app.services.deck_planning import plan_deck
-
         logger = get_logger(__name__)
 
         # Use provided config or create default
@@ -453,12 +450,6 @@ Please create a detailed presentation based on these files."""
         self, deck_plan, llm, update_progress, repo, deck_id, config
     ):
         """Generate content for all slides in parallel"""
-        import asyncio
-
-        from app.core.config import settings
-        from app.services.content_creation import write_content
-        from app.services.models import Slide
-
         # Get preferences from config.style_preferences with defaults
         style_prefs = config.style_preferences if config else {}
         

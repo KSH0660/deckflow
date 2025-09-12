@@ -14,7 +14,7 @@ _llm_instances: dict[str, LangchainLLM] = {}
 _llm_lock = Lock()
 
 
-def current_llm(model: str | None = None):
+def current_llm(model: str | None = None) -> LangchainLLM:
     """Return an LLM client using configured default model.
 
     Args:
@@ -36,7 +36,7 @@ def current_llm(model: str | None = None):
     return inst
 
 
-def current_repo():
+def current_repo() -> InMemoryRepository | SQLiteRepository:
     """Return a repository instance based on env settings.
 
     Env vars:

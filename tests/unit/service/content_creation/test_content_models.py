@@ -27,10 +27,10 @@ class TestSlideContent:
         html = sample_slide_content.html_content
         assert "<html>" in html
         assert "</html>" in html
-        assert "tailwindcss.com" in html
+        assert "bootstrap.min.css" in html
         # Builder default heading is 'Test Slide'
         assert "Test Slide" in html
-        assert "h-screen" in html or "max-h-screen" in html
+        assert "vh-100" in html
 
     def test_slide_content_serialization(self, sample_slide_content):
         """Test model serialization."""

@@ -14,12 +14,12 @@ from uuid import uuid4
 import pytest
 
 from app.services.deck_planning.models import (
-    ColorTheme,
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
+from app.models.enums import ColorPreference
 from app.services.models import GeneratedDeck, Slide
 from tests.builders import (
     any_deck_context,
@@ -131,5 +131,5 @@ def assert_deck_plan_quality(deck_plan: DeckPlan):
     assert len(deck_plan.audience) >= 5
     assert len(deck_plan.core_message) >= 10
     assert deck_plan.goal in PresentationGoal
-    assert deck_plan.color_theme in ColorTheme
+    assert deck_plan.color_theme in ColorPreference
     assert len(deck_plan.slides) >= 1
