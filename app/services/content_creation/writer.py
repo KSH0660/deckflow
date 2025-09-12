@@ -34,8 +34,23 @@ def _get_persona_prefix(persona: str) -> str:
     return persona_mapping.get(persona, "balanced")
 
 
-def _build_html_head(layout_preference: str, color_preference: str, persona_preference: str) -> str:
-    """Build HTML head section with Bootstrap CSS"""
+def _build_html_head(
+    layout_type: str,
+    layout_preference: str, 
+    color_preference: str, 
+    persona_preference: str
+) -> str:
+    """Build HTML head section with dynamic CSS injection"""
+    from .css_builder import build_slide_css
+    
+    # Generate layout-specific CSS
+    custom_css = build_slide_css(
+        layout_type=layout_type,
+        layout_preference=layout_preference,
+        color_preference=color_preference, 
+        persona_preference=persona_preference
+    )
+    
     head_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,15 +61,12 @@ def _build_html_head(layout_preference: str, color_preference: str, persona_pref
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Custom DeckFlow styles -->
-    <link href="/assets/bootstrap-styles.css" rel="stylesheet">
-    
     <!-- TinyMCE Editor -->
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
     
+    <!-- Dynamic Layout-Specific CSS -->
     <style>
-        /* Base slide container styles */
-        body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
+{custom_css}
     </style>
 </head>"""
     
@@ -92,174 +104,8 @@ def _inject_tinymce_script(html: str) -> str:
         return html + tinymce_script
 
 
-BODY_RENDER_PROMPT = """CRITICAL: CREATE HIGH-QUALITY PRESENTATION SLIDE USING BOOTSTRAP AND CUSTOM CSS CLASSES
-
-You are a professional presentation designer. Create ONLY the body content for a single slide using Bootstrap 5.3 and custom CSS classes to achieve modern, professional slide design.
-
-MANDATORY RULES:
-1. OUTPUT ONLY BODY CONTENT: Start with <body> and end with </body> - NO <!DOCTYPE>, <html>, or <head>
-2. USE BOOTSTRAP + CUSTOM CLASSES: Focus on Bootstrap utilities and DeckFlow custom classes
-3. CREATE PROFESSIONAL DESIGN: Use proper hierarchy, spacing, and visual elements
-4. CONTENT OPTIMIZATION: Maximum 4 key points OR 3 paragraphs, concise and impactful
-5. LAYOUT VARIETY: Choose from multiple layout patterns based on content type
-
-BOOTSTRAP 5.3 CLASSES AVAILABLE:
-
-Layout & Flexbox:
-- d-flex, align-items-center, justify-content-center, flex-column, flex-row
-- container, container-fluid, row, col, col-md-4, col-lg-6
-- w-100, h-100, min-vh-100, overflow-hidden
-
-Typography:
-- display-1, display-2, display-3, fs-1, fs-2, fs-3, fs-4, fs-5
-- fw-bold, fw-semibold, lh-base, text-center, text-start
-- text-primary, text-secondary, text-success, text-warning
-
-Spacing & Sizing:
-- m-0, m-1, m-2, m-3, m-4, m-5, mb-3, mb-4, mb-5
-- p-2, p-3, p-4, p-5, px-4, py-3
-- g-3, g-4 (for row gaps)
-
-Components:
-- card, card-body, card-title, card-text
-- btn, btn-primary, btn-lg, btn-outline-primary
-- bg-light, bg-primary, bg-success, bg-opacity-10
-
-CUSTOM DECKFLOW CLASSES:
-
-Layout Structure:
-- slide-container (main slide wrapper)
-- block-header, block-content, block-section
-- professional-hero, professional-two-column
-- creative-hero, minimal-hero, minimal-two-column
-
-Persona Styles:
-- {persona_prefix}-padding, {persona_prefix}-title, {persona_prefix}-body
-- balanced-padding, compact-padding, spacious-padding
-
-Visual Components:
-- block-callout, block-stats, block-stats-number, block-stats-label
-- block-list, block-list-item, block-list-bullet
-
-Color & Theme:
-- text-primary, text-secondary (custom colors)
-- modern-green, warm-corporate (color modifiers)
-
-SLIDE CONTENT CONTEXT:
-Topic: {topic}
-Audience: {audience} 
-Theme: {theme}
-Layout: {layout_preference}
-Persona: {persona_preference}
-
-{modification_context}
-
-{editing_context}
-
-LAYOUT PATTERN EXAMPLES:
-
-1. HERO SLIDE (for introductions/key messages):
-<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
-    <div class="slide-container d-flex align-items-center justify-content-center">
-        <div class="{layout_preference}-hero text-center {persona_prefix}-padding w-100">
-            <h1 class="display-1 fw-bold text-primary {persona_prefix}-title mb-4">Main Title</h1>
-            <p class="fs-2 text-secondary {persona_prefix}-body">Compelling subtitle or key message</p>
-        </div>
-    </div>
-</body>
-
-2. CONTENT SLIDE (for detailed information):
-<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
-    <div class="slide-container d-flex align-items-center justify-content-center">
-        <div class="block-content {persona_prefix}-padding w-100">
-            <div class="block-header">
-                <h1 class="display-3 fw-bold text-primary {persona_prefix}-title">Section Title</h1>
-                <p class="fs-4 text-secondary mb-4">Supporting subtitle</p>
-            </div>
-            <div class="block-section">
-                <div class="block-callout mb-4">
-                    <p class="fs-5 fw-semibold">Key insight or important point</p>
-                </div>
-                <ul class="block-list">
-                    <li class="block-list-item">
-                        <div class="block-list-bullet"></div>
-                        <span class="{persona_prefix}-body">First important point</span>
-                    </li>
-                    <li class="block-list-item">
-                        <div class="block-list-bullet"></div>
-                        <span class="{persona_prefix}-body">Second key insight</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</body>
-
-3. TWO-COLUMN SLIDE (for comparisons/balanced content):
-<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
-    <div class="slide-container d-flex align-items-center justify-content-center">
-        <div class="block-content {persona_prefix}-padding w-100">
-            <div class="block-header">
-                <h1 class="display-3 fw-bold text-primary {persona_prefix}-title mb-4">Comparison Title</h1>
-            </div>
-            <div class="{layout_preference}-two-column h-75">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h3 class="card-title fs-4">Left Side</h3>
-                        <p class="card-text fs-5">Content for left column</p>
-                    </div>
-                </div>
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h3 class="card-title fs-4">Right Side</h3>
-                        <p class="card-text fs-5">Content for right column</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-
-4. STATS/METRICS SLIDE (for data presentation):
-<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
-    <div class="slide-container d-flex align-items-center justify-content-center">
-        <div class="block-content {persona_prefix}-padding w-100">
-            <div class="block-header">
-                <h1 class="display-3 fw-bold text-primary {persona_prefix}-title mb-5">Key Metrics</h1>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="block-stats">
-                        <div class="block-stats-number">95%</div>
-                        <div class="block-stats-label">Success Rate</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="block-stats">
-                        <div class="block-stats-number">2.5x</div>
-                        <div class="block-stats-label">Growth</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="block-stats">
-                        <div class="block-stats-number">500+</div>
-                        <div class="block-stats-label">Customers</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-
-INSTRUCTIONS:
-1. Analyze the slide content and choose the most appropriate layout pattern
-2. Use the enhanced CSS classes to create visually appealing, professional slides
-3. Ensure content is concise, impactful, and well-structured
-4. Apply proper typography hierarchy and spacing
-5. Include visual elements like callouts, highlights, or stats when relevant
-
-Create a slide that looks professional and modern, not basic or naive.
-"""
+# The massive prompt has been replaced with modular layout-specific prompts
+# See prompts.py for the new manageable prompt system
 
 
 def _extract_body_content(html_content: str, slide_title: str) -> str:
@@ -598,19 +444,26 @@ This slide will have TinyMCE inline editor injected after generation.
 Editor scripts will be automatically added - focus on creating clean, semantic HTML structure.
 """
 
-        prompt_vars = {
-            "topic": deck_context.get("deck_title", ""),
-            "audience": deck_context.get("audience", ""),
-            "theme": deck_context.get("core_message", ""),
-            "layout_preference": layout_preference,
-            "color_preference": color_preference,
-            "persona_preference": persona_preference,
-            "persona_prefix": persona_prefix,
-            "slide_json": json.dumps(slide_info, indent=2, ensure_ascii=False),
-            "modification_context": modification_context,
-            "editing_context": editing_context,
-        }
-        formatted_prompt = BODY_RENDER_PROMPT.format(**prompt_vars)
+        # Use the new modular prompt system
+        from .prompts import get_layout_prompt
+        
+        layout_type = slide_info.get("layout_type", "content_slide")
+        
+        # Get layout-specific prompt
+        formatted_prompt = get_layout_prompt(
+            layout_type=layout_type,
+            slide_data=slide_info,
+            layout_preference=layout_preference,
+            persona_preference=persona_preference
+        )
+        
+        # Add modification context if needed
+        if modification_context:
+            formatted_prompt += f"\n\nMODIFICATION REQUEST:\n{modification_context}"
+            
+        # Add editing context if needed  
+        if editing_context:
+            formatted_prompt += f"\n\nEDITOR NOTES:\n{editing_context}"
 
         logger.debug(
             f"{mode_text} 프롬프트 준비 완료", prompt_length=len(formatted_prompt)
@@ -630,8 +483,13 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
         # Validate and sanitize body content
         body_content = _validate_body_content(body_content_result.html_content, slide_title)
         
-        # Build complete HTML with predefined CSS
-        head_content = _build_html_head(layout_preference, color_preference, persona_preference)
+        # Build complete HTML with dynamic CSS
+        head_content = _build_html_head(
+            layout_type=layout_type,
+            layout_preference=layout_preference, 
+            color_preference=color_preference, 
+            persona_preference=persona_preference
+        )
         complete_html = _combine_html_parts(head_content, body_content)
         
         # Create final content object

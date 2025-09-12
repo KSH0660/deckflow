@@ -1,0 +1,55 @@
+/* Title Slide Components */
+
+.title-hero {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.title-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.title-hero p {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    max-width: 80%;
+}
+
+/* Professional Layout */
+.professional .title-hero {
+    background: linear-gradient(135deg, rgba(30,64,175,0.05) 0%, rgba(59,130,246,0.05) 100%);
+}
+
+.professional .title-hero h1 {
+    color: var(--color-primary);
+}
+
+/* Creative Layout */
+.creative .title-hero {
+    position: relative;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+}
+
+.creative .title-hero h1,
+.creative .title-hero p {
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Minimal Layout */
+.minimal .title-hero {
+    text-align: left;
+    padding-left: 2rem;
+}
+
+.minimal .title-hero h1 {
+    font-weight: 300;
+    font-size: 3rem;
+}
