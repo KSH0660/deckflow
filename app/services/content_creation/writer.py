@@ -35,7 +35,7 @@ def _get_persona_prefix(persona: str) -> str:
 
 
 def _build_html_head(layout_preference: str, color_preference: str, persona_preference: str) -> str:
-    """Build HTML head section with external CSS link"""
+    """Build HTML head section with Bootstrap CSS"""
     head_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,8 +43,11 @@ def _build_html_head(layout_preference: str, color_preference: str, persona_pref
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeckFlow Slide</title>
     
-    <!-- Dynamic CSS based on user preferences -->
-    <link rel="stylesheet" href="/api/styles/{layout_preference}-{color_preference}-{persona_preference}.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom DeckFlow styles -->
+    <link href="/assets/bootstrap-styles.css" rel="stylesheet">
     
     <!-- TinyMCE Editor -->
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
@@ -52,7 +55,6 @@ def _build_html_head(layout_preference: str, color_preference: str, persona_pref
     <style>
         /* Base slide container styles */
         body {{ margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }}
-        .slide-container {{ width: 100vw; height: 100vh; aspect-ratio: 16/9; }}
     </style>
 </head>"""
     
@@ -72,7 +74,7 @@ def _combine_html_parts(head_content: str, body_content: str) -> str:
         body_inner = body_content.strip()
     
     return f"""{head_content}
-<body class="w-full h-screen flex items-center justify-center bg-gray-100 overflow-hidden">
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
     {body_inner}
 </body>
 </html>"""
@@ -90,41 +92,58 @@ def _inject_tinymce_script(html: str) -> str:
         return html + tinymce_script
 
 
-BODY_RENDER_PROMPT = """CRITICAL: CREATE HIGH-QUALITY PRESENTATION SLIDE USING PREDEFINED CSS CLASSES
+BODY_RENDER_PROMPT = """CRITICAL: CREATE HIGH-QUALITY PRESENTATION SLIDE USING BOOTSTRAP AND CUSTOM CSS CLASSES
 
-You are a professional presentation designer. Create ONLY the body content for a single slide using predefined CSS classes to achieve modern, professional slide design.
+You are a professional presentation designer. Create ONLY the body content for a single slide using Bootstrap 5.3 and custom CSS classes to achieve modern, professional slide design.
 
 MANDATORY RULES:
 1. OUTPUT ONLY BODY CONTENT: Start with <body> and end with </body> - NO <!DOCTYPE>, <html>, or <head>
-2. USE PREDEFINED CSS CLASSES: Focus on the enhanced block classes and layout-specific classes
+2. USE BOOTSTRAP + CUSTOM CLASSES: Focus on Bootstrap utilities and DeckFlow custom classes
 3. CREATE PROFESSIONAL DESIGN: Use proper hierarchy, spacing, and visual elements
 4. CONTENT OPTIMIZATION: Maximum 4 key points OR 3 paragraphs, concise and impactful
 5. LAYOUT VARIETY: Choose from multiple layout patterns based on content type
 
-ENHANCED CSS CLASSES AVAILABLE:
+BOOTSTRAP 5.3 CLASSES AVAILABLE:
 
-Core Structure:
-- block-header, block-title, block-subtitle, block-content
-- block-text, block-text-lg, block-text-emphasis
+Layout & Flexbox:
+- d-flex, align-items-center, justify-content-center, flex-column, flex-row
+- container, container-fluid, row, col, col-md-4, col-lg-6
+- w-100, h-100, min-vh-100, overflow-hidden
+
+Typography:
+- display-1, display-2, display-3, fs-1, fs-2, fs-3, fs-4, fs-5
+- fw-bold, fw-semibold, lh-base, text-center, text-start
+- text-primary, text-secondary, text-success, text-warning
+
+Spacing & Sizing:
+- m-0, m-1, m-2, m-3, m-4, m-5, mb-3, mb-4, mb-5
+- p-2, p-3, p-4, p-5, px-4, py-3
+- g-3, g-4 (for row gaps)
+
+Components:
+- card, card-body, card-title, card-text
+- btn, btn-primary, btn-lg, btn-outline-primary
+- bg-light, bg-primary, bg-success, bg-opacity-10
+
+CUSTOM DECKFLOW CLASSES:
+
+Layout Structure:
+- slide-container (main slide wrapper)
+- block-header, block-content, block-section
+- professional-hero, professional-two-column
+- creative-hero, minimal-hero, minimal-two-column
+
+Persona Styles:
+- {persona_prefix}-padding, {persona_prefix}-title, {persona_prefix}-body
+- balanced-padding, compact-padding, spacious-padding
+
+Visual Components:
+- block-callout, block-stats, block-stats-number, block-stats-label
 - block-list, block-list-item, block-list-bullet
-- block-section, block-divider, block-card
-- block-heading-xl, block-heading-lg, block-heading-md
-
-Visual Enhancement:
-- block-highlight, block-callout, block-accent
-- block-stats, block-stats-number, block-stats-label
-- {layout_preference}-hero, {layout_preference}-two-column
-- {layout_preference}-icon-list, {layout_preference}-feature-grid
-
-Layout Patterns:
-- {layout_preference}-spacing, {layout_preference}-text
-- {persona_prefix}-padding, {persona_prefix}-section
-- {persona_prefix}-title, {persona_prefix}-body
-- block-grid, block-grid-2, block-grid-3
 
 Color & Theme:
-- text-primary, text-secondary, bg-primary
-- color-primary, color-secondary
+- text-primary, text-secondary (custom colors)
+- modern-green, warm-corporate (color modifiers)
 
 SLIDE CONTENT CONTEXT:
 Topic: {topic}
@@ -140,37 +159,35 @@ Persona: {persona_preference}
 LAYOUT PATTERN EXAMPLES:
 
 1. HERO SLIDE (for introductions/key messages):
-<body class="w-full h-screen flex items-center justify-center overflow-hidden">
-    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
-        <div class="block-content {persona_prefix}-padding">
-            <div class="{layout_preference}-hero">
-                <h1 class="block-heading-xl {persona_prefix}-title">Main Title</h1>
-                <p class="block-text-lg text-secondary">Compelling subtitle or key message</p>
-            </div>
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
+    <div class="slide-container d-flex align-items-center justify-content-center">
+        <div class="{layout_preference}-hero text-center {persona_prefix}-padding w-100">
+            <h1 class="display-1 fw-bold text-primary {persona_prefix}-title mb-4">Main Title</h1>
+            <p class="fs-2 text-secondary {persona_prefix}-body">Compelling subtitle or key message</p>
         </div>
     </div>
 </body>
 
 2. CONTENT SLIDE (for detailed information):
-<body class="w-full h-screen flex items-center justify-center overflow-hidden">
-    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
-        <div class="block-content {persona_prefix}-padding">
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
+    <div class="slide-container d-flex align-items-center justify-content-center">
+        <div class="block-content {persona_prefix}-padding w-100">
             <div class="block-header">
-                <h1 class="block-title {persona_prefix}-title text-primary">Section Title</h1>
-                <p class="block-subtitle text-secondary">Supporting subtitle</p>
+                <h1 class="display-3 fw-bold text-primary {persona_prefix}-title">Section Title</h1>
+                <p class="fs-4 text-secondary mb-4">Supporting subtitle</p>
             </div>
-            <div class="block-section {persona_prefix}-section">
-                <div class="block-callout">
-                    <p class="block-text-emphasis">Key insight or important point</p>
+            <div class="block-section">
+                <div class="block-callout mb-4">
+                    <p class="fs-5 fw-semibold">Key insight or important point</p>
                 </div>
                 <ul class="block-list">
-                    <li class="block-list-item {persona_prefix}-body">
+                    <li class="block-list-item">
                         <div class="block-list-bullet"></div>
-                        <span>First important point</span>
+                        <span class="{persona_prefix}-body">First important point</span>
                     </li>
-                    <li class="block-list-item {persona_prefix}-body">
+                    <li class="block-list-item">
                         <div class="block-list-bullet"></div>
-                        <span>Second key insight</span>
+                        <span class="{persona_prefix}-body">Second key insight</span>
                     </li>
                 </ul>
             </div>
@@ -179,20 +196,24 @@ LAYOUT PATTERN EXAMPLES:
 </body>
 
 3. TWO-COLUMN SLIDE (for comparisons/balanced content):
-<body class="w-full h-screen flex items-center justify-center overflow-hidden">
-    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
-        <div class="block-content {persona_prefix}-padding">
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
+    <div class="slide-container d-flex align-items-center justify-content-center">
+        <div class="block-content {persona_prefix}-padding w-100">
             <div class="block-header">
-                <h1 class="block-title {persona_prefix}-title text-primary">Comparison Title</h1>
+                <h1 class="display-3 fw-bold text-primary {persona_prefix}-title mb-4">Comparison Title</h1>
             </div>
-            <div class="{layout_preference}-two-column">
-                <div class="block-card">
-                    <h3 class="block-heading-md">Left Side</h3>
-                    <p class="block-text">Content for left column</p>
+            <div class="{layout_preference}-two-column h-75">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title fs-4">Left Side</h3>
+                        <p class="card-text fs-5">Content for left column</p>
+                    </div>
                 </div>
-                <div class="block-card">
-                    <h3 class="block-heading-md">Right Side</h3>
-                    <p class="block-text">Content for right column</p>
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title fs-4">Right Side</h3>
+                        <p class="card-text fs-5">Content for right column</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -200,24 +221,30 @@ LAYOUT PATTERN EXAMPLES:
 </body>
 
 4. STATS/METRICS SLIDE (for data presentation):
-<body class="w-full h-screen flex items-center justify-center overflow-hidden">
-    <div class="slide-container max-w-7xl mx-auto bg-white shadow-2xl flex items-center justify-center">
-        <div class="block-content {persona_prefix}-padding">
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
+    <div class="slide-container d-flex align-items-center justify-content-center">
+        <div class="block-content {persona_prefix}-padding w-100">
             <div class="block-header">
-                <h1 class="block-title {persona_prefix}-title text-primary">Key Metrics</h1>
+                <h1 class="display-3 fw-bold text-primary {persona_prefix}-title mb-5">Key Metrics</h1>
             </div>
-            <div class="block-grid block-grid-3">
-                <div class="block-stats">
-                    <div class="block-stats-number">95%</div>
-                    <div class="block-stats-label">Success Rate</div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="block-stats">
+                        <div class="block-stats-number">95%</div>
+                        <div class="block-stats-label">Success Rate</div>
+                    </div>
                 </div>
-                <div class="block-stats">
-                    <div class="block-stats-number">2.5x</div>
-                    <div class="block-stats-label">Growth</div>
+                <div class="col-md-4">
+                    <div class="block-stats">
+                        <div class="block-stats-number">2.5x</div>
+                        <div class="block-stats-label">Growth</div>
+                    </div>
                 </div>
-                <div class="block-stats">
-                    <div class="block-stats-number">500+</div>
-                    <div class="block-stats-label">Customers</div>
+                <div class="col-md-4">
+                    <div class="block-stats">
+                        <div class="block-stats-number">500+</div>
+                        <div class="block-stats-label">Customers</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -299,7 +326,8 @@ def _validate_body_content(body_content: str, slide_title: str) -> str:
         '</html>',
         '<meta',
         '<title',
-        '<script src="https://cdn.tailwindcss.com"'
+        '<script src="https://cdn.tailwindcss.com"',
+        'tailwind'
     ]
     
     cleaned_content = inner_content
@@ -325,9 +353,9 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> None:
         logger.error("생성된 HTML 콘텐츠가 비어 있습니다.", slide_title=slide_title)
         raise ValueError("Generated HTML content is empty.")
 
-    if '<script src="https://cdn.tailwindcss.com"></script>' not in html:
+    if 'bootstrap' not in html.lower():
         logger.warning(
-            "Tailwind CSS CDN 스크립트가 누락되었습니다.", slide_title=slide_title
+            "Bootstrap CSS가 누락되었습니다.", slide_title=slide_title
         )
 
     if "</html>" not in html.lower():

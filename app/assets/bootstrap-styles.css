@@ -1,0 +1,170 @@
+/* Bootstrap-based custom styles for DeckFlow slides */
+
+/* Base slide container styles */
+.slide-container {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: 16/9;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* Layout Preferences */
+
+/* Professional Layout */
+.professional-hero .display-1 {
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 1rem;
+}
+
+.professional-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    height: 100%;
+    align-items: center;
+}
+
+/* Creative Layout */
+.creative-hero {
+    text-align: center;
+    position: relative;
+}
+
+.creative-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(59,130,246,0.1) 100%);
+    z-index: -1;
+}
+
+/* Minimal Layout */
+.minimal-hero {
+    text-align: left;
+    padding: 2rem;
+}
+
+.minimal-two-column {
+    display: flex;
+    gap: 3rem;
+    align-items: flex-start;
+}
+
+/* Color Preferences */
+
+/* Professional Blue */
+.text-primary { color: #1e40af !important; }
+.text-secondary { color: #64748b !important; }
+.bg-primary { background-color: #1e40af !important; }
+.border-primary { border-color: #1e40af !important; }
+
+/* Modern Green */
+.text-primary.modern-green { color: #059669 !important; }
+.bg-primary.modern-green { background-color: #059669 !important; }
+.border-primary.modern-green { border-color: #059669 !important; }
+
+/* Warm Corporate */
+.text-primary.warm-corporate { color: #dc2626 !important; }
+.bg-primary.warm-corporate { background-color: #dc2626 !important; }
+.border-primary.warm-corporate { border-color: #dc2626 !important; }
+
+/* Persona Styles */
+
+/* Balanced */
+.balanced-padding { padding: 3rem; }
+.balanced-title { font-size: 2.5rem; margin-bottom: 1rem; }
+.balanced-body { font-size: 1.125rem; line-height: 1.6; }
+
+/* Compact */
+.compact-padding { padding: 2rem; }
+.compact-title { font-size: 2rem; margin-bottom: 0.75rem; }
+.compact-body { font-size: 1rem; line-height: 1.5; }
+
+/* Spacious */
+.spacious-padding { padding: 4rem; }
+.spacious-title { font-size: 3rem; margin-bottom: 1.5rem; }
+.spacious-body { font-size: 1.25rem; line-height: 1.7; }
+
+/* Block Components */
+.block-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.block-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.block-callout {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 4px solid #3b82f6;
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    border-radius: 0.375rem;
+}
+
+.block-stats {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.block-stats-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1e40af;
+    line-height: 1;
+}
+
+.block-stats-label {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
+/* Custom list styles */
+.block-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.block-list-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+}
+
+.block-list-bullet {
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+    margin-right: 1rem;
+    margin-top: 0.6rem;
+    flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .professional-two-column,
+    .minimal-two-column {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    
+    .spacious-padding { padding: 2rem; }
+    .balanced-padding { padding: 2rem; }
+    .compact-padding { padding: 1.5rem; }
+}
