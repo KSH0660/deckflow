@@ -1,38 +1,7 @@
-from enum import Enum
-
 from pydantic import BaseModel, Field
 
-
-# Enums for deck planning
-class PresentationGoal(str, Enum):
-    PERSUADE = "persuade"
-    INFORM = "inform"
-    INSPIRE = "inspire"
-    EDUCATE = "educate"
-
-
-class LayoutType(str, Enum):
-    TITLE_SLIDE = "title_slide"
-    CONTENT_SLIDE = "content_slide"
-    COMPARISON = "comparison"
-    DATA_VISUAL = "data_visual"
-    PROCESS_FLOW = "process_flow"
-    FEATURE_SHOWCASE = "feature_showcase"
-    TESTIMONIAL = "testimonial"
-    CALL_TO_ACTION = "call_to_action"
-
-
-class ColorTheme(str, Enum):
-    PROFESSIONAL_BLUE = "professional_blue"
-    CORPORATE_GRAY = "corporate_gray"
-    VIBRANT_PURPLE = "vibrant_purple"
-    MODERN_TEAL = "modern_teal"
-    ENERGETIC_ORANGE = "energetic_orange"
-    NATURE_GREEN = "nature_green"
-    ELEGANT_BURGUNDY = "elegant_burgundy"
-    TECH_DARK = "tech_dark"
-    WARM_SUNSET = "warm_sunset"
-    MINIMAL_MONOCHROME = "minimal_monochrome"
+# Import unified enums
+from app.models.enums import LayoutType, PresentationGoal, ColorPreference
 
 
 # Slide planning models
@@ -76,7 +45,7 @@ class DeckPlan(BaseModel):
         min_length=10, description="Single most important message"
     )
     goal: PresentationGoal = Field(description="Presentation objective")
-    color_theme: ColorTheme = Field(description="Visual theme for presentation")
+    color_theme: ColorPreference = Field(description="Visual theme for presentation")
     slides: list[SlidePlan]
 
 

@@ -5,11 +5,19 @@ This module provides layout-specific prompts that reference
 the dynamically injected CSS components.
 """
 
-from typing import Dict
+from typing import Dict, Union
+from app.models.enums import (
+    LayoutType, 
+    LayoutPreference,
+    PersonaPreference,
+    validate_layout_type,
+    validate_layout_preference,
+    validate_persona_preference
+)
 
 # Layout-specific body generation prompts
-LAYOUT_PROMPTS: Dict[str, str] = {
-    "title_slide": """Create a title slide using the title-hero CSS component.
+LAYOUT_PROMPTS: Dict[LayoutType, str] = {
+    LayoutType.TITLE_SLIDE: """Create a title slide using the title-hero CSS component.
 
 STRUCTURE:
 ```html
@@ -28,7 +36,7 @@ CONTENT GUIDELINES:
 
 SLIDE DATA: {slide_data}""",
 
-    "content_slide": """Create a content slide using the content-layout CSS components.
+    LayoutType.CONTENT_SLIDE: """Create a content slide using the content-layout CSS components.
 
 STRUCTURE:
 ```html
@@ -61,7 +69,7 @@ CONTENT GUIDELINES:
 
 SLIDE DATA: {slide_data}""",
 
-    "comparison": """Create a comparison slide using the comparison-grid CSS components.
+    LayoutType.COMPARISON: """Create a comparison slide using the comparison-grid CSS components.
 
 STRUCTURE:
 ```html
@@ -91,7 +99,7 @@ CONTENT GUIDELINES:
 
 SLIDE DATA: {slide_data}""",
 
-    "feature_showcase": """Create a feature showcase using the feature-grid CSS components.
+    LayoutType.FEATURE_SHOWCASE: """Create a feature showcase using the feature-grid CSS components.
 
 STRUCTURE:
 ```html
@@ -119,7 +127,7 @@ CONTENT GUIDELINES:
 
 SLIDE DATA: {slide_data}""",
 
-    "call_to_action": """Create a call-to-action slide using the cta-layout CSS components.
+    LayoutType.CALL_TO_ACTION: """Create a call-to-action slide using the cta-layout CSS components.
 
 STRUCTURE:
 ```html
@@ -161,10 +169,10 @@ SLIDE DATA: {slide_data}"""
 
 
 def get_layout_prompt(
-    layout_type: str,
+    layout_type: Union[LayoutType, str],
     slide_data: dict,
-    layout_preference: str = "professional",
-    persona_preference: str = "balanced"
+    layout_preference: Union[LayoutPreference, str] = LayoutPreference.PROFESSIONAL,
+    persona_preference: Union[PersonaPreference, str] = PersonaPreference.BALANCED
 ) -> str:
     """
     Get the appropriate prompt for a layout type
@@ -178,17 +186,25 @@ def get_layout_prompt(
     Returns:
         Formatted prompt string ready for LLM
     """
+    # Validate and convert to enums
+    if isinstance(layout_type, str):
+        layout_type = validate_layout_type(layout_type)
+    if isinstance(layout_preference, str):
+        layout_preference = validate_layout_preference(layout_preference)
+    if isinstance(persona_preference, str):
+        persona_preference = validate_persona_preference(persona_preference)
+    
     # Get the appropriate prompt template
     prompt_template = LAYOUT_PROMPTS.get(layout_type, DEFAULT_LAYOUT_PROMPT)
     
     # Format with provided data
     return prompt_template.format(
         slide_data=slide_data,
-        layout_preference=layout_preference,
-        persona_preference=persona_preference
+        layout_preference=layout_preference.value,
+        persona_preference=persona_preference.value
     )
 
 
-def get_available_layouts() -> list[str]:
+def get_available_layouts() -> list[LayoutType]:
     """Get list of available layout prompt types"""
     return list(LAYOUT_PROMPTS.keys())
