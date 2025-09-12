@@ -7,7 +7,7 @@ They include validation, constraints, and transformation logic for user input.
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.services.file_processing import FileInfo
+from app.services.file_processing.models import FileInfo
 
 
 class CreateDeckRequest(BaseModel):

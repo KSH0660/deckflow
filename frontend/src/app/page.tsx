@@ -44,11 +44,17 @@ export default function Home() {
         }),
       });
       if (response.ok) {
-        await response.json();
+        const result = await response.json();
+        console.log('Deck created successfully:', result);
         router.push('/decks');
+      } else {
+        const error = await response.text();
+        console.error('HTTP Error:', response.status, error);
+        alert(`오류 발생: ${response.status} - ${error}`);
       }
     } catch (error) {
       console.error('Error creating deck:', error);
+      alert(`네트워크 오류: ${error}`);
     }
     setIsLoading(false);
   };
