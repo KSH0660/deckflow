@@ -23,14 +23,17 @@ class TestSlideContent:
         assert content.html_content == ""
 
     def test_slide_content_html_structure(self, sample_slide_content):
-        """Test that sample HTML has expected structure."""
+        """Test that sample HTML has expected structure using real CSS builder."""
         html = sample_slide_content.html_content
         assert "<html>" in html
         assert "</html>" in html
         assert "bootstrap.min.css" in html
         # Builder default heading is 'Test Slide'
         assert "Test Slide" in html
-        assert "vh-100" in html
+        # Real CSS builder generates slide-container class instead of vh-100
+        assert "slide-container" in html
+        # Check for real CSS variables from the CSS builder
+        assert "--color-primary" in html
 
     def test_slide_content_serialization(self, sample_slide_content):
         """Test model serialization."""

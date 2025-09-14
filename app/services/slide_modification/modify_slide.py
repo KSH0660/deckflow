@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 
 from app.logging import get_logger
+from app.models.enums import DeckStatus
 from app.services.content_creation import SlideContent, write_content
 
 logger = get_logger(__name__)
@@ -132,9 +133,11 @@ async def modify_slide(
         # 덱의 슬라이드 리스트 업데이트
         slides[slide_index] = updated_slide
         deck["slides"] = slides
-        deck["status"] = "completed"  # 수정 완료 후 다시 completed 상태로
+        deck["status"] = (
+            DeckStatus.COMPLETED.value
+        )  # 수정 완료 후 다시 completed 상태로
         deck["updated_at"] = datetime.now()
-        deck["step"] = None  # step 초기화
+        deck["status_message"] = None  # status_message 초기화
         deck["progress"] = None  # progress 초기화
 
         # 덱 저장
@@ -161,9 +164,9 @@ async def modify_slide(
         try:
             deck = await repo.get_deck(deck_id)
             if deck:
-                deck["status"] = "completed"
+                deck["status"] = DeckStatus.COMPLETED.value
                 deck["updated_at"] = datetime.now()
-                deck["step"] = None  # step 초기화
+                deck["status_message"] = None  # status_message 초기화
                 deck["progress"] = None  # progress 초기화
                 await repo.save_deck(deck_id, deck)
         except Exception as restore_error:

@@ -20,21 +20,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from app.adapter.factory import current_llm, current_repo
-from app.api.common import handle_service_errors, handle_validation_errors
+from app.api.common import handle_service_errors
 from app.core.config import Settings as AppSettings
 from app.core.config import settings as app_settings
+from app.models.enums import DeckStatus
 from app.models.requests.deck import (
     CreateDeckRequest,
     ModifySlideRequest,
     RevertSlideRequest,
 )
 from app.models.responses.deck import (
-    CreateDeckResponse,
-    DeckListItemResponse,
-    DeckStatusResponse,
-    ModifySlideResponse,
-    RevertSlideResponse,
-    SaveSlideContentResponse,
+    DeckResponse,
+    SlideOperationResponse,
     SlideVersionHistoryResponse,
 )
 from app.services.deck_service import DeckService
@@ -55,7 +52,7 @@ def get_deck_service(
     return DeckService(repository=repo, llm_provider=llm)
 
 
-@router.post("/decks", response_model=CreateDeckResponse)
+@router.post("/decks", response_model=DeckResponse)
 @handle_service_errors
 async def create_deck(
     request: CreateDeckRequest,
@@ -74,7 +71,7 @@ async def create_deck(
     return await deck_service.create_deck(request, settings)
 
 
-@router.get("/decks/{deck_id}", response_model=DeckStatusResponse)
+@router.get("/decks/{deck_id}", response_model=DeckResponse)
 @handle_service_errors
 async def get_deck_status(
     deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
@@ -91,7 +88,7 @@ async def get_deck_status(
     return await deck_service.get_deck_status(deck_id)
 
 
-@router.get("/decks", response_model=list[DeckListItemResponse])
+@router.get("/decks", response_model=list[DeckResponse])
 @handle_service_errors
 async def list_decks(
     limit: int = Query(default=10, ge=1, le=100),
@@ -120,7 +117,8 @@ async def get_deck_data(
 
 
 @router.post(
-    "/decks/{deck_id}/slides/{slide_order}/modify", response_model=ModifySlideResponse
+    "/decks/{deck_id}/slides/{slide_order}/modify",
+    response_model=SlideOperationResponse,
 )
 async def modify_slide_endpoint(
     deck_id: UUID,
@@ -146,24 +144,24 @@ async def modify_slide_endpoint(
 
         async def progress_cb(step: str, progress: int, _slide: dict | None = None):
             deck = await repo.get_deck(deck_id) or {}
-            if deck.get("status") == "cancelled":
+            if deck.get("status") == DeckStatus.CANCELLED.value:
                 return
 
             if progress >= 100:
                 deck.update(
                     {
-                        "status": "completed",
+                        "status": DeckStatus.COMPLETED.value,
                         "progress": None,
-                        "step": None,
+                        "status_message": None,
                         "updated_at": datetime.now(),
                     }
                 )
             else:
                 deck.update(
                     {
-                        "status": "modifying",
+                        "status": DeckStatus.MODIFYING.value,
                         "progress": int(progress),
-                        "step": step,
+                        "status_message": step,
                         "updated_at": datetime.now(),
                     }
                 )
@@ -215,7 +213,8 @@ async def get_slide_version_history(
 
 
 @router.post(
-    "/decks/{deck_id}/slides/{slide_order}/revert", response_model=RevertSlideResponse
+    "/decks/{deck_id}/slides/{slide_order}/revert",
+    response_model=SlideOperationResponse,
 )
 async def revert_slide_to_version(
     deck_id: UUID,
@@ -237,7 +236,7 @@ async def revert_slide_to_version(
         ) from e
 
 
-@router.post("/save", response_model=SaveSlideContentResponse)
+@router.post("/save", response_model=SlideOperationResponse)
 async def save_edited_html(
     request: Request,
     deck_id: str = Query(...),
@@ -277,7 +276,7 @@ async def save_edited_html(
         raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}") from e
 
 
-@router.post("/decks/{deck_id}/cancel", response_model=DeckStatusResponse)
+@router.post("/decks/{deck_id}/cancel", response_model=DeckResponse)
 async def cancel_deck(
     deck_id: UUID, deck_service: DeckService = Depends(get_deck_service)
 ):
@@ -286,15 +285,19 @@ async def cancel_deck(
         deck_status = await deck_service.get_deck_status(deck_id)
 
         # If already terminal, just return current state
-        if deck_status.status in {"completed", "failed", "cancelled"}:
+        if deck_status.status in {
+            DeckStatus.COMPLETED,
+            DeckStatus.FAILED,
+            DeckStatus.CANCELLED,
+        }:
             return deck_status
 
         # Update status in repository (using existing logic for now)
         repo = current_repo()
         deck = await repo.get_deck(deck_id)
         if deck:
-            deck["status"] = "cancelled"
-            deck["step"] = "Cancelled by user"
+            deck["status"] = DeckStatus.CANCELLED.value
+            deck["status_message"] = "Cancelled by user"
             deck["updated_at"] = datetime.now()
             await repo.save_deck(deck_id, deck)
 

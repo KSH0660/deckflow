@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from app.models.enums import ColorPreference, DeckStatus
 from app.services.content_creation.models import SlideContent
-from app.models.enums import ColorPreference
 from app.services.deck_planning.models import (
     DeckPlan,
     LayoutType,
@@ -130,9 +130,9 @@ class TestFullDeckWorkflow:
                     # Execute workflow through DeckService
                     result = await deck_service.create_deck(request, settings)
 
-        # Verify result (DeckService returns CreateDeckResponse)
+        # Verify result (DeckService returns DeckResponse)
         assert result is not None
-        assert result.status == "generating"
+        assert result.status == DeckStatus.STARTING
         assert result.deck_id is not None
 
         # Verify repository interactions - initial save should happen
@@ -141,7 +141,7 @@ class TestFullDeckWorkflow:
 
         # Verify initial deck was saved
         initial_deck = save_calls[0][0][1]  # First save call, deck data
-        assert initial_deck["status"] == "generating"
+        assert initial_deck["status"] == DeckStatus.STARTING
 
     @pytest.mark.skip(
         reason="File processing test needs mocking adjustment for background task execution"
@@ -227,7 +227,7 @@ class TestFullDeckWorkflow:
                     result = await deck_service.create_deck(request, settings)
 
         assert result is not None
-        assert result.status == "generating"
+        assert result.status == DeckStatus.STARTING
 
         # Verify enhanced prompt was created with file content - check if plan_deck was called
         mock_plan.assert_called_once()
@@ -290,7 +290,7 @@ class TestFullDeckWorkflow:
                     result = await deck_service.create_deck(request, settings)
 
                     assert result is not None
-                    assert result.status == "generating"
+                    assert result.status == DeckStatus.STARTING
 
                     # The error handling happens in background task
                     # Verify initial deck was saved

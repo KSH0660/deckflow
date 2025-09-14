@@ -3,7 +3,7 @@ from pathlib import Path
 
 from docx import Document
 from PIL import Image
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 from app.logging import get_logger
 
@@ -60,7 +60,7 @@ class FileProcessor:
                 parser_library = "python built-in (decode)"
             elif extension == ".pdf":
                 extracted_text = cls._extract_from_pdf(file_content)
-                parser_library = "PyPDF2"
+                parser_library = "pypdf"
             elif extension in [".docx", ".doc"]:
                 extracted_text = cls._extract_from_docx(file_content)
                 parser_library = "python-docx"

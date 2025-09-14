@@ -1,5 +1,3 @@
-import json
-import os
 from pathlib import Path
 
 from app.logging import get_logger
@@ -12,9 +10,15 @@ logger = get_logger(__name__)
 def _load_compiled_css() -> str:
     """Load compiled CSS file with all styles"""
     try:
-        css_path = Path(__file__).parent.parent.parent / "assets" / "css" / "compiled" / "output.css"
+        css_path = (
+            Path(__file__).parent.parent.parent
+            / "assets"
+            / "css"
+            / "compiled"
+            / "output.css"
+        )
         if css_path.exists():
-            return css_path.read_text(encoding='utf-8')
+            return css_path.read_text(encoding="utf-8")
         else:
             logger.warning(f"Compiled CSS file not found: {css_path}")
             # Fallback to CDN if compiled CSS is not available
@@ -28,63 +32,63 @@ def _get_persona_prefix(persona: str) -> str:
     """Get CSS prefix for persona"""
     persona_mapping = {
         "compact": "compact",
-        "spacious": "spacious", 
-        "balanced": "balanced"
+        "spacious": "spacious",
+        "balanced": "balanced",
     }
     return persona_mapping.get(persona, "balanced")
 
 
 def _build_html_head(
     layout_type: str,
-    layout_preference: str, 
-    color_preference: str, 
-    persona_preference: str
+    layout_preference: str,
+    color_preference: str,
+    persona_preference: str,
 ) -> str:
     """Build HTML head section with dynamic CSS injection"""
     from .css_builder import build_slide_css
-    
+
     # Generate layout-specific CSS
     custom_css = build_slide_css(
         layout_type=layout_type,
         layout_preference=layout_preference,
-        color_preference=color_preference, 
-        persona_preference=persona_preference
+        color_preference=color_preference,
+        persona_preference=persona_preference,
     )
-    
+
     head_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeckFlow Slide</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- TinyMCE Editor -->
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
-    
+
     <!-- Dynamic Layout-Specific CSS -->
     <style>
 {custom_css}
     </style>
 </head>"""
-    
+
     return head_content
 
 
 def _combine_html_parts(head_content: str, body_content: str) -> str:
     """Combine head and body content into complete HTML"""
     # Extract body content (remove <body> and </body> tags if present)
-    if body_content.strip().startswith('<body'):
-        body_start = body_content.find('>') + 1
-        body_end = body_content.rfind('</body>')
+    if body_content.strip().startswith("<body"):
+        body_start = body_content.find(">") + 1
+        body_end = body_content.rfind("</body>")
         if body_end == -1:
             body_end = len(body_content)
         body_inner = body_content[body_start:body_end].strip()
     else:
         body_inner = body_content.strip()
-    
+
     return f"""{head_content}
 <body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
     {body_inner}
@@ -112,45 +116,51 @@ def _extract_body_content(html_content: str, slide_title: str) -> str:
     """Extract and clean body content from LLM-generated HTML"""
     if not html_content or not html_content.strip():
         raise ValueError("Generated HTML content is empty.")
-    
+
     content = html_content.strip()
-    
+
     # If LLM generated complete HTML, extract just the body inner content
-    if '<!doctype' in content.lower() or '<html' in content.lower():
-        logger.info("Complete HTML detected, extracting body content", slide_title=slide_title)
-        
+    if "<!doctype" in content.lower() or "<html" in content.lower():
+        logger.info(
+            "Complete HTML detected, extracting body content", slide_title=slide_title
+        )
+
         # Find body content
-        body_start_tag = '<body'
-        body_end_tag = '</body>'
-        
+        body_start_tag = "<body"
+        body_end_tag = "</body>"
+
         body_start_index = content.lower().find(body_start_tag)
         body_end_index = content.lower().find(body_end_tag)
-        
+
         if body_start_index != -1 and body_end_index != -1:
             # Find the end of the opening body tag
-            body_content_start = content.find('>', body_start_index) + 1
-            
+            body_content_start = content.find(">", body_start_index) + 1
+
             # Extract just the inner body content
             body_inner_content = content[body_content_start:body_end_index].strip()
-            
-            logger.info("Successfully extracted body inner content", 
-                       slide_title=slide_title, 
-                       original_length=len(content),
-                       extracted_length=len(body_inner_content))
-            
+
+            logger.info(
+                "Successfully extracted body inner content",
+                slide_title=slide_title,
+                original_length=len(content),
+                extracted_length=len(body_inner_content),
+            )
+
             return body_inner_content
         else:
-            logger.warning("Could not find body tags in complete HTML", slide_title=slide_title)
-    
+            logger.warning(
+                "Could not find body tags in complete HTML", slide_title=slide_title
+            )
+
     # If content already looks like body content, clean it up
-    if content.startswith('<body'):
+    if content.startswith("<body"):
         # Extract inner content from body tags
-        body_start = content.find('>') + 1
-        body_end = content.rfind('</body>')
+        body_start = content.find(">") + 1
+        body_end = content.rfind("</body>")
         if body_end == -1:
             body_end = len(content)
         return content[body_start:body_end].strip()
-    
+
     # If it's just inner content, return as-is
     return content
 
@@ -159,35 +169,35 @@ def _validate_body_content(body_content: str, slide_title: str) -> str:
     """Validate and sanitize body content to ensure it's only body HTML"""
     if not body_content or not body_content.strip():
         raise ValueError("Generated body content is empty.")
-    
+
     # First extract the actual body content
     inner_content = _extract_body_content(body_content, slide_title)
-    
+
     # Remove any remaining forbidden elements
     forbidden_elements = [
-        '<!doctype',
-        '<html',
-        '<head',
-        '</head>',
-        '</html>',
-        '<meta',
-        '<title',
+        "<!doctype",
+        "<html",
+        "<head",
+        "</head>",
+        "</html>",
+        "<meta",
+        "<title",
         '<script src="https://cdn.tailwindcss.com"',
-        'tailwind'
+        "tailwind",
     ]
-    
+
     cleaned_content = inner_content
     for forbidden in forbidden_elements:
         if forbidden in cleaned_content.lower():
             logger.warning(
-                f"Removing forbidden element: {forbidden}",
-                slide_title=slide_title
+                f"Removing forbidden element: {forbidden}", slide_title=slide_title
             )
             # More aggressive removal
             import re
-            pattern = re.escape(forbidden) + r'[^>]*>'
-            cleaned_content = re.sub(pattern, '', cleaned_content, flags=re.IGNORECASE)
-    
+
+            pattern = re.escape(forbidden) + r"[^>]*>"
+            cleaned_content = re.sub(pattern, "", cleaned_content, flags=re.IGNORECASE)
+
     return cleaned_content.strip()
 
 
@@ -200,7 +210,7 @@ def _validate_slide_content(content: SlideContent, slide_title: str) -> list[str
         logger.error("생성된 HTML 콘텐츠가 비어 있습니다.", slide_title=slide_title)
         raise ValueError("Generated HTML content is empty.")
 
-    if 'bootstrap' not in html.lower():
+    if "bootstrap" not in html.lower():
         warnings.append("Bootstrap CSS가 누락되었습니다.")
 
     if "</html>" not in html.lower():
@@ -410,7 +420,7 @@ async def write_content(
         layout_preference = deck_context.get("layout_preference", "professional")
         color_preference = deck_context.get("color_preference", "professional_blue")
         persona_preference = deck_context.get("persona_preference", "balanced")
-        persona_prefix = _get_persona_prefix(persona_preference)
+        _get_persona_prefix(persona_preference)
 
         # 수정 컨텍스트 준비
         modification_context = ""
@@ -435,22 +445,22 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
 
         # Use the new modular prompt system
         from .prompts import get_layout_prompt
-        
+
         layout_type = slide_info.get("layout_type", "content_slide")
-        
+
         # Get layout-specific prompt
         formatted_prompt = get_layout_prompt(
             layout_type=layout_type,
             slide_data=slide_info,
             layout_preference=layout_preference,
-            persona_preference=persona_preference
+            persona_preference=persona_preference,
         )
-        
+
         # Add modification context if needed
         if modification_context:
             formatted_prompt += f"\n\nMODIFICATION REQUEST:\n{modification_context}"
-            
-        # Add editing context if needed  
+
+        # Add editing context if needed
         if editing_context:
             formatted_prompt += f"\n\nEDITOR NOTES:\n{editing_context}"
 
@@ -465,22 +475,26 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             prompt_length=len(formatted_prompt),
             is_modification=is_modification,
         )
-        
+
         # Generate body content only
-        body_content_result = await llm.generate_structured(formatted_prompt, schema=SlideContent)
-        
+        body_content_result = await llm.generate_structured(
+            formatted_prompt, schema=SlideContent
+        )
+
         # Validate and sanitize body content
-        body_content = _validate_body_content(body_content_result.html_content, slide_title)
-        
+        body_content = _validate_body_content(
+            body_content_result.html_content, slide_title
+        )
+
         # Build complete HTML with dynamic CSS
         head_content = _build_html_head(
             layout_type=layout_type,
-            layout_preference=layout_preference, 
-            color_preference=color_preference, 
-            persona_preference=persona_preference
+            layout_preference=layout_preference,
+            color_preference=color_preference,
+            persona_preference=persona_preference,
         )
         complete_html = _combine_html_parts(head_content, body_content)
-        
+
         # Create final content object
         content = SlideContent(html_content=complete_html)
 
@@ -499,7 +513,7 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             html_length=len(content.html_content),
             step="content_generation_complete",
             is_modification=is_modification,
-            preferences=f"layout:{layout_preference}, color:{color_preference}, persona:{persona_preference}"
+            preferences=f"layout:{layout_preference}, color:{color_preference}, persona:{persona_preference}",
         )
 
         return content

@@ -1,22 +1,21 @@
 """
 Concise, manageable prompts for slide content generation.
 
-This module provides layout-specific prompts that reference 
+This module provides layout-specific prompts that reference
 the dynamically injected CSS components.
 """
 
-from typing import Dict, Union
 from app.models.enums import (
-    LayoutType, 
     LayoutPreference,
+    LayoutType,
     PersonaPreference,
-    validate_layout_type,
     validate_layout_preference,
-    validate_persona_preference
+    validate_layout_type,
+    validate_persona_preference,
 )
 
 # Layout-specific body generation prompts
-LAYOUT_PROMPTS: Dict[LayoutType, str] = {
+LAYOUT_PROMPTS: dict[LayoutType, str] = {
     LayoutType.TITLE_SLIDE: """Create a title slide using the title-hero CSS component.
 
 STRUCTURE:
@@ -35,7 +34,6 @@ CONTENT GUIDELINES:
 - Use the provided slide data for content
 
 SLIDE DATA: {slide_data}""",
-
     LayoutType.CONTENT_SLIDE: """Create a content slide using the content-layout CSS components.
 
 STRUCTURE:
@@ -68,7 +66,6 @@ CONTENT GUIDELINES:
 - Keep text concise and impactful
 
 SLIDE DATA: {slide_data}""",
-
     LayoutType.COMPARISON: """Create a comparison slide using the comparison-grid CSS components.
 
 STRUCTURE:
@@ -98,7 +95,6 @@ CONTENT GUIDELINES:
 - Focus on key differences
 
 SLIDE DATA: {slide_data}""",
-
     LayoutType.FEATURE_SHOWCASE: """Create a feature showcase using the feature-grid CSS components.
 
 STRUCTURE:
@@ -126,7 +122,6 @@ CONTENT GUIDELINES:
 - Keep descriptions brief
 
 SLIDE DATA: {slide_data}""",
-
     LayoutType.CALL_TO_ACTION: """Create a call-to-action slide using the cta-layout CSS components.
 
 STRUCTURE:
@@ -155,7 +150,7 @@ DEFAULT_LAYOUT_PROMPT = """Create slide content using Bootstrap and available CS
 
 AVAILABLE COMPONENTS:
 - slide-container: Main slide wrapper
-- content-layout: Flexible content structure  
+- content-layout: Flexible content structure
 - content-header: Section headers
 - content-list: Bulleted lists
 - content-callout: Highlighted text boxes
@@ -169,20 +164,20 @@ SLIDE DATA: {slide_data}"""
 
 
 def get_layout_prompt(
-    layout_type: Union[LayoutType, str],
+    layout_type: LayoutType | str,
     slide_data: dict,
-    layout_preference: Union[LayoutPreference, str] = LayoutPreference.PROFESSIONAL,
-    persona_preference: Union[PersonaPreference, str] = PersonaPreference.BALANCED
+    layout_preference: LayoutPreference | str = LayoutPreference.PROFESSIONAL,
+    persona_preference: PersonaPreference | str = PersonaPreference.BALANCED,
 ) -> str:
     """
     Get the appropriate prompt for a layout type
-    
+
     Args:
         layout_type: The slide layout type
         slide_data: Slide information from deck planning
         layout_preference: User's layout preference
         persona_preference: User's persona preference
-        
+
     Returns:
         Formatted prompt string ready for LLM
     """
@@ -193,15 +188,15 @@ def get_layout_prompt(
         layout_preference = validate_layout_preference(layout_preference)
     if isinstance(persona_preference, str):
         persona_preference = validate_persona_preference(persona_preference)
-    
+
     # Get the appropriate prompt template
     prompt_template = LAYOUT_PROMPTS.get(layout_type, DEFAULT_LAYOUT_PROMPT)
-    
+
     # Format with provided data
     return prompt_template.format(
         slide_data=slide_data,
         layout_preference=layout_preference.value,
-        persona_preference=persona_preference.value
+        persona_preference=persona_preference.value,
     )
 
 

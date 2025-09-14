@@ -8,11 +8,29 @@ consistency between frontend, backend, and assets.
 from enum import Enum
 
 
+class DeckStatus(str, Enum):
+    """Status of the deck in its lifecycle"""
+
+    STARTING = "starting"
+    PLANNING = "planning"
+    WRITING = "writing"
+    RENDERING = "rendering"
+    MODIFYING = "modifying"
+
+    # success states
+    COMPLETED = "completed"
+
+    # error states
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
 # Layout Types (determined by AI planning)
 class LayoutType(str, Enum):
     """Slide layout types determined by deck planning AI"""
+
     TITLE_SLIDE = "title_slide"
-    CONTENT_SLIDE = "content_slide" 
+    CONTENT_SLIDE = "content_slide"
     COMPARISON = "comparison"
     DATA_VISUAL = "data_visual"
     PROCESS_FLOW = "process_flow"
@@ -24,14 +42,16 @@ class LayoutType(str, Enum):
 # Layout Preferences (user choice)
 class LayoutPreference(str, Enum):
     """User's preferred layout style"""
+
     PROFESSIONAL = "professional"
     CREATIVE = "creative"
     MINIMAL = "minimal"
 
 
-# Color Preferences (user choice) 
+# Color Preferences (user choice)
 class ColorPreference(str, Enum):
     """User's preferred color scheme"""
+
     PROFESSIONAL_BLUE = "professional_blue"
     WARM_CORPORATE = "warm_corporate"
     MODERN_GREEN = "modern_green"
@@ -40,14 +60,16 @@ class ColorPreference(str, Enum):
 # Persona Preferences (user choice - spacing/typography)
 class PersonaPreference(str, Enum):
     """User's preferred spacing and typography density"""
+
     COMPACT = "compact"
-    BALANCED = "balanced" 
+    BALANCED = "balanced"
     SPACIOUS = "spacious"
 
 
 # Presentation Goals (for planning)
 class PresentationGoal(str, Enum):
     """Overall presentation objective"""
+
     PERSUADE = "persuade"
     INFORM = "inform"
     INSPIRE = "inspire"
@@ -58,60 +80,60 @@ class PresentationGoal(str, Enum):
 LAYOUT_PREFERENCE_CONFIG = {
     LayoutPreference.PROFESSIONAL: {
         "name": "프로페셔널",
-        "description": "기업용 구조화된 레이아웃", 
-        "icon": "💼"
+        "description": "기업용 구조화된 레이아웃",
+        "icon": "💼",
     },
     LayoutPreference.CREATIVE: {
         "name": "크리에이티브",
         "description": "역동적이고 현대적인 레이아웃",
-        "icon": "🎨"
+        "icon": "🎨",
     },
     LayoutPreference.MINIMAL: {
-        "name": "미니멀", 
+        "name": "미니멀",
         "description": "깔끔하고 간단한 레이아웃",
-        "icon": "📝"
-    }
+        "icon": "📝",
+    },
 }
 
 COLOR_PREFERENCE_CONFIG = {
     ColorPreference.PROFESSIONAL_BLUE: {
         "name": "프로페셔널 블루",
         "description": "신뢰감 있는 파란색 조합",
-        "preview": "#1e40af"
+        "preview": "#1e40af",
     },
     ColorPreference.WARM_CORPORATE: {
         "name": "웜 코퍼릿",
-        "description": "따뜻한 기업 색상 조합", 
-        "preview": "#dc2626"
+        "description": "따뜻한 기업 색상 조합",
+        "preview": "#dc2626",
     },
     ColorPreference.MODERN_GREEN: {
         "name": "모던 그린",
         "description": "현대적인 녹색 조합",
-        "preview": "#059669"
-    }
+        "preview": "#059669",
+    },
 }
 
 PERSONA_PREFERENCE_CONFIG = {
     PersonaPreference.COMPACT: {
         "name": "컴팩트",
         "description": "밀도 높은 정보 전달",
-        "icon": "📋"
+        "icon": "📋",
     },
     PersonaPreference.BALANCED: {
-        "name": "밸런스드", 
+        "name": "밸런스드",
         "description": "균형잡힌 일반적 사용",
-        "icon": "⚖️"
+        "icon": "⚖️",
     },
     PersonaPreference.SPACIOUS: {
         "name": "스페이셔스",
         "description": "여유로운 편안한 읽기",
-        "icon": "🌅"
-    }
+        "icon": "🌅",
+    },
 }
 
 # Default values
 DEFAULT_LAYOUT_PREFERENCE = LayoutPreference.PROFESSIONAL
-DEFAULT_COLOR_PREFERENCE = ColorPreference.PROFESSIONAL_BLUE  
+DEFAULT_COLOR_PREFERENCE = ColorPreference.PROFESSIONAL_BLUE
 DEFAULT_PERSONA_PREFERENCE = PersonaPreference.BALANCED
 
 
@@ -156,7 +178,7 @@ def get_layout_preferences() -> list[dict[str, str]]:
             "id": pref.value,
             "name": config["name"],
             "description": config["description"],
-            "icon": config["icon"]
+            "icon": config["icon"],
         }
         for pref, config in LAYOUT_PREFERENCE_CONFIG.items()
     ]
@@ -167,9 +189,9 @@ def get_color_preferences() -> list[dict[str, str]]:
     return [
         {
             "id": pref.value,
-            "name": config["name"], 
+            "name": config["name"],
             "description": config["description"],
-            "preview": config["preview"]
+            "preview": config["preview"],
         }
         for pref, config in COLOR_PREFERENCE_CONFIG.items()
     ]
@@ -181,8 +203,8 @@ def get_persona_preferences() -> list[dict[str, str]]:
         {
             "id": pref.value,
             "name": config["name"],
-            "description": config["description"], 
-            "icon": config["icon"]
+            "description": config["description"],
+            "icon": config["icon"],
         }
         for pref, config in PERSONA_PREFERENCE_CONFIG.items()
     ]

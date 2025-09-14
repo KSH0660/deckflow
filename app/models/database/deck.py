@@ -8,7 +8,9 @@ They should be independent of API request/response formats.
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.models.enums import DeckStatus
 
 
 class SlideVersionDB(BaseModel):
@@ -53,12 +55,12 @@ class DeckDB(BaseModel):
 
     id: UUID
     deck_title: str
-    status: str  # generating, completed, failed, cancelled, modifying
+    status: DeckStatus
     slides: list[SlideDB] = Field(default_factory=list)
 
     # Progress tracking
     progress: int | None = None
-    step: str | None = None
+    status_message: str | None = None
 
     # Metadata
     goal: str | None = None
@@ -71,9 +73,10 @@ class DeckDB(BaseModel):
     updated_at: datetime | None = None
     completed_at: datetime | None = None
 
-    class Config:
+    model_config = ConfigDict(
         # Allow conversion from dict (for repository compatibility)
-        extra = "forbid"
+        extra="forbid"
+    )
 
     @classmethod
     def from_dict(cls, data: dict) -> "DeckDB":

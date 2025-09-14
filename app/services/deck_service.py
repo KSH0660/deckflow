@@ -20,20 +20,16 @@ from app.metrics import (
     slide_generation_total,
 )
 from app.models.config import DeckGenerationConfig
-from app.models.database.deck import SlideVersionDB
-from app.models.database.deck import DeckDB
+from app.models.database.deck import DeckDB, SlideVersionDB
+from app.models.enums import DeckStatus
 from app.models.requests.deck import (
     CreateDeckRequest,
     ModifySlideRequest,
     RevertSlideRequest,
 )
 from app.models.responses.deck import (
-    CreateDeckResponse,
-    DeckListItemResponse,
-    DeckStatusResponse,
-    ModifySlideResponse,
-    RevertSlideResponse,
-    SaveSlideContentResponse,
+    DeckResponse,
+    SlideOperationResponse,
     SlideVersionHistoryResponse,
 )
 from app.services.content_creation import write_content
@@ -50,7 +46,7 @@ class DeckService:
 
     async def create_deck(
         self, request: CreateDeckRequest, settings=None
-    ) -> CreateDeckResponse:
+    ) -> DeckResponse:
         """Create a new deck and start generation process"""
         deck_id = uuid4()
 
@@ -62,10 +58,10 @@ class DeckService:
             id=deck_id,
             deck_title=request.prompt[:60]
             + ("..." if len(request.prompt) > 60 else ""),
-            status="generating",
+            status=DeckStatus.STARTING,
             slides=[],
             progress=1,
-            step="Queued",
+            status_message="Queued",
             created_at=datetime.now(),
         )
 
@@ -75,13 +71,13 @@ class DeckService:
         # Start background generation (business logic belongs in service layer!)
         async def progress_cb(step: str, progress: int, _slide: dict | None = None):
             deck = await self.repo.get_deck(deck_id) or {}
-            if deck.get("status") == "cancelled":
+            if deck.get("status") == DeckStatus.CANCELLED.value:
                 return
             deck.update(
                 {
-                    "status": "generating",
+                    "status": DeckStatus.WRITING.value,  # During generation, it's in WRITING phase
                     "progress": int(progress),
-                    "step": step,
+                    "status_message": step,
                     "updated_at": datetime.now(),
                 }
             )
@@ -102,9 +98,9 @@ class DeckService:
                 )
             )
 
-        return CreateDeckResponse(deck_id=str(deck_id), status="generating")
+        return DeckResponse.for_creation(str(deck_id))
 
-    async def get_deck_status(self, deck_id: UUID) -> DeckStatusResponse:
+    async def get_deck_status(self, deck_id: UUID) -> DeckResponse:
         """Get deck status by ID"""
         deck_data = await self.repo.get_deck(deck_id)
         if not deck_data:
@@ -114,15 +110,15 @@ class DeckService:
         deck = DeckDB.from_dict(deck_data)
 
         # Convert to response model
-        return DeckStatusResponse.from_db_model(deck)
+        return DeckResponse.for_status(deck)
 
-    async def list_decks(self, limit: int = 10) -> list[DeckListItemResponse]:
+    async def list_decks(self, limit: int = 10) -> list[DeckResponse]:
         """List recent decks"""
         decks_data = await self.repo.list_all_decks(limit=limit)
 
         # Convert each dict to database model, then to response model
         decks = [DeckDB.from_dict(deck_data) for deck_data in decks_data]
-        return [DeckListItemResponse.from_db_model(deck) for deck in decks]
+        return [DeckResponse.for_list_item(deck) for deck in decks]
 
     async def get_deck_data(self, deck_id: UUID) -> dict:
         """Get complete deck data for rendering"""
@@ -136,7 +132,7 @@ class DeckService:
 
     async def modify_slide(
         self, deck_id: UUID, slide_order: int, request: ModifySlideRequest
-    ) -> ModifySlideResponse:
+    ) -> SlideOperationResponse:
         """Start slide modification process"""
         deck_data = await self.repo.get_deck(deck_id)
         if not deck_data:
@@ -145,7 +141,7 @@ class DeckService:
         deck = DeckDB.from_dict(deck_data)
 
         # Validate slide exists and deck is in correct state
-        if deck.status not in {"completed", "modifying"}:
+        if deck.status not in {DeckStatus.COMPLETED, DeckStatus.MODIFYING}:
             raise ValueError(
                 f"Can only modify slides in completed or modifying decks. Current status: {deck.status}"
             )
@@ -154,9 +150,7 @@ class DeckService:
             raise ValueError("Slide not found")
 
         # Return immediate response, actual modification happens in background
-        return ModifySlideResponse(
-            deck_id=str(deck_id), slide_order=slide_order, status="modifying"
-        )
+        return SlideOperationResponse.for_modify(str(deck_id), slide_order)
 
     async def get_slide_version_history(
         self, deck_id: UUID, slide_order: int
@@ -184,7 +178,7 @@ class DeckService:
 
     async def revert_slide_to_version(
         self, deck_id: UUID, slide_order: int, request: RevertSlideRequest
-    ) -> RevertSlideResponse:
+    ) -> SlideOperationResponse:
         """Revert a slide to a specific version"""
         deck_data = await self.repo.get_deck(deck_id)
         if not deck_data:
@@ -229,16 +223,13 @@ class DeckService:
         # Save back to repository
         await self.repo.save_deck(deck_id, deck.to_dict())
 
-        return RevertSlideResponse(
-            deck_id=str(deck_id),
-            slide_order=slide_order,
-            reverted_to_version=request.version_id,
-            status="success",
+        return SlideOperationResponse.for_revert(
+            str(deck_id), slide_order, request.version_id
         )
 
     async def save_slide_content(
         self, deck_id: UUID, slide_order: int, html_content: str
-    ) -> SaveSlideContentResponse:
+    ) -> SlideOperationResponse:
         """Save edited HTML content with versioning"""
         deck_data = await self.repo.get_deck(deck_id)
         if not deck_data:
@@ -296,11 +287,11 @@ class DeckService:
         # Save to database
         await self.repo.save_deck(deck_id, deck.to_dict())
 
-        return SaveSlideContentResponse(
-            status="success",
-            message="편집 내용이 저장되었습니다",
-            version_id=target_slide.content.current_version_id,
-            version_count=len(target_slide.versions) if target_slide.versions else 0,
+        return SlideOperationResponse.for_save(
+            str(deck_id),
+            slide_order,
+            target_slide.content.current_version_id or "",
+            len(target_slide.versions) if target_slide.versions else 0,
         )
 
     async def delete_deck(self, deck_id: UUID) -> dict:
@@ -360,7 +351,7 @@ class DeckService:
             async with deck_semaphore:
                 # Check for cancellation
                 deck = await repo.get_deck(deck_id)
-                if deck and deck.get("status") == "cancelled":
+                if deck and deck.get("status") == DeckStatus.CANCELLED.value:
                     raise Exception("Deck generation was cancelled")
 
                 # Step 1: Plan deck
@@ -376,7 +367,7 @@ class DeckService:
                     "audience": deck_plan.audience,
                     "core_message": deck_plan.core_message,
                     "color_theme": deck_plan.color_theme.value,
-                    "status": "generating",
+                    "status": DeckStatus.PLANNING.value,
                     "slides": [],
                     "created_at": datetime.now(),
                 }
@@ -395,7 +386,7 @@ class DeckService:
                 # Record metrics
                 duration = time.time() - start_time
                 deck_generation_duration_seconds.observe(duration)
-                deck_generation_total.labels(status="completed").inc()
+                deck_generation_total.labels(status=DeckStatus.COMPLETED.value).inc()
                 slide_generation_total.inc(len(slides))
 
                 logger.info(
@@ -405,8 +396,8 @@ class DeckService:
 
         except Exception as e:
             # Handle errors
-            deck_generation_total.labels(status="failed").inc()
-            await repo.update_deck_status(deck_id, "failed")
+            deck_generation_total.labels(status=DeckStatus.FAILED.value).inc()
+            await repo.update_deck_status(deck_id, DeckStatus.FAILED.value)
             logger.error(
                 "❌ [GENERATE_DECK] Generation failed",
                 deck_id=str(deck_id),
@@ -452,7 +443,7 @@ Please create a detailed presentation based on these files."""
         """Generate content for all slides in parallel"""
         # Get preferences from config.style_preferences with defaults
         style_prefs = config.style_preferences if config else {}
-        
+
         deck_context = {
             "deck_title": deck_plan.deck_title,
             "audience": deck_plan.audience,
@@ -460,7 +451,9 @@ Please create a detailed presentation based on these files."""
             "goal": deck_plan.goal.value,
             "color_theme": deck_plan.color_theme.value,
             "layout_preference": style_prefs.get("layout_preference", "professional"),
-            "color_preference": style_prefs.get("color_preference", "professional_blue"),
+            "color_preference": style_prefs.get(
+                "color_preference", "professional_blue"
+            ),
             "persona_preference": style_prefs.get("persona_preference", "balanced"),
         }
 
@@ -477,7 +470,7 @@ Please create a detailed presentation based on these files."""
 
             # Check for cancellation
             deck = await repo.get_deck(deck_id)
-            if deck and deck.get("status") == "cancelled":
+            if deck and deck.get("status") == DeckStatus.CANCELLED.value:
                 raise Exception("Generation cancelled")
 
             # Generate content
@@ -530,6 +523,6 @@ Please create a detailed presentation based on these files."""
 
         # Save completed deck
         deck_data["slides"] = slides_data
-        deck_data["status"] = "completed"
+        deck_data["status"] = DeckStatus.COMPLETED.value
         deck_data["completed_at"] = current_time
         await repo.save_deck(deck_id, deck_data)

@@ -13,13 +13,13 @@ from uuid import uuid4
 
 import pytest
 
+from app.models.enums import ColorPreference
 from app.services.deck_planning.models import (
     DeckPlan,
     LayoutType,
     PresentationGoal,
     SlidePlan,
 )
-from app.models.enums import ColorPreference
 from app.services.models import GeneratedDeck, Slide
 from tests.builders import (
     any_deck_context,
@@ -50,7 +50,9 @@ def mock_repo():
     """Mock repository for testing."""
     repo = AsyncMock()
     repo.save_deck = AsyncMock()
-    repo.get_deck = AsyncMock()
+    repo.get_deck = AsyncMock(
+        return_value=None
+    )  # Default to None for cleaner cancellation checks
     repo.update_deck_status = AsyncMock()
     repo.list_all_decks = AsyncMock()
     return repo

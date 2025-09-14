@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 # Import unified enums
-from app.models.enums import LayoutType, PresentationGoal, ColorPreference
+from app.models.enums import ColorPreference, LayoutType, PresentationGoal
 
 
 # Slide planning models

@@ -17,7 +17,8 @@ class CreateDeckRequest(BaseModel):
         ..., min_length=5, max_length=5000, description="Deck generation prompt"
     )
     style: dict[str, str] | None = Field(
-        None, description="Optional styling preferences including layout_preference, color_preference, persona_preference"
+        None,
+        description="Optional styling preferences including layout_preference, color_preference, persona_preference",
     )
     files: list[FileInfo] | None = Field(None, description="Optional uploaded files")
 

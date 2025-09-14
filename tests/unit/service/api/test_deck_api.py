@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.models.responses.deck import DeckResponse
 
 
 @pytest.fixture
@@ -19,12 +20,9 @@ def client():
 def mock_deck_service():
     """Mock the DeckService."""
     from app.api.deck import get_deck_service
-    from app.models.responses.deck import CreateDeckResponse
 
     service = AsyncMock()
-    service.create_deck.return_value = CreateDeckResponse(
-        deck_id=str(uuid4()), status="generating"
-    )
+    service.create_deck.return_value = DeckResponse.for_creation(str(uuid4()))
 
     # Override the FastAPI dependency
     app.dependency_overrides[get_deck_service] = lambda: service
@@ -42,20 +40,16 @@ def mock_deck_service_comprehensive():
 
     from app.api.deck import get_deck_service
     from app.models.responses.deck import (
-        CreateDeckResponse,
-        DeckListItemResponse,
-        DeckStatusResponse,
-        ModifySlideResponse,
+        DeckResponse,
+        SlideOperationResponse,
     )
 
     service = AsyncMock()
 
     # Setup all the common mock responses
     deck_id = str(uuid4())
-    service.create_deck.return_value = CreateDeckResponse(
-        deck_id=deck_id, status="generating"
-    )
-    service.get_deck_status.return_value = DeckStatusResponse(
+    service.create_deck.return_value = DeckResponse.for_creation(deck_id)
+    service.get_deck_status.return_value = DeckResponse(
         deck_id=deck_id,
         status="completed",
         slide_count=1,
@@ -63,11 +57,9 @@ def mock_deck_service_comprehensive():
         updated_at=None,
         completed_at=datetime(2024, 1, 1, 0, 5),
     )
-    service.modify_slide.return_value = ModifySlideResponse(
-        deck_id=deck_id, slide_order=1, status="modifying"
-    )
+    service.modify_slide.return_value = SlideOperationResponse.for_modify(deck_id, 1)
     service.list_decks.return_value = [
-        DeckListItemResponse(
+        DeckResponse(
             deck_id=deck_id,
             title="Test Deck",
             status="completed",
@@ -104,7 +96,7 @@ class TestDeckAPIEndpoints:
         response_data = response.json()
         assert "deck_id" in response_data
         assert "status" in response_data
-        assert response_data["status"] == "generating"
+        assert response_data["status"] == "starting"
 
         # Verify service was called
         mock_deck_service.create_deck.assert_called_once()
@@ -129,13 +121,13 @@ class TestDeckAPIEndpoints:
         from datetime import datetime
 
         from app.api.deck import get_deck_service
-        from app.models.responses.deck import DeckStatusResponse
+        from app.models.responses.deck import DeckResponse
 
         deck_id = str(uuid4())
 
         # Create mock service
         mock_service = AsyncMock()
-        mock_service.get_deck_status.return_value = DeckStatusResponse(
+        mock_service.get_deck_status.return_value = DeckResponse(
             deck_id=deck_id,
             status="completed",
             slide_count=1,
@@ -211,20 +203,20 @@ class TestDeckAPIEndpoints:
         from datetime import datetime
 
         from app.api.deck import get_deck_service
-        from app.models.responses.deck import DeckStatusResponse
+        from app.models.responses.deck import DeckResponse
 
         deck_id = str(uuid4())
 
         # Create mock service that returns generating status
         mock_service = AsyncMock()
         mock_service.get_deck_status.side_effect = [
-            DeckStatusResponse(
+            DeckResponse(
                 deck_id=deck_id,
-                status="generating",
+                status="starting",
                 slide_count=0,
                 created_at=datetime(2024, 1, 1),
             ),
-            DeckStatusResponse(
+            DeckResponse(
                 deck_id=deck_id,
                 status="cancelled",
                 slide_count=0,

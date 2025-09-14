@@ -80,12 +80,12 @@ class DeckGenerationConfig(BaseModel):
 
         # Store all style preferences including new layout/color/persona preferences
         style_preferences = {}
-        
+
         # Copy all preferences to style_preferences
         for key, value in style.items():
             if key not in {"max_slides", "generation_mode"}:
                 style_preferences[key] = value
-        
+
         # Set layout, color, and persona preferences with defaults if not provided
         if "layout_preference" not in style_preferences:
             style_preferences["layout_preference"] = "professional"
@@ -93,7 +93,7 @@ class DeckGenerationConfig(BaseModel):
             style_preferences["color_preference"] = "professional_blue"
         if "persona_preference" not in style_preferences:
             style_preferences["persona_preference"] = "balanced"
-            
+
         # If old persona is provided but not persona_preference, map it
         if "persona" in style and "persona_preference" not in style:
             # Map old persona system to new persona_preference (spacing)
@@ -107,9 +107,11 @@ class DeckGenerationConfig(BaseModel):
                 "EXECUTIVE_BOARDROOM": "compact",
                 "TRAINING_FACILITATOR": "spacious",
                 "PRODUCT_MANAGER": "balanced",
-                "CONSULTANT_ADVISOR": "balanced"
+                "CONSULTANT_ADVISOR": "balanced",
             }
-            style_preferences["persona_preference"] = persona_mapping.get(style["persona"], "balanced")
+            style_preferences["persona_preference"] = persona_mapping.get(
+                style["persona"], "balanced"
+            )
 
         config_data["style_preferences"] = style_preferences
 

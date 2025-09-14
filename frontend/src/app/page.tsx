@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import FileUpload, { FileInfo } from '@/components/FileUpload';
-import { 
+import {
   LAYOUTS, COLORS, PERSONAS,
   DEFAULT_LAYOUT, DEFAULT_COLOR, DEFAULT_PERSONA,
   getLayoutList, getColorList, getPersonaList
@@ -15,12 +15,12 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
-  
+
   // Preferences state
   const [selectedLayout, setSelectedLayout] = useState(DEFAULT_LAYOUT);
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLOR);
   const [selectedPersona, setSelectedPersona] = useState(DEFAULT_PERSONA);
-  
+
   // UI state for selectors
   const [showLayoutSelector, setShowLayoutSelector] = useState(false);
   const [showColorSelector, setShowColorSelector] = useState(false);
@@ -36,7 +36,7 @@ export default function Home() {
         body: JSON.stringify({
           prompt,
           files,
-          style: { 
+          style: {
             layout_preference: selectedLayout,
             color_preference: selectedColor,
             persona_preference: selectedPersona
@@ -184,7 +184,7 @@ export default function Home() {
                     }`}
                     title="색상 조합 선택"
                   >
-                    <div 
+                    <div
                       className="w-4 h-4 rounded-full border border-gray-300"
                       style={{ backgroundColor: COLORS[selectedColor].preview }}
                     />
@@ -211,7 +211,7 @@ export default function Home() {
                             selectedColor === color.id ? 'bg-green-50' : ''
                           }`}
                         >
-                          <div 
+                          <div
                             className="w-6 h-6 rounded-full border border-gray-300 mt-0.5"
                             style={{ backgroundColor: color.preview }}
                           />
