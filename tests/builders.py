@@ -9,7 +9,6 @@ from app.services.deck_planning.models import (
     PresentationGoal,
     SlidePlan,
 )
-from app.services.models import DeckContext
 
 
 class SlidePlanBuilder:
@@ -277,49 +276,17 @@ class SlideContentBuilder:
         return SlideContent(html_content=html_content)
 
 
-class DeckContextBuilder:
-    """Builder for creating flexible DeckContext test data."""
-
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self._deck_title = "Test Deck"
-        self._audience = "Test Users"
-        self._core_message = "Test Message"
-        self._goal = "inform"
-        self._color_theme = "professional_blue"
-        return self
-
-    def with_title(self, title: str):
-        self._deck_title = title
-        return self
-
-    def with_audience(self, audience: str):
-        self._audience = audience
-        return self
-
-    def with_theme(self, theme: str):
-        self._color_theme = theme
-        return self
-
-    def from_deck_plan(self, deck_plan: DeckPlan):
-        """Create context from existing deck plan."""
-        self._deck_title = deck_plan.deck_title
-        self._audience = deck_plan.audience
-        self._core_message = deck_plan.core_message
-        self._goal = deck_plan.goal.value
-        self._color_theme = deck_plan.color_theme.value
-        return self
-
-    def build(self) -> DeckContext:
-        return DeckContext(
-            deck_title=self._deck_title,
-            audience=self._audience,
-            core_message=self._core_message,
-            goal=self._goal,
-            color_theme=self._color_theme,
-        )
+def build_deck_context(**overrides) -> dict:
+    """Create deck context dict with optional overrides."""
+    defaults = {
+        "deck_title": "Test Deck",
+        "audience": "Test Users",
+        "core_message": "Test Message",
+        "goal": "inform",
+        "color_theme": "professional_blue",
+    }
+    defaults.update(overrides)
+    return defaults
 
 
 # Convenience functions for common patterns
@@ -350,13 +317,9 @@ def any_slide_content(**overrides) -> SlideContent:
     return builder.build()
 
 
-def any_deck_context(**overrides) -> DeckContext:
+def any_deck_context(**overrides) -> dict:
     """Create any valid deck context with optional overrides."""
-    builder = DeckContextBuilder()
-    for key, value in overrides.items():
-        if hasattr(builder, f"with_{key}"):
-            getattr(builder, f"with_{key}")(value)
-    return builder.build()
+    return build_deck_context(**overrides)
 
 
 # Test data variants for different scenarios

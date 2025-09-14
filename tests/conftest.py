@@ -20,7 +20,7 @@ from app.services.deck_planning.models import (
     PresentationGoal,
     SlidePlan,
 )
-from app.services.models import GeneratedDeck, Slide
+from app.services.models import Slide
 from tests.builders import (
     any_deck_context,
     any_deck_plan,
@@ -96,17 +96,19 @@ def sample_deck_context():
 
 @pytest.fixture
 def sample_generated_deck(sample_slide):
-    """Sample generated deck for testing."""
+    """Sample generated deck for testing - returns dict format for compatibility."""
     from datetime import datetime
 
-    return GeneratedDeck(
-        deck_id=str(uuid4()),
-        title="Test Presentation",
-        status="completed",
-        slides=[sample_slide],
-        created_at=datetime.now(),
-        completed_at=datetime.now(),
-    )
+    from app.models.enums import DeckStatus
+
+    return {
+        "deck_id": str(uuid4()),
+        "title": "Test Presentation",
+        "status": DeckStatus.COMPLETED.value,
+        "slides": [sample_slide.model_dump()],
+        "created_at": datetime.now(),
+        "completed_at": datetime.now(),
+    }
 
 
 # Test utilities

@@ -29,7 +29,7 @@ class TestWriteContent:
 
         deck_context = any_deck_context(title="Content Test Deck")
 
-        result = await write_content(slide_info, deck_context.model_dump(), mock_llm)
+        result = await write_content(slide_info, deck_context, mock_llm)
 
         assert isinstance(result, SlideContent)
         # Check that the result is a full HTML document
