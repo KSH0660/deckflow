@@ -34,7 +34,7 @@ export interface DeckData {
 
 export interface DeckStatus {
   deck_id: string;
-  status: 'completed' | 'modifying' | 'generating' | 'failed' | 'cancelled';
+  status: 'starting' | 'planning' | 'writing' | 'rendering' | 'modifying' | 'completed' | 'failed' | 'cancelled';
   slide_count: number;
   progress?: number;
   step?: string;
