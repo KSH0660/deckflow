@@ -74,8 +74,14 @@ def _build_html_head(
     return head_content
 
 
-def _combine_html_parts(head_content: str, body_content: str) -> str:
-    """Combine head and body content into complete HTML"""
+def _combine_html_parts(
+    head_content: str,
+    body_content: str,
+    layout_preference: str = "professional",
+    color_preference: str = "professional_blue",
+    persona_preference: str = "balanced"
+) -> str:
+    """Combine head and body content into complete HTML with CSS classes"""
     # Extract body content (remove <body> and </body> tags if present)
     if body_content.strip().startswith("<body"):
         body_start = body_content.find(">") + 1
@@ -86,8 +92,17 @@ def _combine_html_parts(head_content: str, body_content: str) -> str:
     else:
         body_inner = body_content.strip()
 
+    # Build CSS classes for body tag
+    css_classes = [
+        "d-flex", "align-items-center", "justify-content-center",
+        "min-vh-100", "bg-light", "overflow-hidden",
+        f"layout-{layout_preference}",
+        f"theme-{color_preference}",
+        f"persona-{persona_preference}"
+    ]
+
     return f"""{head_content}
-<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light overflow-hidden">
+<body class="{' '.join(css_classes)}">
     {body_inner}
 </body>
 </html>"""
@@ -490,7 +505,13 @@ Editor scripts will be automatically added - focus on creating clean, semantic H
             color_preference=color_preference,
             persona_preference=persona_preference,
         )
-        complete_html = _combine_html_parts(head_content, body_content)
+        complete_html = _combine_html_parts(
+            head_content,
+            body_content,
+            layout_preference=layout_preference,
+            color_preference=color_preference,
+            persona_preference=persona_preference
+        )
 
         # Create final content object
         content = SlideContent(html_content=complete_html)

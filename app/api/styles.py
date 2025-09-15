@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
 from app.logging import get_logger
+from app.models.enums import LayoutPreference, ColorPreference, PersonaPreference
 
 router = APIRouter(tags=["styles"])
 logger = get_logger(__name__)
@@ -120,19 +121,19 @@ async def get_combined_css():
         all_css_parts = [base_css]
 
         # Load all layouts
-        for layout in ["professional", "creative", "minimal"]:
-            layout_css = _load_css_file(f"layouts/{layout}.css")
-            all_css_parts.append(f"/* {layout} layout */\n{layout_css}")
+        for layout in LayoutPreference:
+            layout_css = _load_css_file(f"layouts/{layout.value}.css")
+            all_css_parts.append(f"/* {layout.value} layout */\n{layout_css}")
 
         # Load all colors
-        for color in ["professional_blue", "modern_green", "warm_corporate"]:
-            color_css = _load_css_file(f"colors/{color}.css")
-            all_css_parts.append(f"/* {color} colors */\n{color_css}")
+        for color in ColorPreference:
+            color_css = _load_css_file(f"colors/{color.value}.css")
+            all_css_parts.append(f"/* {color.value} colors */\n{color_css}")
 
         # Load all personas
-        for persona in ["balanced", "compact", "spacious"]:
-            persona_css = _load_css_file(f"personas/{persona}.css")
-            all_css_parts.append(f"/* {persona} persona */\n{persona_css}")
+        for persona in PersonaPreference:
+            persona_css = _load_css_file(f"personas/{persona.value}.css")
+            all_css_parts.append(f"/* {persona.value} persona */\n{persona_css}")
 
         # Add base slide styles
         all_css_parts.append(
