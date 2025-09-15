@@ -69,13 +69,17 @@ class DeckService:
         await self.repo.save_deck(deck_id, initial_deck.to_dict())
 
         # Start background generation (business logic belongs in service layer!)
-        async def progress_cb(step: str, progress: int, _slide: dict | None = None):
+        async def progress_cb(step: str, progress: int, _slide: dict | None = None, status: str = None):
             deck = await self.repo.get_deck(deck_id) or {}
             if deck.get("status") == DeckStatus.CANCELLED.value:
                 return
+
+            # Use provided status or keep current status
+            current_status = status if status else deck.get("status", DeckStatus.WRITING.value)
+
             deck.update(
                 {
-                    "status": DeckStatus.WRITING.value,  # During generation, it's in WRITING phase
+                    "status": current_status,
                     "progress": int(progress),
                     "status_message": step,
                     "updated_at": datetime.now(),
@@ -334,10 +338,10 @@ class DeckService:
         )
 
         # Initialize progress tracking
-        async def update_progress(step: str, progress: int, slide_data: dict = None):
+        async def update_progress(step: str, progress: int, slide_data: dict = None, status: str = None):
             if progress_callback:
                 if asyncio.iscoroutinefunction(progress_callback):
-                    await progress_callback(step, progress, slide_data)
+                    await progress_callback(step, progress, slide_data, status)
                 else:
                     progress_callback(step, progress)
 
@@ -355,11 +359,11 @@ class DeckService:
                     raise Exception("Deck generation was cancelled")
 
                 # Step 1: Plan deck
-                await update_progress("Planning presentation structure...", 30)
+                await update_progress("Planning presentation structure...", 30, status=DeckStatus.PLANNING.value)
                 deck_plan = await plan_deck(enhanced_prompt, llm, config)
 
                 # Step 2: Initialize deck data
-                await update_progress("Initializing deck data...", 40)
+                await update_progress("Initializing deck data...", 40, status=DeckStatus.PLANNING.value)
                 deck_data = {
                     "id": str(deck_id),
                     "deck_title": deck_plan.deck_title,
@@ -484,13 +488,13 @@ Please create a detailed presentation based on these files."""
                 completed_count += 1
                 progress = 60 + (completed_count * 25 // total_slides)
                 await update_progress(
-                    f"Completed slide {i+1}/{total_slides}: {slide_title}", progress
+                    f"Completed slide {i+1}/{total_slides}: {slide_title}", progress, status=DeckStatus.WRITING.value
                 )
 
             return slide
 
         # Generate all slides in parallel
-        await update_progress("Starting slide generation...", 50)
+        await update_progress("Starting slide generation...", 50, status=DeckStatus.WRITING.value)
         slide_tasks = [
             generate_single_slide(i, slide_plan)
             for i, slide_plan in enumerate(deck_plan.slides)
@@ -499,7 +503,7 @@ Please create a detailed presentation based on these files."""
 
     async def _finalize_deck(self, deck_data, slides, repo, deck_id, update_progress):
         """Finalize deck with version history"""
-        await update_progress("Finalizing presentation...", 95)
+        await update_progress("Finalizing presentation...", 95, status=DeckStatus.RENDERING.value)
         current_time = datetime.now()
 
         # Add version history to slides
