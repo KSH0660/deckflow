@@ -37,6 +37,9 @@ class LayoutType(str, Enum):
     FEATURE_SHOWCASE = "feature_showcase"
     TESTIMONIAL = "testimonial"
     CALL_TO_ACTION = "call_to_action"
+    TWO_COLUMN = "two_column"
+    STATS_SHOWCASE = "stats_showcase"
+    TIMELINE = "timeline"
 
 
 # Layout Preferences (user choice)

@@ -1,0 +1,60 @@
+/* Balanced Persona Styles - Standard spacing */
+
+.persona-balanced,
+.balanced-padding {
+    padding: 3rem !important;
+}
+
+.persona-balanced .block-header,
+.balanced-padding .block-header {
+    margin-bottom: 2rem;
+}
+
+.persona-balanced .block-section,
+.balanced-padding .block-section {
+    margin-top: 2rem;
+}
+
+.persona-balanced h1,
+.balanced-title {
+    font-size: 2.5rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.persona-balanced h2 {
+    font-size: 1.75rem !important;
+    line-height: 1.4 !important;
+}
+
+.persona-balanced h3 {
+    font-size: 1.5rem !important;
+    line-height: 1.4 !important;
+}
+
+.persona-balanced p,
+.persona-balanced .block-list-item,
+.balanced-body {
+    font-size: 1.125rem !important;
+    line-height: 1.6 !important;
+}
+
+.persona-balanced .block-list-item {
+    margin-bottom: 1.5rem;
+}
+
+.persona-balanced .feature-card {
+    padding: 1.5rem;
+}
+
+.persona-balanced .feature-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.persona-balanced .block-callout {
+    padding: 1.5rem;
+    margin: 2rem 0;
+}

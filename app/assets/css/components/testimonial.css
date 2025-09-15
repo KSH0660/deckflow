@@ -1,0 +1,170 @@
+/* Testimonial Components - Quotes & Reviews */
+
+.testimonial-layout {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+    padding: 4rem;
+}
+
+.testimonial-content {
+    max-width: 800px;
+    position: relative;
+}
+
+.testimonial-quote {
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    position: relative;
+    font-style: italic;
+}
+
+.testimonial-quote::before {
+    content: '"';
+    font-size: 4rem;
+    color: var(--bs-primary);
+    position: absolute;
+    top: -1rem;
+    left: -2rem;
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+.testimonial-quote::after {
+    content: '"';
+    font-size: 4rem;
+    color: var(--bs-primary);
+    position: absolute;
+    bottom: -2rem;
+    right: -2rem;
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.testimonial-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.testimonial-author-info {
+    text-align: left;
+}
+
+.testimonial-author-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.testimonial-author-title {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.testimonial-author-company {
+    font-size: 0.875rem;
+    color: var(--bs-primary);
+    font-weight: 500;
+}
+
+/* Alternative compact layout */
+.testimonial-compact {
+    padding: 3rem;
+}
+
+.testimonial-compact .testimonial-quote {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.testimonial-compact .testimonial-quote::before,
+.testimonial-compact .testimonial-quote::after {
+    font-size: 3rem;
+}
+
+.testimonial-compact .testimonial-author {
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.testimonial-compact .testimonial-author-info {
+    text-align: center;
+}
+
+/* Multiple testimonials layout */
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem;
+    padding: 3rem;
+    height: 100%;
+    align-items: center;
+}
+
+.testimonial-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--bs-primary);
+}
+
+.testimonial-card .testimonial-quote {
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+}
+
+.testimonial-card .testimonial-quote::before,
+.testimonial-card .testimonial-quote::after {
+    display: none;
+}
+
+.testimonial-card .testimonial-author {
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.testimonial-card .testimonial-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1rem;
+}
+
+/* Rating stars */
+.testimonial-rating {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.testimonial-star {
+    color: #fbbf24;
+    font-size: 1.25rem;
+}

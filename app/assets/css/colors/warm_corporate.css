@@ -1,0 +1,42 @@
+/* Warm Corporate Color Theme */
+
+.theme-warm-corporate,
+.color-warm-corporate {
+    --bs-primary: #dc2626;
+    --bs-primary-rgb: 220, 38, 38;
+    --bs-secondary: #ea580c;
+    --bs-secondary-rgb: 234, 88, 12;
+    --bs-accent: #f59e0b;
+    --bs-accent-rgb: 245, 158, 11;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+}
+
+/* Apply theme automatically */
+body {
+    --bs-primary: #dc2626;
+    --bs-secondary: #ea580c;
+}
+
+.block-list-bullet {
+    background: var(--bs-primary);
+}
+
+.block-callout {
+    background: rgba(220, 38, 38, 0.1);
+    border-left-color: var(--bs-primary);
+}
+
+.feature-icon {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--bs-primary);
+}
+
+.cta-button {
+    background: var(--bs-primary);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.cta-button:hover {
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}

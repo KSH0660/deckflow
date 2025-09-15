@@ -1,0 +1,55 @@
+/* Minimal Layout Styles */
+
+.layout-minimal .block-header {
+    text-align: left;
+    border-left: 4px solid var(--bs-primary);
+    padding-left: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.layout-minimal .block-header h1 {
+    font-weight: 300;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.layout-minimal .block-content {
+    max-width: 80%;
+}
+
+.layout-minimal .block-section {
+    border-top: 1px solid #e9ecef;
+    padding-top: 2rem;
+    margin-top: 2rem;
+}
+
+.layout-minimal .feature-card {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 0;
+    padding: 1.5rem 0;
+}
+
+.layout-minimal .feature-card:last-child {
+    border-bottom: none;
+}
+
+.layout-minimal .feature-icon {
+    background: none;
+    color: var(--bs-primary);
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+
+.layout-minimal .block-list-bullet {
+    background: transparent;
+    border: 2px solid var(--bs-primary);
+}
+
+.layout-minimal .block-callout {
+    background: none;
+    border: none;
+    border-left: 2px solid var(--bs-primary);
+    padding: 0 0 0 1.5rem;
+}

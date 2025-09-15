@@ -32,11 +32,14 @@ LAYOUT_COMPONENTS: dict[LayoutType, str] = {
     LayoutType.TITLE_SLIDE: "title_slide.css",
     LayoutType.CONTENT_SLIDE: "content_slide.css",
     LayoutType.COMPARISON: "comparison.css",
-    LayoutType.DATA_VISUAL: "content_slide.css",  # Reuse content_slide for data visuals
-    LayoutType.PROCESS_FLOW: "content_slide.css",  # Reuse content_slide for process flows
+    LayoutType.DATA_VISUAL: "data_visual.css",
+    LayoutType.PROCESS_FLOW: "process_flow.css",
     LayoutType.FEATURE_SHOWCASE: "feature_showcase.css",
-    LayoutType.TESTIMONIAL: "content_slide.css",  # Reuse content_slide for testimonials
+    LayoutType.TESTIMONIAL: "testimonial.css",
     LayoutType.CALL_TO_ACTION: "call_to_action.css",
+    LayoutType.TWO_COLUMN: "two_column.css",
+    LayoutType.STATS_SHOWCASE: "stats_showcase.css",
+    LayoutType.TIMELINE: "timeline.css",
 }
 
 # Color scheme CSS variables

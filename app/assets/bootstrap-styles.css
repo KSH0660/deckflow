@@ -1,0 +1,177 @@
+/* Bootstrap-based Custom Styles for DeckFlow Slides */
+
+/* Base slide container */
+.slide-container {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+/* Content blocks with persona spacing */
+.block-content {
+    max-width: 90%;
+    margin: 0 auto;
+}
+
+.block-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.block-section {
+    margin-top: 2rem;
+}
+
+/* Persona-specific spacing */
+.compact-padding { padding: 1.5rem; }
+.balanced-padding { padding: 3rem; }
+.spacious-padding { padding: 4.5rem; }
+
+.compact-title { font-size: 2rem; line-height: 1.2; }
+.balanced-title { font-size: 2.5rem; line-height: 1.3; }
+.spacious-title { font-size: 3rem; line-height: 1.4; }
+
+.compact-body { font-size: 1rem; line-height: 1.4; }
+.balanced-body { font-size: 1.125rem; line-height: 1.6; }
+.spacious-body { font-size: 1.25rem; line-height: 1.8; }
+
+/* Custom list styling */
+.block-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.block-list-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.block-list-bullet {
+    width: 12px;
+    height: 12px;
+    background: var(--bs-primary);
+    border-radius: 50%;
+    margin-right: 1.5rem;
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Callout blocks */
+.block-callout {
+    background: rgba(13, 110, 253, 0.1);
+    border-left: 4px solid var(--bs-primary);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+/* Color themes */
+.theme-professional-blue {
+    --bs-primary: #1e40af;
+    --bs-secondary: #64748b;
+}
+
+.theme-warm-corporate {
+    --bs-primary: #dc2626;
+    --bs-secondary: #ea580c;
+}
+
+.theme-modern-green {
+    --bs-primary: #059669;
+    --bs-secondary: #0d9488;
+}
+
+/* Layout-specific styles */
+.layout-professional .block-header {
+    border-bottom: 2px solid rgba(13, 110, 253, 0.1);
+    padding-bottom: 1.5rem;
+}
+
+.layout-creative {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+    color: white;
+}
+
+.layout-creative .text-primary,
+.layout-creative .text-secondary {
+    color: white !important;
+}
+
+.layout-minimal .block-header {
+    text-align: left;
+    border-left: 4px solid var(--bs-primary);
+    padding-left: 1.5rem;
+}
+
+/* Feature grid for showcase slides */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    background: rgba(13, 110, 253, 0.1);
+    color: var(--bs-primary);
+}
+
+/* Comparison layout */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.comparison-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 2rem;
+}
+
+.comparison-card.left {
+    border-color: var(--bs-primary);
+}
+
+.comparison-card.right {
+    border-color: var(--bs-secondary);
+}
+
+/* Call to action styles */
+.cta-button {
+    display: inline-block;
+    background: var(--bs-primary);
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 1rem 2.5rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+    color: white;
+}

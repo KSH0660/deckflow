@@ -1,0 +1,60 @@
+/* Compact Persona Styles - High density information */
+
+.persona-compact,
+.compact-padding {
+    padding: 1.5rem !important;
+}
+
+.persona-compact .block-header,
+.compact-padding .block-header {
+    margin-bottom: 1.5rem;
+}
+
+.persona-compact .block-section,
+.compact-padding .block-section {
+    margin-top: 1.5rem;
+}
+
+.persona-compact h1,
+.compact-title {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1rem !important;
+}
+
+.persona-compact h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+}
+
+.persona-compact h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+}
+
+.persona-compact p,
+.persona-compact .block-list-item,
+.compact-body {
+    font-size: 1rem !important;
+    line-height: 1.4 !important;
+}
+
+.persona-compact .block-list-item {
+    margin-bottom: 1rem;
+}
+
+.persona-compact .feature-card {
+    padding: 1rem;
+}
+
+.persona-compact .feature-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.persona-compact .block-callout {
+    padding: 1rem;
+    margin: 1.5rem 0;
+}

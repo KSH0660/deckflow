@@ -7,24 +7,21 @@ from .models import SlideContent
 logger = get_logger(__name__)
 
 
-def _load_compiled_css() -> str:
-    """Load compiled CSS file with all styles"""
+def _load_bootstrap_css() -> str:
+    """Load Bootstrap-based styles"""
     try:
         css_path = (
             Path(__file__).parent.parent.parent
             / "assets"
-            / "css"
-            / "compiled"
-            / "output.css"
+            / "bootstrap-styles.css"
         )
         if css_path.exists():
             return css_path.read_text(encoding="utf-8")
         else:
-            logger.warning(f"Compiled CSS file not found: {css_path}")
-            # Fallback to CDN if compiled CSS is not available
+            logger.warning(f"Bootstrap styles not found: {css_path}")
             return ""
     except Exception as e:
-        logger.error(f"Error loading compiled CSS file: {e}")
+        logger.error(f"Error loading Bootstrap CSS file: {e}")
         return ""
 
 

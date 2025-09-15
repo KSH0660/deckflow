@@ -1,0 +1,60 @@
+/* Spacious Persona Styles - Comfortable reading */
+
+.persona-spacious,
+.spacious-padding {
+    padding: 4.5rem !important;
+}
+
+.persona-spacious .block-header,
+.spacious-padding .block-header {
+    margin-bottom: 3rem;
+}
+
+.persona-spacious .block-section,
+.spacious-padding .block-section {
+    margin-top: 3rem;
+}
+
+.persona-spacious h1,
+.spacious-title {
+    font-size: 3rem !important;
+    line-height: 1.4 !important;
+    margin-bottom: 2rem !important;
+}
+
+.persona-spacious h2 {
+    font-size: 2rem !important;
+    line-height: 1.5 !important;
+}
+
+.persona-spacious h3 {
+    font-size: 1.75rem !important;
+    line-height: 1.5 !important;
+}
+
+.persona-spacious p,
+.persona-spacious .block-list-item,
+.spacious-body {
+    font-size: 1.25rem !important;
+    line-height: 1.8 !important;
+}
+
+.persona-spacious .block-list-item {
+    margin-bottom: 2rem;
+}
+
+.persona-spacious .feature-card {
+    padding: 2rem;
+}
+
+.persona-spacious .feature-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.persona-spacious .block-callout {
+    padding: 2rem;
+    margin: 3rem 0;
+}

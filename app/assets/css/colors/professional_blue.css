@@ -1,0 +1,42 @@
+/* Professional Blue Color Theme */
+
+.theme-professional-blue,
+.color-professional-blue {
+    --bs-primary: #1e40af;
+    --bs-primary-rgb: 30, 64, 175;
+    --bs-secondary: #64748b;
+    --bs-secondary-rgb: 100, 116, 139;
+    --bs-accent: #3b82f6;
+    --bs-accent-rgb: 59, 130, 246;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+}
+
+/* Apply theme automatically */
+body {
+    --bs-primary: #1e40af;
+    --bs-secondary: #64748b;
+}
+
+.block-list-bullet {
+    background: var(--bs-primary);
+}
+
+.block-callout {
+    background: rgba(30, 64, 175, 0.1);
+    border-left-color: var(--bs-primary);
+}
+
+.feature-icon {
+    background: rgba(30, 64, 175, 0.1);
+    color: var(--bs-primary);
+}
+
+.cta-button {
+    background: var(--bs-primary);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.cta-button:hover {
+    box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+}

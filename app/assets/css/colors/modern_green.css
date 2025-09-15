@@ -1,0 +1,42 @@
+/* Modern Green Color Theme */
+
+.theme-modern-green,
+.color-modern-green {
+    --bs-primary: #059669;
+    --bs-primary-rgb: 5, 150, 105;
+    --bs-secondary: #0d9488;
+    --bs-secondary-rgb: 13, 148, 136;
+    --bs-accent: #10b981;
+    --bs-accent-rgb: 16, 185, 129;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+}
+
+/* Apply theme automatically */
+body {
+    --bs-primary: #059669;
+    --bs-secondary: #0d9488;
+}
+
+.block-list-bullet {
+    background: var(--bs-primary);
+}
+
+.block-callout {
+    background: rgba(5, 150, 105, 0.1);
+    border-left-color: var(--bs-primary);
+}
+
+.feature-icon {
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--bs-primary);
+}
+
+.cta-button {
+    background: var(--bs-primary);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.cta-button:hover {
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+}

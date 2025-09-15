@@ -28,19 +28,19 @@ def _load_css_file(file_path: str) -> str:
         return ""
 
 
-def _load_base_tailwind() -> str:
-    """Load base Tailwind CSS"""
+def _load_base_bootstrap() -> str:
+    """Load base Bootstrap CSS"""
     try:
         css_path = (
-            Path(__file__).parent.parent / "assets" / "css" / "compiled" / "output.css"
+            Path(__file__).parent.parent / "assets" / "bootstrap-styles.css"
         )
         if css_path.exists():
             return css_path.read_text(encoding="utf-8")
         else:
-            logger.warning("Compiled CSS not found, using CDN fallback")
+            logger.warning("Bootstrap styles not found")
             return ""
     except Exception as e:
-        logger.error(f"Error loading compiled CSS: {e}")
+        logger.error(f"Error loading Bootstrap CSS: {e}")
         return ""
 
 
@@ -52,8 +52,8 @@ async def get_dynamic_css(layout: str, color: str, persona: str):
     Example: /api/styles/professional-blue-balanced.css
     """
     try:
-        # Load base Tailwind CSS
-        base_css = _load_base_tailwind()
+        # Load base Bootstrap CSS
+        base_css = _load_base_bootstrap()
 
         # Load specific CSS files based on preferences
         layout_css = _load_css_file(f"layouts/{layout}.css")
@@ -64,7 +64,10 @@ async def get_dynamic_css(layout: str, color: str, persona: str):
         combined_css = f"""
 /* Generated CSS for {layout}-{color}-{persona} */
 
-/* Base Tailwind CSS */
+/* Bootstrap CDN */
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
+
+/* Custom Bootstrap styles */
 {base_css}
 
 /* Layout-specific styles */
@@ -111,7 +114,7 @@ async def get_combined_css():
     This includes all layout/color/persona combinations
     """
     try:
-        base_css = _load_base_tailwind()
+        base_css = _load_base_bootstrap()
 
         # Load all CSS files
         all_css_parts = [base_css]
