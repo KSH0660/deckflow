@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 interface Deck {
   deck_id: string;
   title: string;
-  status: 'generating' | 'completed' | 'failed' | 'cancelled';
+  status: 'starting' | 'planning' | 'writing' | 'rendering' | 'modifying' | 'completed' | 'failed' | 'cancelled';
   slide_count: number;
   progress?: number;
   step?: string;
@@ -28,10 +28,11 @@ export default function DecksPage() {
       if (response.ok) {
         const deckList = await response.json();
 
-        // For each deck, fetch detailed status if generating or modifying
+        // For each deck, fetch detailed status if in progress
         const enrichedDecks = await Promise.all(
           deckList.map(async (deck: any) => {
-            if (deck.status === 'generating' || deck.status === 'modifying') {
+            const inProgressStatuses = ['starting', 'planning', 'writing', 'rendering', 'modifying'];
+            if (inProgressStatuses.includes(deck.status)) {
               try {
                 const statusResponse = await fetch(`http://localhost:8000/api/decks/${deck.deck_id}`);
                 if (statusResponse.ok) {
@@ -66,7 +67,8 @@ export default function DecksPage() {
 
   // Separate effect for polling
   useEffect(() => {
-    if (decks.some(deck => deck.status === 'generating' || deck.status === 'modifying')) {
+    const inProgressStatuses = ['starting', 'planning', 'writing', 'rendering', 'modifying'];
+    if (decks.some(deck => inProgressStatuses.includes(deck.status))) {
       const interval = setInterval(fetchDecks, 3000);
       return () => clearInterval(interval);
     }
@@ -76,7 +78,10 @@ export default function DecksPage() {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'generating':
+      case 'starting':
+      case 'planning':
+      case 'writing':
+      case 'rendering':
         return 'bg-blue-100 text-blue-800';
       case 'modifying':
         return 'bg-orange-100 text-orange-800';
@@ -93,8 +98,14 @@ export default function DecksPage() {
     switch (status) {
       case 'completed':
         return '완료됨';
-      case 'generating':
-        return '생성 중';
+      case 'starting':
+        return '시작 중';
+      case 'planning':
+        return '기획 중';
+      case 'writing':
+        return '작성 중';
+      case 'rendering':
+        return '렌더링 중';
       case 'modifying':
         return '수정 중';
       case 'failed':
@@ -257,7 +268,7 @@ export default function DecksPage() {
                           </span>
                         </>
                       )}
-                      {deck.status === 'generating' && (
+                      {(['starting', 'planning', 'writing', 'rendering'].includes(deck.status)) && (
                         <>
                           <span>•</span>
                           <span className="text-orange-600">
@@ -308,12 +319,12 @@ export default function DecksPage() {
                       </>
                     )}
 
-                    {deck.status === 'generating' && (
+                    {(['starting', 'planning', 'writing', 'rendering'].includes(deck.status)) && (
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 text-sm text-blue-600">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                            {deck.step || '생성 중...'}
+                            {deck.step || getStatusText(deck.status)}
                           </div>
                           <button
                             onClick={() => handleCancel(deck.deck_id, deck.title)}
